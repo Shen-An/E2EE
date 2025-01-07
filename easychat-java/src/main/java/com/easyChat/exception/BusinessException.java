@@ -1,6 +1,6 @@
 package com.easyChat.exception;
 
-import com.easyChat.enums.ResponseCodeEnum;;
+import com.easyChat.enums.ResponseCodeEnum;
 
 public class BusinessException extends Exception{
     private ResponseCodeEnum codeEnum;

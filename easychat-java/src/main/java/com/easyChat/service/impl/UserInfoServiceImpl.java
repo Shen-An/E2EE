@@ -1,12 +1,17 @@
 package com.easyChat.service.impl;
 
+import com.easyChat.entity.po.UserInfoBeauty;
 import com.easyChat.entity.query.SimplePage;
+import com.easyChat.entity.query.UserInfoBeautyQuery;
 import com.easyChat.enums.PageSize;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
+import com.easyChat.enums.UserContactTypeEnum;
+import com.easyChat.mappers.UserInfoBeautyMapper;
 import com.easyChat.mappers.UserInfoMapper;
 import com.easyChat.service.UserInfoService;
+import com.easyChat.utils.StringTools;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,6 +28,8 @@ public class UserInfoServiceImpl implements UserInfoService{
 	@Resource
 	private UserInfoMapper<UserInfo,UserInfoQuery> userInfoMapper;
 
+	@Resource
+	private UserInfoBeautyMapper<UserInfoBeauty, UserInfoBeautyQuery> userInfoBeautyMapper;
 	/**
 	 * 用户信息表根据条件查询列表
 	 */
@@ -118,6 +125,16 @@ public class UserInfoServiceImpl implements UserInfoService{
 	public Integer deleteUserInfoByEmail(String email) {
 		return this.userInfoMapper.deleteByEmail(email);
 	}
+
+	@Override
+	public void register(String email, String nickName, String password) {
+
+	}
+
+//	public static void main(String[] args) {
+//		System.out.println(UserContactTypeEnum.getByName("USER").getDescription());
+//		System.out.println(StringTools.getUserId());
+//	}
 
 
 }

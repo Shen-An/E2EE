@@ -5,4 +5,9 @@ public class Constants {
 
     //验证码有效时间
     public static final Integer REDIS_TIME_1MIN = 60;
+
+    //用户id长度
+    public static final Integer LENGTH_11=11;
+
+
 }
