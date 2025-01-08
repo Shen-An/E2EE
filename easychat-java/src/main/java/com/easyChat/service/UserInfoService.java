@@ -1,10 +1,14 @@
 package com.easyChat.service;
 
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
+import com.easyChat.exception.BusinessException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Description:用户信息表Service
@@ -76,4 +80,6 @@ public interface UserInfoService {
 	 *	用户注册
 	 */
 	void register(String email, String nickName, String password);
+
+	TokenUserInfoDto login(String email, String password);
 }

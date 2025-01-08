@@ -2,7 +2,7 @@ package com.easyChat.exception;
 
 import com.easyChat.enums.ResponseCodeEnum;
 
-public class BusinessException extends Exception{
+public class BusinessException extends RuntimeException {
     private ResponseCodeEnum codeEnum;
 
     private Integer code;
