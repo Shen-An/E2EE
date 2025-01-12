@@ -3,11 +3,15 @@ package com.easyChat.controller;
 
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.vo.ResponseVo;
+import com.easyChat.entity.vo.UserInfoVo;
 import com.easyChat.exception.BusinessException;
+import com.easyChat.redis.RedisComponent;
 import com.easyChat.redis.RedisUtils;
 import com.easyChat.service.UserInfoService;
 
+import com.easyChat.utils.CopyUtils;
 import com.wf.captcha.ArithmeticCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +40,9 @@ public class AccountController extends ABaseController {
     @Resource
     private UserInfoService userInfoService;
 
+    @Resource
+    private RedisComponent redisComponent;
+
     @RequestMapping("/checkCode")
     public ResponseVo checkCode() {
         ArithmeticCaptcha captcha = new ArithmeticCaptcha(100, 42);//与前端适配
@@ -60,10 +67,10 @@ public class AccountController extends ABaseController {
                                @NotEmpty String nickName,
                                @NotEmpty String checkCode) throws BusinessException {
         try {
-            //失败
-            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
-                throw new BusinessException("图片验证码不正确");
-            }
+//            //失败
+//            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+//                throw new BusinessException("图片验证码不正确");
+//            }
             userInfoService.register(email, nickName, passWord);
             return getSuccessResponseVo(null);
         } finally {
@@ -79,15 +86,21 @@ public class AccountController extends ABaseController {
                                 @NotEmpty String nickName,
                                 @NotEmpty String checkCode) throws BusinessException {
         try {
-            //失败
-            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
-                throw new BusinessException("图片验证码不正确");
-            }
-            TokenUserInfoDto tokenUserInfoDto = userInfoService.login(email, passWord);
-            return getSuccessResponseVo(null);
+//            //失败
+//            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+//                throw new BusinessException("图片验证码不正确");
+//            }
+            UserInfoVo userInfoVo = userInfoService.login(email, passWord);
+            return getSuccessResponseVo(userInfoVo);
         } finally {
             //无论是否成功，在redis中删除相应的key和value
             redisUtils.delete(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey);
         }
+
     }
+
+    @RequestMapping("/getSysSetting")
+    public ResponseVo getSysSetting() {
+        return getSuccessResponseVo(redisComponent.getSysSetting());
+        }
 }

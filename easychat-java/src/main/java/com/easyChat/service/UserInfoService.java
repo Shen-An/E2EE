@@ -4,6 +4,7 @@ import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
+import com.easyChat.entity.vo.UserInfoVo;
 import com.easyChat.exception.BusinessException;
 
 import java.util.List;
@@ -81,5 +82,5 @@ public interface UserInfoService {
 	 */
 	void register(String email, String nickName, String password);
 
-	TokenUserInfoDto login(String email, String password);
+	UserInfoVo login(String email, String password);
 }

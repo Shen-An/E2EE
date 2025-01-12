@@ -1,24 +1,27 @@
 package com.easyChat.service.impl;
 
+import com.easyChat.constants.Constants;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.UserInfoBeauty;
 import com.easyChat.entity.query.SimplePage;
 import com.easyChat.entity.query.UserInfoBeautyQuery;
-import com.easyChat.enums.BeautyAccountStatusEnum;
-import com.easyChat.enums.PageSize;
+import com.easyChat.entity.vo.UserInfoVo;
+import com.easyChat.enums.*;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
-import com.easyChat.enums.UserContactTypeEnum;
-import com.easyChat.enums.UserStatusEnum;
 import com.easyChat.exception.BusinessException;
 import com.easyChat.mappers.UserInfoBeautyMapper;
 import com.easyChat.mappers.UserInfoMapper;
+import com.easyChat.redis.RedisComponent;
 import com.easyChat.service.UserInfoService;
+import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -39,6 +42,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Resource
     private AppConfig appConfig;
+    @Resource
+    private RedisComponent redisComponent;
 
     /**
      * 用户信息表根据条件查询列表
@@ -136,9 +141,19 @@ public class UserInfoServiceImpl implements UserInfoService {
         return this.userInfoMapper.deleteByEmail(email);
     }
 
+    /**
+     *
+     * @param email
+     * @param nickName
+     * @param password
+     * @throws BusinessException
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    //因为有操作两个表，必须同时成功或者失败，所以要加事务
     public void register(String email, String nickName, String password) throws BusinessException {
         Map<String, Object> res = new HashMap<>();
+
         UserInfo userInfo = this.userInfoMapper.selectByEmail(email);
 
         if (null != userInfo) {
@@ -154,12 +169,16 @@ public class UserInfoServiceImpl implements UserInfoService {
             userId = UserContactTypeEnum.USER.getPrefix() + beautyAccount.getUserId();
         }
         Date curDate = new Date();
+        userInfo = new UserInfo();
         userInfo.setUserId(userId);
         userInfo.setNickName(nickName);
+        userInfo.setEmail(email);
         userInfo.setPassword(StringTools.encodeMd5(password));
         userInfo.setCreateTime(curDate);
         userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
         userInfo.setLastOffTime(curDate.getTime());
+        userInfo.setJoinType(JoinTypeEnum.APPLY.getType());
+
         this.userInfoMapper.insert(userInfo);
 
         //把刚刚使用的靓号的状态设置为USEED
@@ -175,7 +194,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
 
     @Override
-    public TokenUserInfoDto login(String email, String password) {
+    public UserInfoVo login(String email, String password) {
 
         UserInfo userInfo = this.userInfoMapper.selectByEmail(email);
 
@@ -185,10 +204,26 @@ public class UserInfoServiceImpl implements UserInfoService {
         if (UserStatusEnum.DISABLE.equals(userInfo.getStatus())) {
             throw new BusinessException("账号已禁用");
         }
-
+        //TODO 查询联系人
+        //TODO 查询群组
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfoDto(userInfo);
 
-        return tokenUserInfoDto;
+        //判断心跳是否存在---》存在则已经登录，
+        Long lastHeartBeat = redisComponent.getUserHeartBeat(userInfo.getUserId());
+        if (null != lastHeartBeat) {
+            throw new BusinessException("账号已经在别处登录，请退出后登录");
+        }
+
+        //保存token，保存登录信息到redis中
+        String token = StringTools.encodeMd5(tokenUserInfoDto.getUserId() + StringTools.encodeMd5(StringTools.getRandomString(Constants.LENGTH_20)));
+        tokenUserInfoDto.setToken(token);
+        redisComponent.saveTokenUserInfoDto(tokenUserInfoDto);
+
+        UserInfoVo userInfoVo =  CopyUtils.copy(userInfo, UserInfoVo.class);
+        userInfoVo.setToken(tokenUserInfoDto.getToken());
+        userInfoVo.setAdmin(tokenUserInfoDto.getAdmin());
+
+        return userInfoVo;
     }
 
     private TokenUserInfoDto getTokenUserInfoDto(UserInfo userInfo) {

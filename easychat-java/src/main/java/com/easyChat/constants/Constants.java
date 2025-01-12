@@ -1,13 +1,34 @@
 package com.easyChat.constants;
 
+import com.easyChat.enums.UserContactTypeEnum;
+
 public class Constants {
-    public static final String REDIS_KEY_CHECK_CODE ="easyChat:checkCode";
+    public static final String REDIS_KEY_CHECK_CODE = "easyChat:checkCode";
 
     //验证码有效时间
     public static final Integer REDIS_TIME_1MIN = 60;
 
+    //token有效时间
+    public static final Integer REDIS_KEY_EXPIRES_DAY = REDIS_TIME_1MIN * 60 * 24;
+
+    //websocket心跳key
+    public static final String REDIS_KEY_WS_USER_HEART_BEAT = "easyChat:ws:user:Heartbeat";
+
+    //存token
+    public static final String REDIS_KEY_WS_TOKEN = "easyChat:ws:token:";
+
+    //存token对应的userId
+    public static final String REDIS_KEY_WS_TOKEN_USERID = "easyChat:ws:token:userid";
+
+    //系统设置key
+    public static final String REDIS_KEY_SYS_SETTING="easyChat:syssetting";
+    //机器人Id
+    public static final String ROBOT_UID= UserContactTypeEnum.USER.getPrefix()+"robot";
     //用户id长度
-    public static final Integer LENGTH_11=11;
+    public static final Integer LENGTH_11 = 11;
+
+    //生成token所需要的长度之一
+    public static final Integer LENGTH_20 = 20;
 
 
 }
