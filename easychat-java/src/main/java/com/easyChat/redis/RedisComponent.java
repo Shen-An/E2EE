@@ -30,6 +30,7 @@ public class RedisComponent {
      * @param tokenUserInfoDto
      */
     public void saveTokenUserInfoDto(TokenUserInfoDto tokenUserInfoDto) {
+        //userId存token,token存 用户信息
         redisUtils.setex(Constants.REDIS_KEY_WS_TOKEN + tokenUserInfoDto.getToken(), tokenUserInfoDto, Constants.REDIS_KEY_EXPIRES_DAY);
         redisUtils.setex(Constants.REDIS_KEY_WS_TOKEN_USERID + tokenUserInfoDto.getToken(), tokenUserInfoDto.getToken(), Constants.REDIS_KEY_EXPIRES_DAY);
     }
