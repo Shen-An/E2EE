@@ -30,5 +30,11 @@ public class Constants {
     //生成token所需要的长度之一
     public static final Integer LENGTH_20 = 20;
 
+    public static final String FILE_FOLDER_FILE = "/file/";
+
+    public static final String FILE_FOLDER_AVATAR_NAME = "avatar/";
+
+    public static final String IMAGE_SUFFIX = ".png";
+    public static final String COVER_IMAGE_SUFFIX = "_cover.png";
 
 }

@@ -1,6 +1,7 @@
 package com.easyChat.utils;
 
 import com.easyChat.constants.Constants;
+import com.easyChat.enums.UserContactTypeEnum;
 import com.easyChat.exception.BusinessException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -59,10 +60,14 @@ public class StringTools {
         return false;
     }
 
-    //随机生成用户Id
+    //随机生成用户、群组Id
     public static String getUserId(){
-        return "U"+getRandomNumber(Constants.LENGTH_11);
+        return UserContactTypeEnum.USER.getPrefix()+getRandomNumber(Constants.LENGTH_11);
     }
+    public static String getGroupId(){
+        return UserContactTypeEnum.GROUP.getPrefix()+getRandomNumber(Constants.LENGTH_11);
+    }
+
 
     //生成随机数字字符串
     public static String getRandomNumber(Integer count){

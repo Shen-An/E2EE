@@ -18,7 +18,7 @@ public class UserContact implements Serializable {
 	/**
 	 * 用户ID
 	 */
-	@JsonIgnore
+
 	private String userId;
 
 	/**
@@ -41,7 +41,7 @@ public class UserContact implements Serializable {
 	/**
 	 * 状态0：非好友 1：好友 2：已删除好友 3：被好友删除 4：已拉黑好友 5：被好友拉黑
 	 */
-	@JsonIgnore
+
 	private Integer status;
 
 	/**

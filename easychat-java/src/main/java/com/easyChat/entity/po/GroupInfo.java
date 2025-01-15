@@ -50,8 +50,12 @@ public class GroupInfo implements Serializable {
 	/**
 	 * 状态 1：正常 0：解散
 	 */
-	@JsonIgnore
 	private Integer status;
+
+	/**
+	 * 成员数
+	 */
+	private Integer memberCount;
 
 	public void setGroupId(String groupId) {
 		this.groupId = groupId;
@@ -107,6 +111,14 @@ public class GroupInfo implements Serializable {
 
 	public Integer getStatus() {
 		return this.status;
+	}
+
+	public Integer getMemberCount() {
+		return memberCount;
+	}
+
+	public void setMemberCount(Integer memberCount) {
+		this.memberCount = memberCount;
 	}
 
 	@Override

@@ -2,11 +2,17 @@ package com.easyChat.controller;
 
 import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.entity.po.UserContact;
+import com.easyChat.entity.query.UserContactQuery;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.entity.po.GroupInfo;
 import com.easyChat.entity.query.GroupInfoQuery;
+import com.easyChat.enums.GroupStatusEnum;
+import com.easyChat.enums.UserContactStatusEnum;
+import com.easyChat.exception.BusinessException;
 import com.easyChat.service.GroupInfoService;
 
+import com.easyChat.service.UserContactService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +22,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,6 +36,8 @@ public class GroupInfoController extends ABaseController {
 
 	@Resource
 	private GroupInfoService groupInfoService;
+	@Resource
+	private UserContactService userContactService;
 
 	@RequestMapping("loadDataList")
 	public ResponseVo loadDataList(GroupInfoQuery query) {
@@ -94,15 +103,16 @@ public class GroupInfoController extends ABaseController {
 	}
 
 	/**
-	 *
+	 *保存/更新群聊
 	 * @param request
 	 * @param groupId
 	 * @param groupName
 	 * @param groupNotice
 	 * @param joinType
-	 * @param avatarFile 初始的封面
-	 * @param avatarCover 经过Electronic处理的封面
+	 * @param avatarFile
+	 * @param avatarCover
 	 * @return
+	 * @throws IOException
 	 */
 	@GlobalInterceptor
 	@RequestMapping("/saveGroup")
@@ -113,8 +123,64 @@ public class GroupInfoController extends ABaseController {
 								@NotNull Integer joinType,
 								MultipartFile avatarFile,
 								MultipartFile avatarCover
-								) {
+								) throws IOException {
 		TokenUserInfoDto TokenUserInfoDto = getTokenUserInfo(request);
+		GroupInfo groupInfo = new GroupInfo();
+		groupInfo.setGroupId(groupId);
+		groupInfo.setGroupName(groupName);
+		groupInfo.setGroupNotice(groupNotice);
+		groupInfo.setJoinType(joinType);
+		groupInfo.setGroupOwnerId(TokenUserInfoDto.getUserId());
+
+		groupInfoService.saveGroup(groupInfo,avatarFile,avatarCover);
 		return getSuccessResponseVo(null);
+	}
+
+	/**
+	 * 加载我的群聊
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/loadMyGroup")
+	public ResponseVo loadMyGroup(HttpServletRequest request) {
+		TokenUserInfoDto TokenUserInfoDto = getTokenUserInfo(request);
+		GroupInfoQuery groupInfoQuery = new GroupInfoQuery();
+		groupInfoQuery.setGroupOwnerId(TokenUserInfoDto.getUserId());
+		List<GroupInfo>list = this.groupInfoService.findListByParam(groupInfoQuery);
+		return getSuccessResponseVo(list);
+	}
+
+	/**
+	 * 获取群聊详细信息
+	 * @param request
+	 * @param groupId
+	 * @return
+	 */
+	@RequestMapping("/getGroupInfo")
+	public ResponseVo getGroupInfo(HttpServletRequest request,@NotEmpty String groupId) {
+		GroupInfo groupInfo = getGroupDetailCommon(request, groupId);
+		UserContactQuery userContactQuery = new UserContactQuery();
+		userContactQuery.setContactId(groupId);
+		Integer memberCount = userContactService.findCountByParam(userContactQuery);
+		groupInfo.setMemberCount(memberCount);
+		return getSuccessResponseVo(groupInfo);
+	}
+
+
+	private GroupInfo getGroupDetailCommon(HttpServletRequest request,String groupId) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+
+		//判断是否是本群组人员的请求
+		UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(),groupId);
+		if(userContact == null || UserContactStatusEnum.FRIEND.equals(userContact.getStatus())){
+			throw new BusinessException("你不在群聊中/群聊不存在/群聊已解散");
+		}
+
+		GroupInfo groupInfo = this.groupInfoService.getGroupInfoByGroupId(groupId);
+		//判断是否群聊正常
+		if(groupInfo == null || !GroupStatusEnum.NORMAL.getStatus().equals(groupInfo.getStatus())){
+			throw new BusinessException("群聊不存在/群聊已解散");
+		}
+		return groupInfo;
 	}
 }

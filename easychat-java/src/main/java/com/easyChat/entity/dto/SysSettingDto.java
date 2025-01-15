@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class SysSettingDto implements Serializable {
     private static final long serialVersionUID = 2L;
 
-    //最大的群组数
+    //每人拥有的最大群组数
     private Integer maxGroupCount = 5;
     //最大群组人数
     private Integer maxGroupMemberCount = 500;
