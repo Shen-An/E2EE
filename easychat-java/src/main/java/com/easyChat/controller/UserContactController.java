@@ -1,5 +1,7 @@
 package com.easyChat.controller;
 
+import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.entity.dto.UserContactSearchResultDto;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -88,4 +92,10 @@ public class UserContactController extends ABaseController {
 	}
 
 
+	@RequestMapping("/search")
+	public ResponseVo search(HttpServletRequest request, @NotEmpty String contactId) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		UserContactSearchResultDto resultDto = userContactService.searchContact("U77786048081", contactId);
+		return getSuccessResponseVo(resultDto);
+	}
 }

@@ -1,249 +1,268 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.easyChat.mappers.UserContactMapper">
-	<!--实体映射-->
-	<resultMap id="base_result_map" type="com.easyChat.entity.po.UserContact">
-		<!-- 用户ID-->
-		<result column="user_id" property="userId"/>
-		<!-- 联系人ID或者群组ID-->
-		<result column="contact_id" property="contactId"/>
-		<!-- 联系人类型 0：好友 1：群组-->
-		<result column="contact_type" property="contactType"/>
-		<!-- 创建时间-->
-		<result column="create_time" property="createTime"/>
-		<!-- 状态0：非好友 1：好友 2：已删除好友 3：被好友删除 4：已拉黑好友 5：被好友拉黑-->
-		<result column="status" property="status"/>
-		<!-- 最后更新时间-->
-		<result column="last_update_time" property="lastUpdateTime"/>
-	</resultMap>
+    <!--实体映射-->
+    <resultMap id="base_result_map" type="com.easyChat.entity.po.UserContact">
+        <!-- 用户ID-->
+        <result column="user_id" property="userId"/>
+        <!-- 联系人ID或者群组ID-->
+        <result column="contact_id" property="contactId"/>
+        <!-- 联系人类型 0：好友 1：群组-->
+        <result column="contact_type" property="contactType"/>
+        <!-- 创建时间-->
+        <result column="create_time" property="createTime"/>
+        <!-- 状态0：非好友 1：好友 2：已删除好友 3：被好友删除 4：已拉黑好友 5：被好友拉黑-->
+        <result column="status" property="status"/>
+        <!-- 最后更新时间-->
+        <result column="last_update_time" property="lastUpdateTime"/>
+    </resultMap>
 
-	<!--通用查询列-->
-	<sql id="base_column_list">
-		user_id,contact_id,contact_type,create_time,status,last_update_time
-	</sql>
+    <!--通用查询列-->
+    <sql id="base_column_list">
+        user_id
+        ,contact_id,contact_type,create_time,status,last_update_time
+    </sql>
 
-	<!--基础查询条件-->
-	<sql id="base_query_condition">
-		<if test="query.userId != null and query.userId != ''">
-			and user_id = #{query.userId}
-		</if>
-		<if test="query.contactId != null and query.contactId != ''">
-			and contact_id = #{query.contactId}
-		</if>
-		<if test="query.contactType != null">
-			and contact_type = #{query.contactType}
-		</if>
-		<if test="query.createTime != null">
-			and create_time = #{query.createTime}
-		</if>
-		<if test="query.status != null">
-			and status = #{query.status}
-		</if>
-		<if test="query.lastUpdateTime != null">
-			and last_update_time = #{query.lastUpdateTime}
-		</if>
-	</sql>
+    <!--基础查询条件-->
+    <sql id="base_query_condition">
+        <if test="query.userId != null and query.userId != ''">
+            and user_id = #{query.userId}
+        </if>
+        <if test="query.contactId != null and query.contactId != ''">
+            and contact_id = #{query.contactId}
+        </if>
+        <if test="query.contactType != null">
+            and contact_type = #{query.contactType}
+        </if>
+        <if test="query.createTime != null">
+            and create_time = #{query.createTime}
+        </if>
+        <if test="query.status != null">
+            and status = #{query.status}
+        </if>
+        <if test="query.lastUpdateTime != null">
+            and last_update_time = #{query.lastUpdateTime}
+        </if>
+    </sql>
 
-	<!--扩展的查询条件-->
-	<sql id="base_query_condition_extend">
-		<if test="query.userIdFuzzy != null and query.userIdFuzzy !=''">
-			and user_id like concat('%', #{query.userIdFuzzy}, '%')
-		</if>
-		<if test="query.contactIdFuzzy != null and query.contactIdFuzzy !=''">
-			and contact_id like concat('%', #{query.contactIdFuzzy}, '%')
-		</if>
-		<if test="query.createTimeStart != null and query.createTimeStart !=''">
-			<![CDATA[ and create_time >= str_to_date(#(query.createTimeStart), '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.createTimeEnd != null and query.createTimeEnd !=''">
-			<![CDATA[ and create_time < date_sub(#(query.createTimeEnd), '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.lastUpdateTimeStart != null and query.lastUpdateTimeStart !=''">
-			<![CDATA[ and last_update_time >= str_to_date(#(query.lastUpdateTimeStart), '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.lastUpdateTimeEnd != null and query.lastUpdateTimeEnd !=''">
-			<![CDATA[ and last_update_time < date_sub(#(query.lastUpdateTimeEnd), '%Y-%m-%d') ]]>
-		</if>
-	</sql>
+    <!--扩展的查询条件-->
+    <sql id="base_query_condition_extend">
+        <if test="query.userIdFuzzy != null and query.userIdFuzzy !=''">
+            and user_id like concat('%', #{query.userIdFuzzy}, '%')
+        </if>
+        <if test="query.contactIdFuzzy != null and query.contactIdFuzzy !=''">
+            and contact_id like concat('%', #{query.contactIdFuzzy}, '%')
+        </if>
+        <if test="query.createTimeStart != null and query.createTimeStart !=''">
+            <![CDATA[ and create_time >= str_to_date(#(query.createTimeStart), '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.createTimeEnd != null and query.createTimeEnd !=''">
+            <![CDATA[ and create_time < date_sub(#(query.createTimeEnd), '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.lastUpdateTimeStart != null and query.lastUpdateTimeStart !=''">
+            <![CDATA[ and last_update_time >= str_to_date(#(query.lastUpdateTimeStart), '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.lastUpdateTimeEnd != null and query.lastUpdateTimeEnd !=''">
+            <![CDATA[ and last_update_time < date_sub(#(query.lastUpdateTimeEnd), '%Y-%m-%d') ]]>
+        </if>
+    </sql>
 
-	<!--扩展的查询条件-->
-	<sql id="query_condition">
-		<where>
-			<include refid = "base_query_condition"/>
-			<include refid = "base_query_condition_extend"/>
-		</where>
-	</sql>
+    <!--扩展的查询条件-->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_query_condition"/>
+            <include refid="base_query_condition_extend"/>
+        </where>
+    </sql>
 
-	<!--查询列表-->
-	<select id="selectList" resultMap="base_result_map">
-		SELECT <include refid = "base_column_list"/> FROM user_contact <include refid="query_condition"/>
-		<if test="query.orderBy!=null"> order by ${query.orderBy} </if>
-		<if test="query.simplePage!=null">limit #{query.simplePage.start},#{query.simplePage.end} </if>
-	</select>
-	<!--查询数量-->
-	<select id="selectCount" resultType="java.lang.Integer">
-		SELECT count(1) FROM user_contact <include refid="query_condition"/>
-	</select>
+    <!--查询列表-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        <if test="query.queryUserInfo">
+			u.nick_name contactName,
+			u.sex sex
+        </if>
+        FROM user_contact c
+        <if test="query.queryUserInfo">
+			inner join user_info u on u.user_id = c.user_id
+        </if>
+        <include refid="query_condition"/>
+        <if test="query.orderBy!=null">order by ${query.orderBy}</if>
+        <if test="query.simplePage!=null">limit #{query.simplePage.start},#{query.simplePage.end}</if>
+    </select>
+    <!--查询数量-->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM user_contact
+        <include refid="query_condition"/>
+    </select>
 
-	<!--插入 (匹配有值都字段)-->
-	<insert id="insert" parameterType="com.easyChat.entity.po.UserContact">
+    <!--插入 (匹配有值都字段)-->
+    <insert id="insert" parameterType="com.easyChat.entity.po.UserContact">
 
-		INSERT INTO user_contact
-		<trim prefix="(" suffix=")" suffixOverrides=",">
-			<if test="bean.userId != null">
-				user_id,
-			</if>
-			<if test="bean.contactId != null">
-				contact_id,
-			</if>
-			<if test="bean.contactType != null">
-				contact_type,
-			</if>
-			<if test="bean.createTime != null">
-				create_time,
-			</if>
-			<if test="bean.status != null">
-				status,
-			</if>
-			<if test="bean.lastUpdateTime != null">
-				last_update_time,
-			</if>
-		</trim>
-		<trim prefix="values (" suffix=")" suffixOverrides=",">
-			<if test="bean.userId != null">
-				#{bean.userId},
-			</if>
-			<if test="bean.contactId != null">
-				#{bean.contactId},
-			</if>
-			<if test="bean.contactType != null">
-				#{bean.contactType},
-			</if>
-			<if test="bean.createTime != null">
-				#{bean.createTime},
-			</if>
-			<if test="bean.status != null">
-				#{bean.status},
-			</if>
-			<if test="bean.lastUpdateTime != null">
-				#{bean.lastUpdateTime},
-			</if>
-		</trim>
-	</insert>
+        INSERT INTO user_contact
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.contactId != null">
+                contact_id,
+            </if>
+            <if test="bean.contactType != null">
+                contact_type,
+            </if>
+            <if test="bean.createTime != null">
+                create_time,
+            </if>
+            <if test="bean.status != null">
+                status,
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                last_update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                #{bean.userId},
+            </if>
+            <if test="bean.contactId != null">
+                #{bean.contactId},
+            </if>
+            <if test="bean.contactType != null">
+                #{bean.contactType},
+            </if>
+            <if test="bean.createTime != null">
+                #{bean.createTime},
+            </if>
+            <if test="bean.status != null">
+                #{bean.status},
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                #{bean.lastUpdateTime},
+            </if>
+        </trim>
+    </insert>
 
-	<!--插入或者更新 (匹配有值都字段)-->
-	<insert id="insertOrUpdate" parameterType="com.easyChat.entity.po.UserContact">
-		INSERT INTO user_contact
-		<trim prefix="(" suffix=")" suffixOverrides=",">
-			<if test="bean.userId != null">
-				user_id,
-			</if>
-			<if test="bean.contactId != null">
-				contact_id,
-			</if>
-			<if test="bean.contactType != null">
-				contact_type,
-			</if>
-			<if test="bean.createTime != null">
-				create_time,
-			</if>
-			<if test="bean.status != null">
-				status,
-			</if>
-			<if test="bean.lastUpdateTime != null">
-				last_update_time,
-			</if>
-		</trim>
-		<trim prefix="values (" suffix=")" suffixOverrides=",">
-			<if test="bean.userId != null">
-				#{bean.userId},
-			</if>
-			<if test="bean.contactId != null">
-				#{bean.contactId},
-			</if>
-			<if test="bean.contactType != null">
-				#{bean.contactType},
-			</if>
-			<if test="bean.createTime != null">
-				#{bean.createTime},
-			</if>
-			<if test="bean.status != null">
-				#{bean.status},
-			</if>
-			<if test="bean.lastUpdateTime != null">
-				#{bean.lastUpdateTime},
-			</if>
-		</trim>
-		on DUPLICATE key update
-		<trim prefix="" suffix="" suffixOverrides=",">
-			<if test="bean.contactType != null">
-				contact_type =VALUES(contact_type),
-			</if>
-			<if test="bean.createTime != null">
-				create_time =VALUES(create_time),
-			</if>
-			<if test="bean.status != null">
-				status =VALUES(status),
-			</if>
-			<if test="bean.lastUpdateTime != null">
-				last_update_time =VALUES(last_update_time),
-			</if>
-		</trim>
-	</insert>
+    <!--插入或者更新 (匹配有值都字段)-->
+    <insert id="insertOrUpdate" parameterType="com.easyChat.entity.po.UserContact">
+        INSERT INTO user_contact
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.contactId != null">
+                contact_id,
+            </if>
+            <if test="bean.contactType != null">
+                contact_type,
+            </if>
+            <if test="bean.createTime != null">
+                create_time,
+            </if>
+            <if test="bean.status != null">
+                status,
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                last_update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                #{bean.userId},
+            </if>
+            <if test="bean.contactId != null">
+                #{bean.contactId},
+            </if>
+            <if test="bean.contactType != null">
+                #{bean.contactType},
+            </if>
+            <if test="bean.createTime != null">
+                #{bean.createTime},
+            </if>
+            <if test="bean.status != null">
+                #{bean.status},
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                #{bean.lastUpdateTime},
+            </if>
+        </trim>
+        on DUPLICATE key update
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.contactType != null">
+                contact_type =VALUES(contact_type),
+            </if>
+            <if test="bean.createTime != null">
+                create_time =VALUES(create_time),
+            </if>
+            <if test="bean.status != null">
+                status =VALUES(status),
+            </if>
+            <if test="bean.lastUpdateTime != null">
+                last_update_time =VALUES(last_update_time),
+            </if>
+        </trim>
+    </insert>
 
-	<!-- 添加 (批量插入)-->
-	<insert id="insertBatch" parameterType="com.easyChat.entity.po.UserContact">
-		INSERT INTO user_contact(user_id,contact_id,contact_type,create_time,status,last_update_time)values
-		<foreach collection="list" item="item" separator=",">
-			(#{item.userId},#{item.contactId},#{item.contactType},#{item.createTime},#{item.status},#{item.lastUpdateTime})
-		</foreach>
-	</insert>
+    <!-- 添加 (批量插入)-->
+    <insert id="insertBatch" parameterType="com.easyChat.entity.po.UserContact">
+        INSERT INTO user_contact(user_id,contact_id,contact_type,create_time,status,last_update_time)values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId},#{item.contactId},#{item.contactType},#{item.createTime},#{item.status},#{item.lastUpdateTime})
+        </foreach>
+    </insert>
 
-	<!-- 批量插入或更新 (批量插入)-->
-	<insert id="insertOrUpdateBatch" parameterType="com.easyChat.entity.po.UserContact">
-		INSERT INTO user_contact(user_id,contact_id,contact_type,create_time,status,last_update_time)values
-		<foreach collection="list" item="item" separator="," >
-			(#{item.userId},#{item.contactId},#{item.contactType},#{item.createTime},#{item.status},#{item.lastUpdateTime})
-		</foreach>
-		on DUPLICATE KEY update user_id =VALUES(user_id),contact_id =VALUES(contact_id),contact_type =VALUES(contact_type),create_time =VALUES(create_time),status =VALUES(status),last_update_time =VALUES(last_update_time)
-	</insert>
+    <!-- 批量插入或更新 (批量插入)-->
+    <insert id="insertOrUpdateBatch" parameterType="com.easyChat.entity.po.UserContact">
+        INSERT INTO user_contact(user_id,contact_id,contact_type,create_time,status,last_update_time)values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId},#{item.contactId},#{item.contactType},#{item.createTime},#{item.status},#{item.lastUpdateTime})
+        </foreach>
+        on DUPLICATE KEY update user_id =VALUES(user_id),contact_id =VALUES(contact_id),contact_type
+        =VALUES(contact_type),create_time =VALUES(create_time),status =VALUES(status),last_update_time
+        =VALUES(last_update_time)
+    </insert>
 
-	<!-- 根据UserIdAndContactId查询-->
-	<select id="selectByUserIdAndContactId" resultMap="base_result_map">
-		select <include refid="base_column_list"/> from user_contact where user_id=#{userId} and contact_id=#{contactId}
-	</select>
+    <!-- 根据UserIdAndContactId查询-->
+    <select id="selectByUserIdAndContactId" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from user_contact where user_id=#{userId} and contact_id=#{contactId}
+    </select>
 
-	<!-- 根据UserIdAndContactId更新-->
-	<update id="updateByUserIdAndContactId" parameterType="com.easyChat.entity.po.UserContact">
-		update user_contact
-		<set>
-			<if test="bean.userId!=null">
-				user_id=#{bean.userId},
-			</if>
-			<if test="bean.contactId!=null">
-				contact_id=#{bean.contactId},
-			</if>
-			<if test="bean.contactType!=null">
-				contact_type=#{bean.contactType},
-			</if>
-			<if test="bean.createTime!=null">
-				create_time=#{bean.createTime},
-			</if>
-			<if test="bean.status!=null">
-				status=#{bean.status},
-			</if>
-			<if test="bean.lastUpdateTime!=null">
-				last_update_time=#{bean.lastUpdateTime},
-			</if>
-		</set>
-		where user_id=#{userId} and contact_id=#{contactId}
-		</update>
+    <!-- 根据UserIdAndContactId更新-->
+    <update id="updateByUserIdAndContactId" parameterType="com.easyChat.entity.po.UserContact">
+        update user_contact
+        <set>
+            <if test="bean.userId!=null">
+                user_id=#{bean.userId},
+            </if>
+            <if test="bean.contactId!=null">
+                contact_id=#{bean.contactId},
+            </if>
+            <if test="bean.contactType!=null">
+                contact_type=#{bean.contactType},
+            </if>
+            <if test="bean.createTime!=null">
+                create_time=#{bean.createTime},
+            </if>
+            <if test="bean.status!=null">
+                status=#{bean.status},
+            </if>
+            <if test="bean.lastUpdateTime!=null">
+                last_update_time=#{bean.lastUpdateTime},
+            </if>
+        </set>
+        where user_id=#{userId} and contact_id=#{contactId}
+    </update>
 
-	<!-- 根据UserIdAndContactId删除-->
-	<delete id="deleteByUserIdAndContactId">
-		delete from user_contact where user_id=#{userId} and contact_id=#{contactId}
-	</delete>
+    <!-- 根据UserIdAndContactId删除-->
+    <delete id="deleteByUserIdAndContactId">
+        delete
+        from user_contact
+        where user_id = #{userId}
+          and contact_id = #{contactId}
+    </delete>
 
 
 </mapper>

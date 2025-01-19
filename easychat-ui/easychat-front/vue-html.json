@@ -1,0 +1,154 @@
+{
+  "Dialog模板": {
+    "prefix": "dialog",
+    "description": "快速新建dialog 模板",
+    "body": [
+      "<Dialog",
+      "  :show=\"dialogConfig.show\"",
+      "  :title=\"dialogConfig.title\"",
+      "  :buttons=\"dialogConfig.buttons\"",
+      "  width=\"400px\"",
+      "  :showCancel=\"false\"",
+      "  @close=\"dialogConfig.show = false\">",
+      "</Dialog>"
+    ]
+  },
+  "el-form模板": {
+    "prefix": "el-form",
+    "description": "创建el-form",
+    "body": [
+      "<el-form",
+      "  :model=\"formData\"",
+      "  :rules=\"rules\"",
+      "  ref=\"formDataRef\"",
+      "  label-width=\"80px\"",
+      "  @submit.prevent",
+      ">",
+      "<!--input输入-->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-input clearable placeholder=\"提示信息\" v-model.trim=\"formData.\"></el-input>",
+      "  </el-form-item>",
+      "<!--textarea输入-->",
+      "  <el-form-item label=\"\" prop=\"\">",
+      "    <el-input",
+      "      clearable",
+      "      placeholder=\"提示信息\"",
+      "      type=\"textarea\"",
+      "      :rows=\"5\"",
+      "      :maxlength=\"150\"",
+      "      resize=\"none\"",
+      "      show-word-limit",
+      "      v-model.trim=\"formData.\"",
+      "  ></el-input>",
+      "  </el-form-item>",
+      "<!-- 单选 -->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-radio-group v-model=\"formData.\">",
+      "      <el-radio :label=\"值1\">显示信息</el-radio>",
+      "      <el-radio :label=\"值2\">显示信息</el-radio>",
+      "    </el-radio-group>",
+      "  </el-form-item>",
+      "<!-- 下拉框 -->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-select clearable  placeholder=\"提示信息\" v-model=\"formData.\" ,>",
+      "      <el-option :value=\"值1\" label=\"显示信息\"></el-option>",
+      "      <el-option :value=\"值2\" label=\"显示信息\"></el-option>",
+      "    </el-select>",
+      "  </el-form-item>",
+      "</el-form>"
+    ]
+  },
+  "el-input模板": {
+    "prefix": "el-input",
+    "description": "创建el-input",
+    "body": [
+      "<!--input输入-->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-input clearable placeholder=\"提示信息\" v-model=\"formData.\"></el-input>",
+      "  </el-form-item>"
+    ]
+  },
+  "el-textarea模板": {
+    "prefix": "el-textarea",
+    "description": "创建el-input",
+    "body": [
+      "<!--textarea输入-->",
+      "<el-form-item label=\"\" prop=\"\">",
+      "  <el-input",
+      "    clearable",
+      "    placeholder=\"提示信息\"",
+      "    type=\"textarea\"",
+      "    :rows=\"5\"",
+      "    :maxlength=\"150\"",
+      "    resize=\"none\"",
+      "    show-word-limit",
+      "    v-model=\"formData.\"",
+      "  ></el-input>",
+      "</el-form-item>"
+    ]
+  },
+  "el-radio模板": {
+    "prefix": "el-radio",
+    "description": "创建el-radio",
+    "body": [
+      "<!-- 单选 -->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-radio-group v-model=\"formData.\">",
+      "      <el-radio :label=\"值1\">显示信息</el-radio>",
+      "      <el-radio :label=\"值2\">显示信息</el-radio>",
+      "    </el-radio-group>",
+      "  </el-form-item>"
+    ]
+  },
+  "el-select模板": {
+    "prefix": "el-select",
+    "description": "创建el-select模板",
+    "body": [
+      "<!-- 下拉框 -->",
+      "  <el-form-item label=\"\" prop=\"\" >",
+      "    <el-select clearable  placeholder=\"提示信息\" v-model=\"formData.\" ,>",
+      "      <el-option :value=\"值1\" label=\"显示信息\"></el-option>",
+      "      <el-option :value=\"值2\" label=\"显示信息\"></el-option>",
+      "    </el-select>",
+      "  </el-form-item>"
+    ]
+  },
+  "el-menu模板": {
+    "prefix": "el-menu",
+    "description": "创建el-menu下拉菜单",
+    "body": [
+      "<el-dropdown trigger=\"click\">",
+      "  <span class=\"iconfont icon-more\"> </span>",
+      "  <template #dropdown>",
+      "    <el-dropdown-menu>",
+      "      <el-dropdown-item @click=\"\" >菜单选项</el-dropdown-item>",
+      "    </el-dropdown-menu>",
+      "  </template>",
+      "</el-dropdown>"
+    ]
+  },
+  "el-tab模板": {
+    "prefix": "el-tab",
+    "description": "创建el-tab",
+    "body": [
+      "<el-tabs v-model=\"activeName\" @tab-click=\"handleClick\">",
+      "  <el-tab-pane label=\"用户管理\" name=\"first\">用户管理</el-tab-pane>",
+      "</el-tabs>"
+    ]
+  },
+  "el-card模板": {
+    "prefix": "el-card",
+    "description": "创建el-card",
+    "body": [
+      "<el-card class=\"box-card\">",
+      "  <div slot=\"header\" class=\"clearfix\">",
+      "    <span>卡片名称</span>",
+      "    <el-button style=\"float: right; padding: 3px 0\" type=\"text\">操作按钮</el-button>",
+      "  </div>",
+      "  <div>",
+      "    这里是内容",
+      "  </div>",
+      "</el-card>"
+    ]
+  }
+}

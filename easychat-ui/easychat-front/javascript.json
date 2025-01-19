@@ -1,0 +1,79 @@
+{
+  "dialog弹窗配置": {
+    "prefix": "dialogConfig",
+    "description": "弹窗config配置",
+    "body": [
+      "const dialogConfig = reactive({",
+      "  show: false,",
+      "  title: \"标题\",",
+      "  buttons: [",
+      "   {",
+      "    type: \"danger\",",
+      "    text: \"确定\",",
+      "    click: (e) => {",
+      "      submitForm();",
+      "    },",
+      "  },",
+      " ],",
+      "});"
+    ]
+  },
+  "formData配置": {
+    "prefix": "form",
+    "description": "快速实现添加form配置",
+    "body": [
+      "const formData = ref({});",
+      "const formDataRef = ref();",
+      "const rules = {",
+      "  title: [{ required: true, message: \"请输入内容\" }],",
+      "};"
+    ]
+  },
+  "发送reqeust请求": {
+    "prefix": "request",
+    "description": "发送reqeust请求",
+    "body": [
+      "let result = await proxy.Request({",
+      "   url:",
+      "   params:{",
+      "   }",
+      "})",
+      "if(!result){",
+      "  return;",
+      "}"
+    ]
+  },
+  "watch使用": {
+    "prefix": "watch",
+    "description": "快速实现watch",
+    "body": ["watch(() => (newVal, oldVal) => {}, { immediate: true, deep: true });"]
+  },
+  "import 基本信息": {
+    "prefix": "import",
+    "description": "快速导入基本组件",
+    "body": [
+      "import { ref, reactive, getCurrentInstance, nextTick } from \"vue\"",
+      "const { proxy } = getCurrentInstance();"
+    ]
+  },
+  "submitForm提交表单": {
+    "prefix": "submitForm",
+    "description": "快速导入基本组件",
+    "body": [
+      "formDataRef.value.validate(async (valid) => {",
+      "   if (!valid) {",
+      "     return;",
+      "   }",
+      "   let params = {};",
+      "   Object.assign(params, formData.value);",
+      "   let result = await proxy.Request({",
+      "     url: api.,",
+      "     params,",
+      "   });",
+      "   if (!result) {",
+      "     return;",
+      "   }",
+      "});"
+    ]
+  }
+}

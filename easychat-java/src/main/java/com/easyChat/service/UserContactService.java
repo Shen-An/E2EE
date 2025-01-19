@@ -1,5 +1,6 @@
 package com.easyChat.service;
 
+import com.easyChat.entity.dto.UserContactSearchResultDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
@@ -57,4 +58,10 @@ public interface UserContactService {
 	 */
 	Integer deleteUserContactByUserIdAndContactId(String userId, String contactId);
 
+	/**
+	 * 搜索联系人
+	 * @param userId
+	 * @param contactId
+	 */
+	UserContactSearchResultDto searchContact(String userId, String contactId);
 }

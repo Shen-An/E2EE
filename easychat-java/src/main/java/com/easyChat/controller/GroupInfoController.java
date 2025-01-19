@@ -4,6 +4,7 @@ import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
+import com.easyChat.entity.vo.GroupInfoVo;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.entity.po.GroupInfo;
 import com.easyChat.entity.query.GroupInfoQuery;
@@ -142,10 +143,12 @@ public class GroupInfoController extends ABaseController {
 	 * @return
 	 */
 	@RequestMapping("/loadMyGroup")
+	@GlobalInterceptor
 	public ResponseVo loadMyGroup(HttpServletRequest request) {
 		TokenUserInfoDto TokenUserInfoDto = getTokenUserInfo(request);
 		GroupInfoQuery groupInfoQuery = new GroupInfoQuery();
 		groupInfoQuery.setGroupOwnerId(TokenUserInfoDto.getUserId());
+		groupInfoQuery.setOrderBy("create_time asc");
 		List<GroupInfo>list = this.groupInfoService.findListByParam(groupInfoQuery);
 		return getSuccessResponseVo(list);
 	}
@@ -157,13 +160,37 @@ public class GroupInfoController extends ABaseController {
 	 * @return
 	 */
 	@RequestMapping("/getGroupInfo")
+	@GlobalInterceptor
 	public ResponseVo getGroupInfo(HttpServletRequest request,@NotEmpty String groupId) {
 		GroupInfo groupInfo = getGroupDetailCommon(request, groupId);
 		UserContactQuery userContactQuery = new UserContactQuery();
 		userContactQuery.setContactId(groupId);
+		userContactQuery.setOrderBy("create_time asc");
 		Integer memberCount = userContactService.findCountByParam(userContactQuery);
 		groupInfo.setMemberCount(memberCount);
 		return getSuccessResponseVo(groupInfo);
+	}
+
+	/**
+	 * 查群组和联系人的信息
+	 * @param request
+	 * @param groupId
+	 * @return
+	 */
+	@RequestMapping("/getGroupInfo4Chat")
+	@GlobalInterceptor
+	public ResponseVo getGroupInfo4Chat(HttpServletRequest request,@NotEmpty String groupId) {
+		GroupInfo groupInfo = getGroupDetailCommon(request, groupId);
+		UserContactQuery userContactQuery = new UserContactQuery();
+		userContactQuery.setContactId(groupId);
+		userContactQuery.setQueryUserInfo(true);
+		userContactQuery.setOrderBy("create_time asc");
+		userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+		List<UserContact> userContactList = this.userContactService.findListByParam(userContactQuery);
+		GroupInfoVo groupInfoVo = new GroupInfoVo();
+		groupInfoVo.setGroupInfo(groupInfo);
+		groupInfoVo.setUserContactList(userContactList);
+		return getSuccessResponseVo(groupInfoVo);
 	}
 
 
