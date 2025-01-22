@@ -63,15 +63,16 @@ public class AccountController extends ABaseController {
     @RequestMapping("/register")
     public ResponseVo register(@NotEmpty String checkCodeKey,
                                @NotEmpty @Email String email,
-                               @NotEmpty String passWord,
+                               @NotEmpty String password,
                                @NotEmpty String nickName,
                                @NotEmpty String checkCode) throws BusinessException {
+//        System.out.println(password);
         try {
-//            //失败
-//            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
-//                throw new BusinessException("图片验证码不正确");
-//            }
-            userInfoService.register(email, nickName, passWord);
+            //失败
+            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+                throw new BusinessException("图片验证码不正确");
+            }
+            userInfoService.register(email, nickName, password);
             return getSuccessResponseVo(null);
         } finally {
             //无论是否成功，在redis中删除相应的key和value
@@ -81,16 +82,16 @@ public class AccountController extends ABaseController {
 
     @RequestMapping("/login")
     public ResponseVo login(@NotEmpty String checkCodeKey,
-                                @NotEmpty @Email String email,
-                                @NotEmpty String passWord,
-                                @NotEmpty String nickName,
-                                @NotEmpty String checkCode) throws BusinessException {
+                            @NotEmpty @Email String email,
+                            @NotEmpty String password,
+                            @NotEmpty String checkCode) throws BusinessException {
         try {
-//            //失败
-//            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
-//                throw new BusinessException("图片验证码不正确");
-//            }
-            UserInfoVo userInfoVo = userInfoService.login(email, passWord);
+            //失败
+            if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
+                throw new BusinessException("图片验证码不正确");
+            }
+            System.out.println(password);
+            UserInfoVo userInfoVo = userInfoService.login(email, password);
             return getSuccessResponseVo(userInfoVo);
         } finally {
             //无论是否成功，在redis中删除相应的key和value
@@ -102,5 +103,5 @@ public class AccountController extends ABaseController {
     @RequestMapping("/getSysSetting")
     public ResponseVo getSysSetting() {
         return getSuccessResponseVo(redisComponent.getSysSetting());
-        }
+    }
 }

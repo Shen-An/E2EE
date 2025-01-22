@@ -198,7 +198,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
         UserInfo userInfo = this.userInfoMapper.selectByEmail(email);
 
-        if (null == userInfo || !userInfo.getPassword().equals(StringTools.encodeMd5(password))) {
+        if (null == userInfo || !userInfo.getPassword().equals(password)) {
             throw new BusinessException("账号或者密码不存在");
         }
         if (UserStatusEnum.DISABLE.equals(userInfo.getStatus())) {
