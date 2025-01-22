@@ -5,7 +5,8 @@
       <div class="error-msg">{{ errorMsg }}</div>
       <el-form :model="formData" :rules="rules" label-width="0px" @submit.prevent>
         <el-form-item prop="email">
-          <el-input size="large" clearable placeholder="请输入邮箱" v-model.trim="formData.email">
+          <el-input size="large" clearable placeholder="请输入邮箱" maxLength="30" v-model.trim="formData.email"
+            @focus="cleanVerify">
             <template #prefix>
               <span class="iconfont icon-email"></span>
             </template>
@@ -13,7 +14,8 @@
         </el-form-item>
 
         <el-form-item prop="nickName" v-if="isLogin == false">
-          <el-input size="large" clearable placeholder="请输入昵称" v-model.trim="formData.nickName">
+          <el-input size="large" clearable maxLength="15" placeholder="请输入昵称" v-model.trim="formData.nickName"
+            @focus="cleanVerify">
             <template #prefix>
               <span class="iconfont icon-user-nick"></span>
             </template>
@@ -21,16 +23,17 @@
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input size="large" show-password clearable placeholder="请输入密码" v-model.trim="formData.password" >
+          <el-input size="large" show-password clearable placeholder="请输入密码" v-model.trim="formData.password"
+            @focus="cleanVerify">
             <template #prefix>
               <span class="iconfont icon-password"></span>
             </template>
           </el-input>
         </el-form-item>
 
-
         <el-form-item prop="rePassword" v-if="isLogin == false">
-          <el-input size="large" show-password clearable placeholder="请确认密码" v-model.trim="formData.rePassword" >
+          <el-input size="large" show-password clearable placeholder="请确认密码" v-model.trim="formData.rePassword"
+            @focus="cleanVerify">
             <template #prefix>
               <span class="iconfont icon-password"></span>
             </template>
@@ -38,18 +41,24 @@
         </el-form-item>
 
         <el-form-item prop="checkCode">
-          <el-input show-password clearable placeholder="请输入验证码" v-model.trim="formData.checkCode">
-            <template #prefix>
-              <span size="large" class="iconfont icon-checkcode"></span>
-            </template>
-          </el-input>
+          <div class="check-code-panel">
+            <el-input clearable placeholder="请输入验证码" v-model.trim="formData.checkCode" @focus="cleanVerify">
+              <template #prefix>
+                <span size="large" class="iconfont icon-checkcode"></span>
+              </template>
+            </el-input>
+            <img :src="checkCodeUrl" class="check-code" @click="changeCheckCode">
+          </div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit" class="login-btn">{{ isLogin ? "登录" : "注册" }}</el-button>
+          <el-button type="primary" @click="submit" class="login-btn">{{
+        isLogin ? '登录' : '注册'
+      }}</el-button>
         </el-form-item>
         <div class="bottom-link">
-
-          <span class="a-link" @click="changeOpType">{{ isLogin ? "还没有账号？注册" : "已有账号？登录" }}</span>
+          <span class="a-link" @click="changeOpType">{{
+        isLogin ? '还没有账号？注册' : '已有账号？登录'
+            }}</span>
         </div>
       </el-form>
     </div>
@@ -57,6 +66,11 @@
 </template>
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { md5 } from 'js-md5'
+import {useUserInfoStore} from '@/stores/UserInfoStore'
+import {useRouter} from 'vue-router'
+const router = useRouter()
+const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
 const formData = ref({})
 
@@ -64,28 +78,85 @@ const rules = { title: [{ required: true, message: '请输入内容' }] }
 const isLogin = ref(true)
 
 const errorMsg = ref('')
-
+const checkCodeUrl = ref(null)
+const showLoading = ref(false)
+const changeCheckCode = async () => {
+  let resp = await proxy.Request({
+    url: proxy.Api.checkCode
+  })
+  if (!resp) {
+    return
+  }
+  console.log(resp)
+  checkCodeUrl.value = resp.checkCode
+  localStorage.setItem('checkCodeKey', resp.checkCodeKey)
+}
+changeCheckCode();
 const changeOpType = () => {
   window.ipcRenderer.send('loginOrRegister', !isLogin.value)
   isLogin.value = !isLogin.value
+  nextTick(() => {
+    formData.value = {}
+    cleanVerify()
+    changeCheckCode()
+  })
 }
 
 const submit = () => {
-
   cleanVerify()
-  debugger
   if (!checkValue('checkEmail', formData.value.email, '请输入正确的邮箱')) {
     return
   }
-  if (!checkValue('checkPassword', formData.value.password, '密码只能是数字、字母、特殊字符8-18位')) {
+  if (!isLogin.value && !checkValue(null, formData.value.nickName, '请输入昵称')) {
     return
   }
-  if (!checkValue('null', formData.value.checkCode, '请输入验证码')) {
+  if (
+    !checkValue('checkPassword', formData.value.password, '密码只能是数字、字母、特殊字符8-18位')
+  ) {
     return
+  }
+  if (!isLogin.value && formData.value.password != formData.value.rePassword) {
+    errorMsg.value = '两次密码不一致，请重新输入'
+    return
+  }
+  if (!checkValue(null, formData.value.checkCode, '请输入验证码')) {
+    return
+  }
+  console.log('password:', formData.value.password);
+  let resp = proxy.Request({
+    url: isLogin.value ? proxy.Api.login : proxy.Api.register,
+    showLoading:isLogin.value?false:true,
+    showError: false,
+    params: {
+      email: formData.value.email,
+      nickName: formData.value.nickName,
+      password: isLogin.value ? md5(formData.value.password) : formData.value.password,
+      checkCode : formData.value.checkCode,
+      checkCodeKey: localStorage.getItem('checkCodeKey')
+    },
+    errorCallback: (resp) => {
+      showLoading.value = false
+      changeCheckCode()
+      errorMsg.value = resp.info
+    }
+  })
+  if (!resp) {
+    return
+  }
+
+  if (isLogin.value) {
+    //登录
+    userInfoStore.setInfo(resp)
+    console.log('token:', resp)
+    localStorage.setItem('token', resp.token)
+    router.push({path:'/main'})
+  } else {
+    // 注册
+    proxy.Message.success('注册成功')
+    changeOpType()
   }
 }
 const checkValue = (type, value, msg) => {
-
   if (proxy.Utils.isEmpty(value)) {
     errorMsg.value = msg
     return false
@@ -94,7 +165,7 @@ const checkValue = (type, value, msg) => {
    * 验证
    * Verify[type] 是通过 type 动态访问 Verify 对象的属性，从而调用对应的验证函数。
    */
-  if(type && !proxy.Verify[type](value)){
+  if (type && !proxy.Verify[type](value)) {
     errorMsg.value = msg
     return false
   }
@@ -108,7 +179,7 @@ const cleanVerify = () => {
   errorMsg.value = null
 }
 </script>
-<style lang="less">
+<style lang="less" scoped>
 .email-select {
   width: 250px;
 }
@@ -141,7 +212,9 @@ const cleanVerify = () => {
     :deep(.el-input__wrapper) {
       box-shadow: none;
       border-radius: none;
+
     }
+
 
     .el-form-item {
       border-bottom: 1px solid #ddd;

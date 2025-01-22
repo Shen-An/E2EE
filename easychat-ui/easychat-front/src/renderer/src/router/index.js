@@ -13,6 +13,17 @@ const router = createRouter({
       path: '/login',
       name: '登录',
       component: () => import('@/views/Login.vue')
+    },
+    {
+      path:'/main',
+      name:'主界面',
+      redirect:'/chat',
+      component: () => import('@/views/Main.vue'),
+      children:[{
+        path:'/chat',
+        name:'聊天',
+        component: () => import('@/views/chat/Chat.vue')
+      }]
     }
   ]
 })

@@ -47,6 +47,8 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    mainWindow.setTitle('飞信')
+    
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
