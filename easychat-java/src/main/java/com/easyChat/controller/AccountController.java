@@ -90,7 +90,7 @@ public class AccountController extends ABaseController {
             if (!checkCode.equalsIgnoreCase((String) redisUtils.get(Constants.REDIS_KEY_CHECK_CODE + checkCodeKey))) {
                 throw new BusinessException("图片验证码不正确");
             }
-            System.out.println(password);
+
             UserInfoVo userInfoVo = userInfoService.login(email, password);
             return getSuccessResponseVo(userInfoVo);
         } finally {

@@ -1,7 +1,10 @@
 <template>
   <div class="login_panel">
     <div class="title drag">飞信</div>
-    <div class="login-form">
+    <!-- <div class="loading-panel" v-if="showLoading">
+      <img src="../assets/img/loading3.gif" alt="">
+    </div> -->
+    <div class="login-form" >
       <div class="error-msg">{{ errorMsg }}</div>
       <el-form :model="formData" :rules="rules" label-width="0px" @submit.prevent>
         <el-form-item prop="email">
@@ -87,12 +90,13 @@ const changeCheckCode = async () => {
   if (!resp) {
     return
   }
-  console.log(resp)
+
   checkCodeUrl.value = resp.checkCode
   localStorage.setItem('checkCodeKey', resp.checkCodeKey)
 }
 changeCheckCode();
 const changeOpType = () => {
+  //触发回调函数
   window.ipcRenderer.send('loginOrRegister', !isLogin.value)
   isLogin.value = !isLogin.value
   nextTick(() => {
@@ -102,7 +106,7 @@ const changeOpType = () => {
   })
 }
 
-const submit = () => {
+const submit = async() => {
   cleanVerify()
   if (!checkValue('checkEmail', formData.value.email, '请输入正确的邮箱')) {
     return
@@ -122,8 +126,12 @@ const submit = () => {
   if (!checkValue(null, formData.value.checkCode, '请输入验证码')) {
     return
   }
-  console.log('password:', formData.value.password);
-  let resp = proxy.Request({
+  // console.log('password:', formData.value.password);
+  if (isLogin.value) {
+    showLoading.value = true
+  }
+
+  let resp = await proxy.Request({
     url: isLogin.value ? proxy.Api.login : proxy.Api.register,
     showLoading:isLogin.value?false:true,
     showError: false,
@@ -147,9 +155,23 @@ const submit = () => {
   if (isLogin.value) {
     //登录
     userInfoStore.setInfo(resp)
-    console.log('token:', resp)
+   
     localStorage.setItem('token', resp.token)
     router.push({path:'/main'})
+
+    const screenWidth = window.screen.width
+    const screenHeight = window.screen.height
+  
+    window.ipcRenderer.send('openChat', {
+      email: formData.value.email,
+      token: resp.token,
+      userId: resp.userId,
+      nickName: resp.nickName,
+      admin: resp.admin,
+      width: screenWidth,
+      height: screenHeight
+    })
+
   } else {
     // 注册
     proxy.Message.success('注册成功')

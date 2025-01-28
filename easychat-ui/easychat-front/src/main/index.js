@@ -1,9 +1,10 @@
-import { app, shell, BrowserWindow ,ipcMain} from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 const NODE_ENV = process.env.NODE_ENV
-
+import {onLoginOrRegister,onLoginSuccess} from './ipc'
+import { on } from 'events'
 const login_width = 300
 const login_height = 500
 
@@ -15,29 +16,18 @@ function createWindow() {
     width: login_width,
     height: login_height,
     show: false,
-    titleBarStyle:"hidden",//右上方 - [] X 工具条隐藏
+    titleBarStyle: "hidden",//右上方 - [] X 工具条隐藏
     autoHideMenuBar: true,
-    resizable:false,//不允许修改窗体大小
-    frame:true,//：显示窗口边框和标题栏
-    transparent:true,//控制窗口背景是否透明。
-    icon:icon,
-    
+    resizable: false,//不允许修改窗体大小
+    frame: true,//：显示窗口边框和标题栏
+    transparent: true,//控制窗口背景是否透明。
+    icon: icon,
+
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: false
     }
-  })
-
-  ipcMain.on('loginOrRegister', (event,isLogin) => {
-    console.log("isLogin:"+isLogin)
-    mainWindow.resizable = true
-    if(isLogin){
-      mainWindow.setSize(login_width,login_height)
-    }else{
-      mainWindow.setSize(login_width,register_height)
-    }
-    mainWindow.resizable = false
   })
 
   //打开控制台
@@ -48,7 +38,7 @@ function createWindow() {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
     mainWindow.setTitle('飞信')
-    
+
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -63,6 +53,34 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+    //回调函数的调用
+    onLoginOrRegister((isLogin) => {
+      mainWindow.setResizable(true)
+      if (isLogin) {
+        mainWindow.setSize(login_width, login_height)
+      } else {
+        mainWindow.setSize(login_width, register_height)
+      }
+      mainWindow.setResizable(false)
+    })
+
+    onLoginSuccess((config) => {
+      mainWindow.setResizable(true)
+      mainWindow.setSize(850,800)
+      //居中
+      mainWindow.center()
+      //可以最大化
+      mainWindow.setMaximizable(true)
+      //最小大小
+      mainWindow.setMinimumSize(800,600)
+
+      //TODO 管理后台，托盘操作
+      if(config.admin){
+        
+      }
+
+    })
 }
 
 // This method will be called when Electron has finished

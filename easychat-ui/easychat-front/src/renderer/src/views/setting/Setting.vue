@@ -1,8 +1,5 @@
 <template>
-    <div>聊天主窗口</div>
+    <div>设置界面</div>
 </template>
-
-<script>
-</script>
-
+<script setup></script>
 <style lang="less" scoped></style>
