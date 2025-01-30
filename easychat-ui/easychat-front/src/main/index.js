@@ -67,7 +67,7 @@ function createWindow() {
 
     onLoginSuccess((config) => {
       mainWindow.setResizable(true)
-      mainWindow.setSize(850,800)
+      mainWindow.setSize(800,600)
       //居中
       mainWindow.center()
       //可以最大化

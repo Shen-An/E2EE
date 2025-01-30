@@ -1,5 +1,7 @@
 <template>
-    <div>聊天主窗口</div>
+    <div>
+        <Layout></Layout>
+    </div>
 </template>
 
 <script>
