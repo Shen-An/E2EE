@@ -31,9 +31,10 @@
     </template>
     <template #right-content>
       <div class="title-panel drag">{{ rightTitle }}</div>
- 
     </template>
+ 
   </Layout>
+
 </template>
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'

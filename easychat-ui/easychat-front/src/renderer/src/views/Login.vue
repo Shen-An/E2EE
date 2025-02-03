@@ -65,7 +65,9 @@
         </div>
       </el-form>
     </div>
+   
   </div>
+  <win-op :showSetTop="false" :showMin="false" :showMax="false" :closeType="0"></win-op>
 </template>
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'

@@ -3,12 +3,12 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 const NODE_ENV = process.env.NODE_ENV
-import {onLoginOrRegister,onLoginSuccess} from './ipc'
+import { onLoginOrRegister, onLoginSuccess, winTitleOp } from './ipc'
 import { on } from 'events'
 const login_width = 300
-const login_height = 500
+const login_height = 362
 
-const register_height = 500
+const register_height = 478
 
 function createWindow() {
   // Create the browser window.
@@ -20,7 +20,7 @@ function createWindow() {
     autoHideMenuBar: true,
     resizable: false,//不允许修改窗体大小
     frame: true,//：显示窗口边框和标题栏
-    transparent: true,//控制窗口背景是否透明。
+    transparent: false,//控制窗口背景是否透明。
     icon: icon,
 
     webPreferences: {
@@ -54,33 +54,67 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-    //回调函数的调用
-    onLoginOrRegister((isLogin) => {
-      mainWindow.setResizable(true)
-      if (isLogin) {
-        mainWindow.setSize(login_width, login_height)
-      } else {
-        mainWindow.setSize(login_width, register_height)
+  //回调函数的调用
+  onLoginOrRegister((isLogin) => {
+    mainWindow.setResizable(true)
+    if (isLogin) {
+      mainWindow.setSize(login_width, login_height)
+    } else {
+      mainWindow.setSize(login_width, register_height)
+    }
+    mainWindow.setResizable(false)
+  })
+
+  onLoginSuccess((config) => {
+    mainWindow.setResizable(true)
+    mainWindow.setSize(800, 600)
+    //居中
+    mainWindow.center()
+    //可以最大化
+    mainWindow.setMaximizable(true)
+    //最小大小
+    mainWindow.setMinimumSize(800, 600)
+
+    //TODO 管理后台，托盘操作
+    if (config.admin) {
+    }
+  })
+
+  winTitleOp((e, { action, data }) => {
+    //获取当前窗口
+    const webContents = e.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+
+    switch (action) {
+      case 'close': {
+        if (data.closeType == 0) {
+          win.close()
+        }
+        else {
+          win.setSkipTaskbar(true)
+          win.hide()
+        }
+        break;
       }
-      mainWindow.setResizable(false)
-    })
-
-    onLoginSuccess((config) => {
-      mainWindow.setResizable(true)
-      mainWindow.setSize(800,600)
-      //居中
-      mainWindow.center()
-      //可以最大化
-      mainWindow.setMaximizable(true)
-      //最小大小
-      mainWindow.setMinimumSize(800,600)
-
-      //TODO 管理后台，托盘操作
-      if(config.admin){
-        
+      case "minimize": {
+        win.minimize()
+        break;
       }
+      case "maximize": {
+        win.maximize()
+        break;
+      }
+      case "unmaximize": {
 
-    })
+        win.unmaximize()
+        break;
+      }
+      case "top": {
+        win.setAlwaysOnTop(data.top)
+        break;
+      }
+    }
+  })
 }
 
 // This method will be called when Electron has finished

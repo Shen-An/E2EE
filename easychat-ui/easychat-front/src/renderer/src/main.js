@@ -13,12 +13,14 @@ import Request from '@/utils/Request.js'
 import Message from '@/utils/Message.js'
 import Api from '@/utils/Api.js'
 import Layout from '@/components/Layout.vue'
+import WinOp from '@/components/WinOp.vue'
 
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
 app.use(Pinia.createPinia())
 app.component('Layout', Layout)
+app.component('WinOp', WinOp)
 app.mount('#app')
 app.config.globalProperties.Utils = Utils
 app.config.globalProperties.Verify = Verify

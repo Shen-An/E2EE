@@ -22,7 +22,15 @@ const onLoginSuccess = (callback) => {
 
     })
 }
+
+const winTitleOp = (callback) => {
+    ipcMain.on('winTitleOp', (event, data) => {
+        console.log('winTitleOp',data)
+        callback(event,data)
+    })
+}
 export {
     onLoginOrRegister,
-    onLoginSuccess
+    onLoginSuccess,
+    winTitleOp
 }
