@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, Tray } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -54,6 +54,26 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
+
+  //托盘图标
+  const tray = new Tray(icon)
+  const contextMenu = [
+    {
+      label: '退出',
+      click: function() {
+        app.exit()
+      }
+    }
+  ]
+
+  const menu = Menu.buildFromTemplate(contextMenu)
+  tray.setToolTip('飞信')
+  tray.setContextMenu(menu)
+  tray.on('click', () => {
+    mainWindow.setSkipTaskbar(false)
+    mainWindow.show()
+  })
+
   //回调函数的调用
   onLoginOrRegister((isLogin) => {
     mainWindow.setResizable(true)
@@ -78,6 +98,12 @@ function createWindow() {
     //TODO 管理后台，托盘操作
     if (config.admin) {
     }
+    contextMenu.unshift({
+      label:'用户:'+config.nickName,click:function(){
+        
+      }
+    })
+    tray.setContextMenu(Menu.buildFromTemplate(contextMenu))
   })
 
   winTitleOp((e, { action, data }) => {
