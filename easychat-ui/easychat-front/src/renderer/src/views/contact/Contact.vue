@@ -31,6 +31,9 @@
     </template>
     <template #right-content>
       <div class="title-panel drag">{{ rightTitle }}</div>
+      <router-view v-slot="{Component}">
+        <component :is="Component" ref="componentRef"></component>
+      </router-view>
     </template>
  
   </Layout>
