@@ -15,6 +15,7 @@ import Api from '@/utils/Api.js'
 import Layout from '@/components/Layout.vue'
 import WinOp from '@/components/WinOp.vue'
 import Blank from '@/components/Blank.vue'
+import ContentPanel from '@/components/ContentPanel.vue'
 
 const app = createApp(App)
 app.use(router)
@@ -23,6 +24,7 @@ app.use(Pinia.createPinia())
 app.component('Layout', Layout)
 app.component('WinOp', WinOp)
 app.component('Blank', Blank)
+app.component('ContentPanel', ContentPanel)
 app.mount('#app')
 app.config.globalProperties.Utils = Utils
 app.config.globalProperties.Verify = Verify

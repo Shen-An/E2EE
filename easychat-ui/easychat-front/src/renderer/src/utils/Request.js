@@ -45,7 +45,7 @@ instance.interceptors.response.use(
         }
         //正常请求
         if (responData.code == 200) {
-            return responData.data
+            return responData
         } else if (responData.code == 901) {
             //登录超时
             setTimeout(() => {

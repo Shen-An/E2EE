@@ -1,9 +1,9 @@
 <template>
   <div class="login_panel">
     <div class="title drag">飞信</div>
-    <!-- <div class="loading-panel" v-if="showLoading">
+    <div class="loading-panel" v-if="showLoading">
       <img src="../assets/img/loading3.gif" alt="">
-    </div> -->
+    </div>
     <div class="login-form" >
       <div class="error-msg">{{ errorMsg }}</div>
       <el-form :model="formData" :rules="rules" label-width="0px" @submit.prevent>
@@ -93,8 +93,8 @@ const changeCheckCode = async () => {
     return
   }
 
-  checkCodeUrl.value = resp.checkCode
-  localStorage.setItem('checkCodeKey', resp.checkCodeKey)
+  checkCodeUrl.value = resp.data.checkCode
+  localStorage.setItem('checkCodeKey', resp.data.checkCodeKey)
 }
 changeCheckCode();
 const changeOpType = () => {
@@ -156,9 +156,9 @@ const submit = async() => {
 
   if (isLogin.value) {
     //登录
-    userInfoStore.setInfo(resp)
+    userInfoStore.setInfo(resp.data)
    
-    localStorage.setItem('token', resp.token)
+    localStorage.setItem('token', resp.data.token)
     router.push({path:'/main'})
 
     const screenWidth = window.screen.width
@@ -166,10 +166,10 @@ const submit = async() => {
   
     window.ipcRenderer.send('openChat', {
       email: formData.value.email,
-      token: resp.token,
-      userId: resp.userId,
-      nickName: resp.nickName,
-      admin: resp.admin,
+      token: resp.data.token,
+      userId: resp.data.userId,
+      nickName: resp.data.nickName,
+      admin: resp.data.admin,
       width: screenWidth,
       height: screenHeight
     })

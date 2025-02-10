@@ -46,6 +46,18 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 const rightTitle = ref()
+
+const partJump =(data)=>{
+  if(data.showTitle){
+    rightTitle.value = data.name
+  }
+  else{
+    rightTitle.value = ''
+  }
+  //TODO 处理联系人好友申请 数量已读
+  router.push(data.path)
+}
+
 const partList = ref([
   {
     partName: '新好友',
@@ -104,7 +116,7 @@ const partList = ref([
 ])
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .drag-panel {
   height: 25px;
   background: #f7f7f7;

@@ -14,15 +14,15 @@ const api = {
     dissolutionGroup: "/group/dissolutionGroup",//解散群
     leaveGroup: "/group/leaveGroup",//退出群
     addOrRemoveGroupUser: "/group/addOrRemoveGroupUser",//添加或删除群成员
-    search:"/contact/search",//搜索好友
-    applyAdd:"/contact/applyAdd",//申请添加
-    loadApply:"/contact/loadApply",//加载申请列表
-    dealWithApply:"/contact/dealWithApply",//处理好友申请
-    loadContact:"/contact/loadContact",//加载联系人列表
-    getContactUserInfo:"/contact/getContactUserInfo",//获取联系人信息
-    addContact2Blacklist:"/contact/addContact2Blacklist",//添加联系人到黑名单
-    delContact:"/contact/delContact",//删除联系人
-    getContactInfo:"/contact/getContactInfo",//获取联系人信息
+    search:"/userContact/search",//搜索好友
+    applyAdd:"/userContact/applyAdd",//申请添加
+    loadApply:"/userContact/loadApply",//加载申请列表
+    dealWithApply:"/userContact/dealWithApply",//处理好友申请
+    loadContact:"/userContact/loadContact",//加载联系人列表
+    getContactUserInfo:"/userContact/getContactUserInfo",//获取联系人信息
+    addContact2Blacklist:"/userContact/addContact2Blacklist",//添加联系人到黑名单
+    delContact:"/userContact/delContact",//删除联系人
+    getContactInfo:"/userContact/getContactInfo",//获取联系人信息
     saveUserInfo:"/userInfo/saveUserInfo",//保存用户信息
     getUserInfo:"/userInfo/getUserInfo",//获取用户信息
     updatePassword:"/userInfo/updatePassword",//修改密码

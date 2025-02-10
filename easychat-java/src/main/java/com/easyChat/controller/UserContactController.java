@@ -95,7 +95,7 @@ public class UserContactController extends ABaseController {
 	@RequestMapping("/search")
 	public ResponseVo search(HttpServletRequest request, @NotEmpty String contactId) {
 		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-		UserContactSearchResultDto resultDto = userContactService.searchContact("U77786048081", contactId);
+		UserContactSearchResultDto resultDto = userContactService.searchContact(tokenUserInfoDto.getUserId(), contactId);
 		return getSuccessResponseVo(resultDto);
 	}
 }
