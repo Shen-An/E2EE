@@ -15,7 +15,10 @@ import Api from '@/utils/Api.js'
 import Layout from '@/components/Layout.vue'
 import WinOp from '@/components/WinOp.vue'
 import Blank from '@/components/Blank.vue'
+import ShowLocalImage from '@/components/ShowLocalImage.vue'
 import ContentPanel from '@/components/ContentPanel.vue'
+import AvatarBase from '@/components/AvatarBase.vue';
+import UserBaseInfo from '@/components/UserBaseInfo.vue';
 
 const app = createApp(App)
 app.use(router)
@@ -24,7 +27,11 @@ app.use(Pinia.createPinia())
 app.component('Layout', Layout)
 app.component('WinOp', WinOp)
 app.component('Blank', Blank)
+app.component('ShowLocalImage', ShowLocalImage)
 app.component('ContentPanel', ContentPanel)
+app.component('AvatarBase', AvatarBase)
+app.component('UserBaseInfo', UserBaseInfo)
+
 app.mount('#app')
 app.config.globalProperties.Utils = Utils
 app.config.globalProperties.Verify = Verify
