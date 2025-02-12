@@ -136,7 +136,7 @@ public class UserContactServiceImpl implements UserContactService {
                 if (userInfo == null) {
                     return null;
                 }
-                CopyUtils.copy(userInfo,UserContactSearchResultDto.class);
+                result = CopyUtils.copy(userInfo,UserContactSearchResultDto.class);
                 break;
             case GROUP:
                 GroupInfo groupInfo = groupInfoMapper.selectByGroupId(contactId);
