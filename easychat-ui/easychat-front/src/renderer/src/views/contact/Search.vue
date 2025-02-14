@@ -1,51 +1,57 @@
     <template>
-  <Content-panel>
-    <div class="search-form">
-      <el-input
-        clearable
-        placeholder="请输入用户Id或群组Id"
-        v-model="contactId"
-        size="large"
-        @keydown.enter="search"
-      ></el-input>
-      <div class="search-btn iconfont icon-search" @click="search">搜索</div>
-    </div>
-    <div v-if="searchResult && Object.keys(searchResult).length > 0" class="search-result-panel">
-      <div class="search-result">
-        <span class="contact-type">{{ contactTypeName }}</span>
-        <UserBaseInfo :userInfo="searchResult" :showArea="searchResult.contactType=='USER'"></UserBaseInfo>
+  <div>
+    <Content-panel>
+      <div class="search-form">
+        <el-input
+          clearable
+          placeholder="请输入用户Id或群组Id"
+          v-model="contactId"
+          size="large"
+          @keydown.enter="search"
+        ></el-input>
+        <div class="search-btn iconfont icon-search" @click="search">搜索</div>
       </div>
-      <div class="op-btn" v-if="searchResult.contactId != userInfoStore.getInfo().userId">
-        <el-button
-          type="primary"
-          v-if="
-            searchResult.status == null ||
-            searchResult.status == 0 ||
-            searchResult.status == 2 ||
-            searchResult.status == 3 ||
-            searchResult.status == 4
-          "
-          @click="applyContact"
-          >{{ searchResult.contactType == 'USER' ? '添加到联系人' : '申请加入群组' }}</el-button
-        >
-        <el-button type="primary" v-if="searchResult.status == 1" @click="sendMessage"
-          >发消息</el-button
-        >
-        <span v-if="searchResult.status == 5">对方拒绝接受你的消息</span>
+      <div v-if="searchResult && Object.keys(searchResult).length > 0" class="search-result-panel">
+        <div class="search-result">
+          <span class="contact-type">{{ contactTypeName }}</span>
+          <UserBaseInfo
+            :userInfo="searchResult"
+            :showArea="searchResult.contactType == 'USER'"
+          ></UserBaseInfo>
+        </div>
+        <div class="op-btn" v-if="searchResult.contactId != userInfoStore.getInfo().userId">
+          <el-button
+            type="primary"
+            v-if="
+              searchResult.status == null ||
+              searchResult.status == 0 ||
+              searchResult.status == 2 ||
+              searchResult.status == 3 ||
+              searchResult.status == 4
+            "
+            @click="applyContact"
+            >{{ searchResult.contactType == 'USER' ? '添加到联系人' : '申请加入群组' }}</el-button
+          >
+          <el-button type="primary" v-if="searchResult.status == 1" @click="sendMessage"
+            >发消息</el-button
+          >
+          <span v-if="searchResult.status == 5">对方拒绝接受你的消息</span>
+        </div>
       </div>
       <div v-if="!searchResult" class="no-data">暂无数据</div>
-    </div>
-  </Content-panel>
+    </Content-panel>
+    <searchAdd ref="searchAddRef" @reLoad="resetForm"></searchAdd>
+  </div>
 </template>
 
 <script setup>
-
 import { ref, reactive, getCurrentInstance, nextTick, computed } from 'vue'
+import searchAdd from '@/views/contact/searchAdd.vue'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
-const applyContact =()=>{
-
+const applyContact = () => {
+  searchAddRef.value.show(searchResult.value)
 }
 const contactTypeName = computed(() => {
   if (userInfoStore.getInfo().userId == searchResult.value.contactId) {
@@ -54,15 +60,14 @@ const contactTypeName = computed(() => {
   }
   if (searchResult.value.contactType == 'USER') {
     console.log('用户')
-  
+
     return '用户'
   }
   if (searchResult.value.contactType == 'GROUP') {
     return '群组'
   }
 })
-
-
+const searchAddRef = ref()
 const contactId = ref('')
 const searchResult = ref({})
 const search = async () => {
@@ -80,9 +85,9 @@ const search = async () => {
   if (!resp) {
     return
   }
-//   console.log(resp)
+  //   console.log(resp)
   searchResult.value = resp.data
-//   console.log(searchResult.value)
+  console.log(searchResult.value)
 }
 </script>
 

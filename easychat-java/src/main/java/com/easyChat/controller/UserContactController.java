@@ -1,5 +1,6 @@
 package com.easyChat.controller;
 
+import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.dto.UserContactSearchResultDto;
 import com.easyChat.entity.vo.ResponseVo;
@@ -93,9 +94,17 @@ public class UserContactController extends ABaseController {
 
 
 	@RequestMapping("/search")
+	@GlobalInterceptor
 	public ResponseVo search(HttpServletRequest request, @NotEmpty String contactId) {
 		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
 		UserContactSearchResultDto resultDto = userContactService.searchContact(tokenUserInfoDto.getUserId(), contactId);
 		return getSuccessResponseVo(resultDto);
+	}
+	@RequestMapping("/applyAdd")
+	@GlobalInterceptor
+	public ResponseVo applyAdd(HttpServletRequest request,@NotEmpty String contactId, String applyInfo, String contactType) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		Integer joinType =  userContactService.applyAdd(tokenUserInfoDto,contactId,applyInfo);
+		return getSuccessResponseVo(joinType);
 	}
 }

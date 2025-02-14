@@ -19,6 +19,8 @@ import ShowLocalImage from '@/components/ShowLocalImage.vue'
 import ContentPanel from '@/components/ContentPanel.vue'
 import AvatarBase from '@/components/AvatarBase.vue';
 import UserBaseInfo from '@/components/UserBaseInfo.vue';
+import Dialog from '@/components/Dialog.vue';
+
 
 const app = createApp(App)
 app.use(router)
@@ -31,6 +33,8 @@ app.component('ShowLocalImage', ShowLocalImage)
 app.component('ContentPanel', ContentPanel)
 app.component('AvatarBase', AvatarBase)
 app.component('UserBaseInfo', UserBaseInfo)
+app.component('Dialog', Dialog)
+
 
 app.mount('#app')
 app.config.globalProperties.Utils = Utils

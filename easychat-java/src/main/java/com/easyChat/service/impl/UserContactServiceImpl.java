@@ -1,23 +1,28 @@
 package com.easyChat.service.impl;
 
+import com.easyChat.constants.Constants;
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.dto.UserContactSearchResultDto;
-import com.easyChat.entity.po.GroupInfo;
-import com.easyChat.entity.po.UserInfo;
-import com.easyChat.entity.po.UserInfoBeauty;
+import com.easyChat.entity.po.*;
 import com.easyChat.entity.query.GroupInfoQuery;
 import com.easyChat.entity.query.SimplePage;
-import com.easyChat.enums.PageSize;
+import com.easyChat.entity.query.UserContactApplyQuery;
+
+import com.easyChat.enums.*;
 import com.easyChat.entity.vo.PaginationResultVo;
-import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
-import com.easyChat.enums.UserContactStatusEnum;
-import com.easyChat.enums.UserContactTypeEnum;
+import com.easyChat.exception.BusinessException;
 import com.easyChat.mappers.GroupInfoMapper;
+import com.easyChat.mappers.UserContactApplyMapper;
 import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.mappers.UserInfoMapper;
+
 import com.easyChat.service.UserContactService;
 import com.easyChat.utils.CopyUtils;
+import com.easyChat.utils.StringTools;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -36,6 +41,8 @@ public class UserContactServiceImpl implements UserContactService {
     private UserInfoMapper<UserInfo, UserInfoBeauty> userInfoMapper;
     @Resource
     private GroupInfoMapper<GroupInfo, GroupInfoQuery> groupInfoMapper;
+    @Resource
+    private UserContactApplyMapper<UserContactApply, UserContactApplyQuery> userContactApplyMapper;
 
     /**
      * 联系人根据条件查询列表
@@ -114,6 +121,7 @@ public class UserContactServiceImpl implements UserContactService {
 
     /**
      * 根据userId查contactId（查人或者群组）
+     *
      * @param userId
      * @param contactId
      * @return
@@ -136,7 +144,7 @@ public class UserContactServiceImpl implements UserContactService {
                 if (userInfo == null) {
                     return null;
                 }
-                result = CopyUtils.copy(userInfo,UserContactSearchResultDto.class);
+                result = CopyUtils.copy(userInfo, UserContactSearchResultDto.class);
                 break;
             case GROUP:
                 GroupInfo groupInfo = groupInfoMapper.selectByGroupId(contactId);
@@ -149,7 +157,7 @@ public class UserContactServiceImpl implements UserContactService {
         result.setContactType(userContactTypeEnum.toString());
         result.setContactId(contactId);
         //如果userId查自己
-        if(userId.equals(contactId)) {
+        if (userId.equals(contactId)) {
             result.setStatus(UserContactStatusEnum.FRIEND.getStatus());
             return result;
         }
@@ -157,6 +165,79 @@ public class UserContactServiceImpl implements UserContactService {
         UserContact userContact = userContactMapper.selectByUserIdAndContactId(userId, contactId);
         result.setStatus(userContact == null ? null : userContact.getStatus());
         return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Integer applyAdd(TokenUserInfoDto tokenUserInfoDto, String contactId, String applyInfo) {
+        UserContactTypeEnum userContactTypeEnum = UserContactTypeEnum.getByPrefix(contactId);
+        if (userContactTypeEnum == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+
+        Integer joinType = null;
+        String receiveUserId = contactId;
+
+        //申请人ID
+        String applyUserId = tokenUserInfoDto.getUserId();
+        //如没有填写申请信息-》默认申请信息
+        applyInfo = StringTools.isEmpty(applyInfo) ? String.format(Constants.APPLY_INFO_TEMPLATE, tokenUserInfoDto.getNickName()) : applyInfo;
+
+        //查询是否拉黑
+        UserContact userContact = userContactMapper.selectByUserIdAndContactId(applyUserId, contactId);
+        if (userContact != null && UserContactStatusEnum.BLACK_LIST_BE.getStatus().equals(userContact.getStatus())) {
+            throw new BusinessException("对方拒绝接受你的消息");
+        }
+
+        //如果是群组
+        if (userContactTypeEnum.equals(UserContactTypeEnum.GROUP)) {
+            GroupInfo groupInfo = groupInfoMapper.selectByGroupId(contactId);
+            if (groupInfo == null || GroupStatusEnum.DISSOLUTION.getStatus().equals(groupInfo.getStatus())) {
+                throw new BusinessException("群聊不存在或已解散");
+            }
+            receiveUserId = groupInfo.getGroupOwnerId();
+            joinType = groupInfo.getJoinType();
+        } else {
+            //是用户
+            UserInfo userInfo = userInfoMapper.selectByUserId(contactId);
+            if (userInfo == null) {
+                throw new BusinessException(ResponseCodeEnum.CODE_600);
+            }
+            joinType = userInfo.getJoinType();
+        }
+        //直接加入的情况
+        if (JoinTypeEnum.JOIN.equals(joinType)) {
+            //TODO 添加联系人
+            return joinType;
+        }
+
+        //申请
+        UserContactApply dbApply = userContactApplyMapper.selectByApplyUserIdAndReceiveUserIdAndContactId(applyUserId,receiveUserId,contactId);
+        //之前没有添加过
+        if (dbApply == null) {
+            UserContactApply userContactApply = new UserContactApply();
+            userContactApply.setApplyUserId(applyUserId);
+            userContactApply.setContactType(userContactTypeEnum.getType());
+            userContactApply.setReceiveUserId(receiveUserId);
+            userContactApply.setLastApplyTime(System.currentTimeMillis());
+            userContactApply.setContactId(contactId);
+            userContactApply.setStatus(UserContactApplyStatusEnum.INIT.getStatus());
+            userContactApply.setApplyInfo(applyInfo);
+            userContactApplyMapper.insert(userContactApply);
+        }else{
+            //之前添加过，可能删除掉了好友//对方拒绝了申请
+            //只需要更新状态
+            UserContactApply userContactApply = new UserContactApply();
+            userContactApply.setStatus(UserContactApplyStatusEnum.INIT.getStatus());
+            userContactApply.setLastApplyTime(System.currentTimeMillis());
+            userContactApply.setApplyInfo(applyInfo);
+            userContactApplyMapper.updateByApplyId(userContactApply,dbApply.getApplyId());
+        }
+        if(dbApply==null ||!UserContactApplyStatusEnum.INIT.getStatus().equals(dbApply.getStatus())){
+            //TODO发送ws消息，通知对方要处理申请了
+
+        }
+        return joinType;
     }
 
 

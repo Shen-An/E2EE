@@ -1,5 +1,6 @@
 package com.easyChat.service;
 
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.dto.UserContactSearchResultDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserContact;
@@ -64,4 +65,6 @@ public interface UserContactService {
 	 * @param contactId
 	 */
 	UserContactSearchResultDto searchContact(String userId, String contactId);
+
+	Integer applyAdd(TokenUserInfoDto tokenUserInfoDto,String contactId,String applyInfo);
 }
