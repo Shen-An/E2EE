@@ -3,9 +3,14 @@ package com.easyChat.controller;
 import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.dto.UserContactSearchResultDto;
+import com.easyChat.entity.po.UserContactApply;
+import com.easyChat.entity.query.UserContactApplyQuery;
+import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
+import com.easyChat.enums.PageSize;
+import com.easyChat.service.UserContactApplyService;
 import com.easyChat.service.UserContactService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +33,8 @@ public class UserContactController extends ABaseController {
 
 	@Resource
 	private UserContactService userContactService;
+	@Resource
+	private UserContactApplyService userContactApplyService;
 
 	@RequestMapping("loadDataList")
 	public ResponseVo loadDataList(UserContactQuery query) {
@@ -92,7 +99,12 @@ public class UserContactController extends ABaseController {
 		return getSuccessResponseVo(null);
 	}
 
-
+	/**
+	 * 搜索人/群
+	 * @param request
+	 * @param contactId
+	 * @return
+	 */
 	@RequestMapping("/search")
 	@GlobalInterceptor
 	public ResponseVo search(HttpServletRequest request, @NotEmpty String contactId) {
@@ -100,6 +112,15 @@ public class UserContactController extends ABaseController {
 		UserContactSearchResultDto resultDto = userContactService.searchContact(tokenUserInfoDto.getUserId(), contactId);
 		return getSuccessResponseVo(resultDto);
 	}
+
+	/**
+	 * 发送添加请求
+	 * @param request
+	 * @param contactId
+	 * @param applyInfo
+	 * @param contactType
+	 * @return
+	 */
 	@RequestMapping("/applyAdd")
 	@GlobalInterceptor
 	public ResponseVo applyAdd(HttpServletRequest request,@NotEmpty String contactId, String applyInfo, String contactType) {
@@ -107,4 +128,27 @@ public class UserContactController extends ABaseController {
 		Integer joinType =  userContactService.applyAdd(tokenUserInfoDto,contactId,applyInfo);
 		return getSuccessResponseVo(joinType);
 	}
+
+	/**
+	 * 加载申请列表
+	 * @param request
+	 * @param pageNo
+	 * @return
+	 */
+	@RequestMapping("loadApply")
+	@GlobalInterceptor
+	public ResponseVo loadApply(HttpServletRequest request, Integer pageNo) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		UserContactApplyQuery applyQuery = new UserContactApplyQuery();
+		applyQuery.setOrderBy("last_apply_time desc");
+		applyQuery.setReceiveUserId(tokenUserInfoDto.getUserId());
+		applyQuery.setPageNo(pageNo);
+		applyQuery.setPageSize(PageSize.SIZE15.getSize());
+		applyQuery.setQueryContactInfo(true);
+
+		PaginationResultVo resultVo = userContactApplyService.findListByPage(applyQuery);
+		return getSuccessResponseVo(resultVo);
+
+	}
+
 }
