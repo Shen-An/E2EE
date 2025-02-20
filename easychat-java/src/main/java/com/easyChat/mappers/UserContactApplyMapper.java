@@ -1,5 +1,7 @@
 package com.easyChat.mappers;
 
+import com.easyChat.entity.po.UserContactApply;
+import com.easyChat.entity.query.UserContactApplyQuery;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -38,5 +40,9 @@ public interface UserContactApplyMapper<T, P> extends BaseMapper {
 	 */
 	Integer deleteByApplyUserIdAndReceiveUserIdAndContactId(@Param("applyUserId") String applyUserId, @Param("receiveUserId") String receiveUserId, @Param("contactId") String contactId);
 
+	/**
+	 * 多条件查询
+	 */
+	Integer updateByParam(@Param("bean") T t,@Param("query")P p);
 
 }

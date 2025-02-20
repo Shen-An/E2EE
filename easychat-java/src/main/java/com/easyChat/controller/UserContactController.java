@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -148,7 +149,14 @@ public class UserContactController extends ABaseController {
 
 		PaginationResultVo resultVo = userContactApplyService.findListByPage(applyQuery);
 		return getSuccessResponseVo(resultVo);
-
+	}
+	@RequestMapping("/dealWithApply")
+	@GlobalInterceptor
+	public ResponseVo dealWithApply(HttpServletRequest request, @NotNull Integer applyId,@NotNull Integer status) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		userContactApplyService.dealWithApply(tokenUserInfoDto.getUserId(),applyId,status);
+//		userContactApplyService.dealWithApply("U77786048081",applyId,status);
+		return getSuccessResponseVo(null);
 	}
 
 }

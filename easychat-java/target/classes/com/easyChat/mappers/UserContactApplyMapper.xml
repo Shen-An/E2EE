@@ -354,5 +354,32 @@
           and contact_id = #{contactId}
     </delete>
 
+    <update id="updateByParam" parameterType="com.easyChat.entity.query.UserContactApplyQuery">
+        update user_contact_apply
+        <set>
+            <if test="bean.applyUserId !=null">
+                apply_user_id = #{bean.applyUserId},
+            </if>
+            <if test="bean.receiveUserId!=null">
+                receive_user_id =#{bean.receiveUserId},
+            </if>
+            <if test="bean.contactType !=null">
+                contact_type=#{bean.contactType},
+            </if>
+            <if test="bean.contactId !=null">
+                contact_id=#{bean.contactId},
+            </if>
+            <if test="bean.lastApplyTime!=null">
+                last_apply_time = #{bean.lastApplyTime},
+            </if>
+            <if test="bean.status!=null">
+                status = #{bean.status},
+            </if>
+            <if test="bean.applyInfo!=null">
+                apply_info=#{bean.applyInfo},
+            </if>
+        </set>
+        <include refid="query_condition"></include>
+    </update>
 
 </mapper>
