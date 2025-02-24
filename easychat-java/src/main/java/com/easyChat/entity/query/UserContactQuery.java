@@ -53,6 +53,43 @@ public class UserContactQuery extends BaseQuery {
 	private String lastUpdateTimeEnd;
 
 	private Boolean queryUserInfo;
+	private Boolean queryContactUserInfo;
+	private Boolean queryGroupInfo;
+	private Boolean excludeMyGroup;
+
+	private Integer [] statusArray;
+
+	public Integer[] getStatusArray() {
+		return statusArray;
+	}
+
+	public void setStatusArray(Integer[] statusArray) {
+		this.statusArray = statusArray;
+	}
+
+	public Boolean getExcludeMyGroup() {
+		return excludeMyGroup;
+	}
+
+	public void setExcludeMyGroup(Boolean excludeMyGroup) {
+		this.excludeMyGroup = excludeMyGroup;
+	}
+
+	public Boolean getQueryContactUserInfo() {
+		return queryContactUserInfo;
+	}
+
+	public void setQueryContactUserInfo(Boolean queryContactUserInfo) {
+		this.queryContactUserInfo = queryContactUserInfo;
+	}
+
+	public Boolean getQueryGroupInfo() {
+		return queryGroupInfo;
+	}
+
+	public void setQueryGroupInfo(Boolean queryGroupInfo) {
+		this.queryGroupInfo = queryGroupInfo;
+	}
 
 	public Boolean getQueryUserInfo() {
 		return queryUserInfo;

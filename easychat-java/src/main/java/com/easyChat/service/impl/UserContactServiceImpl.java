@@ -17,6 +17,7 @@ import com.easyChat.mappers.UserContactApplyMapper;
 import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.mappers.UserInfoMapper;
 
+import com.easyChat.service.UserContactApplyService;
 import com.easyChat.service.UserContactService;
 import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
@@ -43,7 +44,8 @@ public class UserContactServiceImpl implements UserContactService {
     private GroupInfoMapper<GroupInfo, GroupInfoQuery> groupInfoMapper;
     @Resource
     private UserContactApplyMapper<UserContactApply, UserContactApplyQuery> userContactApplyMapper;
-
+    @Resource
+    private UserContactApplyService userContactApplyService;
     /**
      * 联系人根据条件查询列表
      */
@@ -207,7 +209,8 @@ public class UserContactServiceImpl implements UserContactService {
         }
         //直接加入的情况
         if (JoinTypeEnum.JOIN.equals(joinType)) {
-            //TODO 添加联系人
+            //添加联系人
+            userContactApplyService.addContact(applyUserId,receiveUserId,contactId,userContactTypeEnum.getType(),applyInfo);
             return joinType;
         }
 

@@ -10,6 +10,10 @@ import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
 import com.easyChat.enums.PageSize;
+import com.easyChat.enums.ResponseCodeEnum;
+import com.easyChat.enums.UserContactStatusEnum;
+import com.easyChat.enums.UserContactTypeEnum;
+import com.easyChat.exception.BusinessException;
 import com.easyChat.service.UserContactApplyService;
 import com.easyChat.service.UserContactService;
 
@@ -158,5 +162,35 @@ public class UserContactController extends ABaseController {
 //		userContactApplyService.dealWithApply("U77786048081",applyId,status);
 		return getSuccessResponseVo(null);
 	}
+	@RequestMapping("loadContact")
+	@GlobalInterceptor
+	public ResponseVo loadContact(HttpServletRequest request,@NotNull String contactType) {
+		UserContactTypeEnum contactTypeEnum = UserContactTypeEnum.getByName(contactType);
+		if (contactTypeEnum == null) {
+			throw new BusinessException(ResponseCodeEnum.CODE_600);
+		}
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		UserContactQuery userContactQuery = new UserContactQuery();
+		userContactQuery.setUserId(tokenUserInfoDto.getUserId());
+		userContactQuery.setContactType(contactTypeEnum.getType());
+		if(UserContactTypeEnum.USER==contactTypeEnum){
+			userContactQuery.setQueryContactUserInfo(true);
+		} else if (UserContactTypeEnum.GROUP==contactTypeEnum) {
+			userContactQuery.setQueryGroupInfo(true);
+			userContactQuery.setExcludeMyGroup(true);
+		}
+
+		userContactQuery.setOrderBy("last_update_time desc");
+		userContactQuery.setStatusArray(new Integer[]{
+				UserContactStatusEnum.FRIEND.getStatus(),
+				UserContactStatusEnum.DEL_BE.getStatus(),
+				UserContactStatusEnum.BLACK_LIST_BE.getStatus(),
+		});
+		List<UserContact> list = userContactService.findListByParam(userContactQuery);
+
+		return getSuccessResponseVo(list);
+
+	}
+
 
 }
