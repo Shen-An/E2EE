@@ -20,6 +20,7 @@ import ContentPanel from '@/components/ContentPanel.vue'
 import AvatarBase from '@/components/AvatarBase.vue';
 import UserBaseInfo from '@/components/UserBaseInfo.vue';
 import Dialog from '@/components/Dialog.vue';
+import Avatar from '@/components/Avatar.vue';
 
 
 const app = createApp(App)
@@ -34,6 +35,7 @@ app.component('ContentPanel', ContentPanel)
 app.component('AvatarBase', AvatarBase)
 app.component('UserBaseInfo', UserBaseInfo)
 app.component('Dialog', Dialog)
+app.component('Avatar', Avatar)
 
 
 app.mount('#app')
