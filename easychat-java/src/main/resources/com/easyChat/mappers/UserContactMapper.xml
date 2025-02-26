@@ -66,8 +66,11 @@
         <if test="query.lastUpdateTimeEnd != null and query.lastUpdateTimeEnd !=''">
             <![CDATA[ and last_update_time < date_sub(#(query.lastUpdateTimeEnd), '%Y-%m-%d') ]]>
         </if>
-        <if test="query.statusArray != null query.statusArray.length>0">
-            and c.status in <foreach collection="query.statusArray" separator="," item="item"></foreach>
+        <if test="query.statusArray != null and query.statusArray.length > 0">
+            and c.status in
+            <foreach collection="query.statusArray" separator="," item="item" open="(" close=")">
+                #{item}
+            </foreach>
         </if>
     </sql>
 
@@ -98,7 +101,7 @@
             inner join user_info u on c.contact_id = u.user_id
         </if>
         <if test="query.queryGroupInfo">
-            inner join group_info g on c.contact_id = g.user_id
+            inner join group_info g on c.contact_id = g.group_id
             <if test="query.excludeMyGroup">
                 and g.group_owner_id!=c.user_id
             </if>
