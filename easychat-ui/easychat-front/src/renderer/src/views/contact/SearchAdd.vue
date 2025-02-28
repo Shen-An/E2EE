@@ -32,6 +32,8 @@ const { proxy } = getCurrentInstance()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 const formData = ref({})
+import { useContactStateStore } from '@/stores/ContactStateStore'
+const contactStateStore = useContactStateStore()
 const formDataRef = ref()
 const rules = { title: [{ required: true, message: '请输入内容' }] }
 const dialogConfig = ref({
@@ -68,6 +70,10 @@ const submitApply = async () => {
     }
     dialogConfig.value.show = false
     emit('reLoad')
+
+    if(resp.data==0){
+        contactStateStore.setContactReload(contactType)
+    }
 }
 const show = (data) => {
   dialogConfig.value.show = true

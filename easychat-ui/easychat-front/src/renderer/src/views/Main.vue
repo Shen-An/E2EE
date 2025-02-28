@@ -36,12 +36,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 const { proxy } = getCurrentInstance()
 
 import { useRouter } from 'vue-router'
 const router = useRouter()
-
+const getLoginInfo =async () => {
+  let resp = await proxy.Request({
+    url: proxy.Api.getUserInfo
+  })
+  if (!resp) {
+    return
+  }
+  userInfoStore.setInfo(resp.data)
+}
+onMounted(() => {
+  getLoginInfo()
+})
 const menuList = ref([
     {
         name: 'chat',

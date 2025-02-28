@@ -29,9 +29,9 @@
                 ]"
                 @click="contactDetail(contact, item)"
               >
-              <Avatar :userId = "contact[item.contactId]" :width="35" ></Avatar>
-              <div class="text">{{ contact[item.contactName] }}</div>
-            </div>
+                <Avatar :userId="contact[item.contactId]" :width="35"></Avatar>
+                <div class="text">{{ contact[item.contactName] }}</div>
+              </div>
             </template>
             <template v-if="item.contactData && item.contactData.length == 0">
               <div class="no-data">{{ item.emptyMsg }}</div>
@@ -49,13 +49,38 @@
   </Layout>
 </template>
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, watch } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
+import { useContactStateStore } from '@/stores/ContactStateStore'
+const contactStateStore = useContactStateStore()
+
+
+watch(
+  () => contactStateStore.contactReload,
+  (newVal, oldVal) => {
+    if (!newVal) {
+      return
+    }
+    switch (newVal) {
+      case 'GROUP':
+      loadContact(newVal)
+        // break
+      case 'USER':
+       
+        break
+    }
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+)
 const router = useRouter()
 const route = useRoute()
 const rightTitle = ref()
-
+const searchKey = ref()
+const search = () => {}
 const partJump = (data) => {
   if (data.showTitle) {
     rightTitle.value = data.name

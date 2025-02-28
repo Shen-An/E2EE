@@ -50,6 +50,11 @@ import searchAdd from '@/views/contact/searchAdd.vue'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
+
+const resetForm=()=>{
+  searchResult.value={}
+  contactId.value=undefined
+}
 const applyContact = () => {
   searchAddRef.value.show(searchResult.value)
 }
