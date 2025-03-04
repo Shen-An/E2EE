@@ -13,6 +13,7 @@ import com.easyChat.mappers.UserContactApplyMapper;
 import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.redis.RedisComponent;
 import com.easyChat.service.UserContactApplyService;
+import com.easyChat.service.UserContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,8 @@ public class UserContactApplyServiceImpl implements UserContactApplyService{
     private UserContactMapper userContactMapper;
 	@Resource
 	private RedisComponent redisComponent;
+	@Resource
+	private UserContactService userContactService;
 
 	/**
 	 * 联系人申请根据条件查询列表
@@ -160,7 +163,7 @@ public class UserContactApplyServiceImpl implements UserContactApplyService{
 		//通过
 		if(UserContactApplyStatusEnum.PASS.getStatus().equals(status)){
 			// 添加联系人
-			this.addContact(userContactApply.getApplyUserId(),userContactApply.getReceiveUserId(),userContactApply.getContactId(),userContactApply.getContactType(),userContactApply.getApplyUserId());
+			userContactService.addContact(userContactApply.getApplyUserId(),userContactApply.getReceiveUserId(),userContactApply.getContactId(),userContactApply.getContactType(),userContactApply.getApplyUserId());
 
 			return;
 		}
@@ -173,54 +176,11 @@ public class UserContactApplyServiceImpl implements UserContactApplyService{
 			userContact.setContactId(userContactApply.getContactId());
 			userContact.setContactType(userContactApply.getContactType());
 			userContact.setCreateTime(new Date());
-			userContact.setStatus(UserContactStatusEnum.BLACK_LIST_BE.getStatus());
+			userContact.setStatus(UserContactStatusEnum.BLACK_LIST_BE_FIRST.getStatus());
 			userContact.setLastUpdateTime(new Date());
 			userContactMapper.insertOrUpdate(userContact);
 		}
 	}
 
-	@Override
-	public void addContact(String applyUserId, String receiveUserId, String contactId, Integer contactType, String applyInfo) {
-		//群聊人数
-		if(UserContactTypeEnum.GROUP.getType().equals(contactType)){
-			UserContactQuery userContactQuery = new UserContactQuery();
-			userContactQuery.setContactId(contactId);
-			userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
-			Integer count = userContactMapper.selectCount(userContactQuery);
-			SysSettingDto sysSettingDto = redisComponent.getSysSetting();
-			if (count>= sysSettingDto.getMaxGroupCount()){
-				throw new BusinessException("群聊人数已满");
-			}
-		}
-		Date curDate = new Date();
-		//同意
-		List<UserContact> list = new ArrayList<>();
-		//申请人添加对方
-		UserContact userContact = new UserContact();
-		userContact.setUserId(applyUserId);
-		userContact.setContactId(contactId);
-		userContact.setContactType(contactType);
-		userContact.setCreateTime(curDate);
-		userContact.setLastUpdateTime(curDate);
-		userContact.setStatus(UserContactStatusEnum.FRIEND.getStatus());
-		list.add(userContact);
 
-		//如果是好友，接收者也添加，如果是群组，群组不必添加
-		if (UserContactTypeEnum.USER.getType().equals(contactType)) {
-			userContact = new UserContact();
-			userContact.setUserId(receiveUserId);
-			userContact.setContactId(applyUserId);
-			userContact.setContactType(contactType);
-			userContact.setCreateTime(curDate);
-			userContact.setLastUpdateTime(curDate);
-			userContact.setStatus(UserContactStatusEnum.FRIEND.getStatus());
-			list.add(userContact);
-		}
-		//批量插入
-		userContactMapper.insertOrUpdate(userContact);
-
-		//TODO如果是好友，接收者也添加申请人为好友，添加redis缓存
-
-		//TODO创建会话
-	}
 }

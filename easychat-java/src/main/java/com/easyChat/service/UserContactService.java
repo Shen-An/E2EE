@@ -5,6 +5,7 @@ import com.easyChat.entity.dto.UserContactSearchResultDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.UserContactQuery;
+import com.easyChat.enums.UserContactStatusEnum;
 
 import java.util.List;
 
@@ -67,4 +68,11 @@ public interface UserContactService {
 	UserContactSearchResultDto searchContact(String userId, String contactId);
 
 	Integer applyAdd(TokenUserInfoDto tokenUserInfoDto,String contactId,String applyInfo);
+
+	/**
+	 * 添加联系人/群组
+	 */
+	void addContact(String applyUserId, String receiveUserId, String contactId, Integer contactType, String applyInfo);
+
+	void removeUserContact(String userId, String contactId, UserContactStatusEnum status);
 }

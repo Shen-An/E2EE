@@ -8,7 +8,8 @@ public enum UserContactStatusEnum {
     DEL(2,"已删除好友"),
     DEL_BE(3,"被好友删除"),
     BLACK_LIST(4,"拉黑好友"),
-    BLACK_LIST_BE(5,"被好友拉黑");
+    BLACK_LIST_BE(5,"被好友拉黑"),
+    BLACK_LIST_BE_FIRST(6,"首次被好友拉黑");
 
     private Integer status;
     private String desc;

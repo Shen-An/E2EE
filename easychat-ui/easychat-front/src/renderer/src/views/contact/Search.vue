@@ -35,7 +35,9 @@
           <el-button type="primary" v-if="searchResult.status == 1" @click="sendMessage"
             >发消息</el-button
           >
-          <span v-if="searchResult.status == 5">对方拒绝接受你的消息</span>
+          <span v-if="searchResult.status == 5 || searchResult.status == 6"
+            >对方拒绝接受你的消息</span
+          >
         </div>
       </div>
       <div v-if="!searchResult" class="no-data">暂无数据</div>
@@ -51,9 +53,9 @@ import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
 
-const resetForm=()=>{
-  searchResult.value={}
-  contactId.value=undefined
+const resetForm = () => {
+  searchResult.value = {}
+  contactId.value = undefined
 }
 const applyContact = () => {
   searchAddRef.value.show(searchResult.value)
