@@ -261,6 +261,7 @@ public class UserContactServiceImpl implements UserContactService {
         //我移除好友
         UserContact userContact =new UserContact();
         userContact.setStatus(status.getStatus());
+
         userContactMapper.updateByUserIdAndContactId(userContact, userId, contactId);
 
         //移除好友列表中的我

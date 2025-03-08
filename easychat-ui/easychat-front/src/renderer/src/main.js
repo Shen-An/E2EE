@@ -12,6 +12,8 @@ import router from '@/router'
 import Request from '@/utils/Request.js'
 import Message from '@/utils/Message.js'
 import Api from '@/utils/Api.js'
+import Confirm from './utils/Confirm'
+
 import Layout from '@/components/Layout.vue'
 import WinOp from '@/components/WinOp.vue'
 import Blank from '@/components/Blank.vue'
@@ -21,6 +23,7 @@ import AvatarBase from '@/components/AvatarBase.vue';
 import UserBaseInfo from '@/components/UserBaseInfo.vue';
 import Dialog from '@/components/Dialog.vue';
 import Avatar from '@/components/Avatar.vue';
+import AvatarUpload from '@/components/AvatarUpload.vue';
 
 
 const app = createApp(App)
@@ -36,6 +39,7 @@ app.component('AvatarBase', AvatarBase)
 app.component('UserBaseInfo', UserBaseInfo)
 app.component('Dialog', Dialog)
 app.component('Avatar', Avatar)
+app.component('AvatarUpload', AvatarUpload)
 
 
 app.mount('#app')
@@ -44,3 +48,4 @@ app.config.globalProperties.Verify = Verify
 app.config.globalProperties.Request = Request
 app.config.globalProperties.Message = Message
 app.config.globalProperties.Api = Api
+app.config.globalProperties.Confirm = Confirm

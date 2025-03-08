@@ -271,7 +271,9 @@
             <if test="bean.lastUpdateTime!=null">
                 last_update_time=#{bean.lastUpdateTime},
             </if>
+            last_update_time=now(), <!-- 添加默认字段更新 -->
         </set>
+
         where user_id=#{userId} and contact_id=#{contactId}
     </update>
 

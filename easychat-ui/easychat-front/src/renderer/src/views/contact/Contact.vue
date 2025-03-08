@@ -55,7 +55,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useContactStateStore } from '@/stores/ContactStateStore'
 const contactStateStore = useContactStateStore()
 
-
 watch(
   () => contactStateStore.contactReload,
   (newVal, oldVal) => {
@@ -63,11 +62,18 @@ watch(
       return
     }
     switch (newVal) {
+      case 'MY':
+        loadMyGroup()
+        break
+      case 'REMOVE_USER':
+        loadContact('USER')
+        router.push('/contact/blank')
+        rightTitle.value = null
+        break 
       case 'GROUP':
-      loadContact(newVal)
-        // break
+        loadContact(newVal)
+        break
       case 'USER':
-       
         break
     }
   },
@@ -111,6 +117,34 @@ const loadContact = async (contactType) => {
 }
 loadContact('GROUP')
 loadContact('USER')
+
+const loadMyGroup = async () => {
+  // 加载我加入的群组
+  let resp = await proxy.Request({
+    url: proxy.Api.loadMyGroup
+  })
+
+  if (!resp) {
+    return
+  }
+  partList.value[1].contactData = resp.data
+}
+loadMyGroup()
+
+const contactDetail = (contact, part) => {
+  if (part.showTitle) {
+    rightTitle.value = contact[part.contactName]
+  } else {
+    rightTitle.value = null
+  }
+  router.push({
+    path: part.contactPath,
+    query: {
+      contactId: contact[part.contactId]
+    }
+  })
+}
+
 const partList = ref([
   {
     partName: '新好友',
@@ -138,11 +172,10 @@ const partList = ref([
         name: '新建群聊',
         icon: 'icon-add-group',
         iconBgColor: '#1485ee',
-        path: '/contact/createGroup',
-        path: 'contact/createGroup'
+        path: '/contact/createGroup'
       }
     ],
-    contactId: 'group',
+    contactId: 'groupId',
     contactName: 'groupName',
     showTitle: true,
     contactData: [],

@@ -227,34 +227,34 @@ public class UserContactController extends ABaseController {
     @RequestMapping("/getContactInfo")
     @GlobalInterceptor
     public ResponseVo getContactInfo(HttpServletRequest request, @NotNull String contactId) {
-//        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-//        UserInfo userInfo = userInfoService.getUserInfoByUserId(contactId);
-//        UserInfoVo userInfoVo = CopyUtils.copy(userInfo, UserInfoVo.class);
-//        userInfoVo.setContactStatus(UserContactStatusEnum.NOT_FRIEND.getStatus());
-//        UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(), contactId);
-//        if (userContact != null) {
-//            userInfoVo.setContactStatus(UserContactStatusEnum.FRIEND.getStatus());
-//        }
-//        return getSuccessResponseVo(userInfoVo);
-        //更改版本临时使用
-        String word1 = "G";
-        String word2 = "U";
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-        if (contactId.contains(word2)){
-            UserInfo userInfo = userInfoService.getUserInfoByUserId(contactId);
-            UserInfoVo userInfoVo = CopyUtils.copy(userInfo, UserInfoVo.class);
-            userInfoVo.setContactStatus(UserContactStatusEnum.NOT_FRIEND.getStatus());
-            UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(), contactId);
-            if (userContact != null) {
-                userInfoVo.setContactStatus(UserContactStatusEnum.FRIEND.getStatus());
-            }
-            return getSuccessResponseVo(userInfoVo);
-        }else if (contactId.contains(word1)){
-            GroupInfo groupInfo = groupInfoService.getGroupInfoByGroupId(contactId);
-
-            return getSuccessResponseVo(groupInfo);
+        UserInfo userInfo = userInfoService.getUserInfoByUserId(contactId);
+        UserInfoVo userInfoVo = CopyUtils.copy(userInfo, UserInfoVo.class);
+        userInfoVo.setContactStatus(UserContactStatusEnum.NOT_FRIEND.getStatus());
+        UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(), contactId);
+        if (userContact != null) {
+            userInfoVo.setContactStatus(UserContactStatusEnum.FRIEND.getStatus());
         }
-        return getSuccessResponseVo(null);
+        return getSuccessResponseVo(userInfoVo);
+//        //更改版本临时使用
+//        String word1 = "G";
+//        String word2 = "U";
+//        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+//        if (contactId.contains(word2)){
+//            UserInfo userInfo = userInfoService.getUserInfoByUserId(contactId);
+//            UserInfoVo userInfoVo = CopyUtils.copy(userInfo, UserInfoVo.class);
+//            userInfoVo.setContactStatus(UserContactStatusEnum.NOT_FRIEND.getStatus());
+//            UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(), contactId);
+//            if (userContact != null) {
+//                userInfoVo.setContactStatus(UserContactStatusEnum.FRIEND.getStatus());
+//            }
+//            return getSuccessResponseVo(userInfoVo);
+//        }else if (contactId.contains(word1)){
+//            GroupInfo groupInfo = groupInfoService.getGroupInfoByGroupId(contactId);
+//
+//            return getSuccessResponseVo(groupInfo);
+//        }
+//        return getSuccessResponseVo(null);
 
 
 
@@ -273,7 +273,7 @@ public class UserContactController extends ABaseController {
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
 
         UserContact userContact = userContactService.getUserContactByUserIdAndContactId(tokenUserInfoDto.getUserId(), contactId);
-        if (null == userContact || ArrayUtils.contains(
+        if (null == userContact || !ArrayUtils.contains(
                 new Integer[]{
                         UserContactStatusEnum.FRIEND.getStatus(),
                         UserContactStatusEnum.DEL_BE.getStatus(),
@@ -298,7 +298,7 @@ public class UserContactController extends ABaseController {
     @GlobalInterceptor
     public ResponseVo addContact2Blacklist(HttpServletRequest request, @NotNull String contactId) {
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-        userContactService.removeUserContact(tokenUserInfoDto.getUserId(),contactId,UserContactStatusEnum.BLACK_LIST_BE);
+        userContactService.removeUserContact(tokenUserInfoDto.getUserId(),contactId,UserContactStatusEnum.BLACK_LIST);
         return getSuccessResponseVo(null);
     }
 }

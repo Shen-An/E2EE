@@ -7,13 +7,13 @@ const api = {
     login: "/account/login",
     register: "/account/register",
     getSysSetting: "/account/getSysSetting",
-    loadMyGroup: "/group/loadMyGroup",
-    saveGroup: "/group/saveGroup",
-    getGroupInfo: "/group/getGroupInfo",
-    getGroupInfo4Chat: "/group/getGroupInfo4Chat",
-    dissolutionGroup: "/group/dissolutionGroup",//解散群
-    leaveGroup: "/group/leaveGroup",//退出群
-    addOrRemoveGroupUser: "/group/addOrRemoveGroupUser",//添加或删除群成员
+    loadMyGroup: "/groupInfo/loadMyGroup",
+    saveGroup: "/groupInfo/saveGroup",
+    getGroupInfo: "/groupInfo/getGroupInfo",
+    getGroupInfo4Chat: "/groupInfo/getGroupInfo4Chat",
+    dissolutionGroup: "/groupInfo/dissolutionGroup",//解散群
+    leaveGroup: "/groupInfo/leaveGroup",//退出群
+    addOrRemoveGroupUser: "/groupInfo/addOrRemoveGroupUser",//添加或删除群成员
     search:"/userContact/search",//搜索好友
     applyAdd:"/userContact/applyAdd",//申请添加
     loadApply:"/userContact/loadApply",//加载申请列表

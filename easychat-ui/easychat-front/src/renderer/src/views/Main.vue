@@ -38,7 +38,8 @@
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 const { proxy } = getCurrentInstance()
-
+import{useUserInfoStore} from '@/stores/UserInfoStore'
+const userInfoStore = useUserInfoStore()
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const getLoginInfo =async () => {
