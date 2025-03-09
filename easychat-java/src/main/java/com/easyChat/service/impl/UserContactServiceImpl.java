@@ -278,6 +278,7 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void addContact(String applyUserId, String receiveUserId, String contactId, Integer contactType, String applyInfo) {
         //群聊人数
         if(UserContactTypeEnum.GROUP.getType().equals(contactType)){
@@ -315,7 +316,8 @@ public class UserContactServiceImpl implements UserContactService {
             list.add(userContact);
         }
         //批量插入
-        userContactMapper.insertOrUpdate(userContact);
+
+        userContactMapper.insertOrUpdateBatch(list);
 
         //TODO如果是好友，接收者也添加申请人为好友，添加redis缓存
 
