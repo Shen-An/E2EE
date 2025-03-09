@@ -55,6 +55,19 @@ public class UserContactApply implements Serializable {
 	 */
 	private String applyInfo;
 
+	/**
+	 * 联系人名字
+	 */
+	private String contactName;
+
+	public String getContactName() {
+		return contactName;
+	}
+
+	public void setContactName(String contactName) {
+		this.contactName = contactName;
+	}
+
 	public String getStatusName() {
 		UserContactApplyStatusEnum statusEnum = UserContactApplyStatusEnum.getByStatus(status);
 
