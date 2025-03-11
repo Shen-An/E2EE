@@ -26,7 +26,7 @@
       <el-input
         clearable
         placeholder="请输入群公告"
-        v-model.trim="formData.notice"
+        v-model.trim="formData.groupNotice"
         type="textarea"
         rows="5"
         maxlength="300"
@@ -35,19 +35,22 @@
       ></el-input>
     </el-form-item>
 
-    <el-form :model="formData" style="width: 100%;margin-left: 160px;">
-  <el-form-item style="text-align: center;">
-    <el-button type="primary" @click="submit">
-      {{ formData.groupId ? '修改群组' : '创建群组' }}
-    </el-button>
-  </el-form-item>
-</el-form>
+    <el-form :model="formData" style="width: 100%; margin-left: 160px">
+      <el-form-item style="text-align: center">
+        <el-button type="primary" @click="submit">
+          {{ formData.groupId ? '修改群组' : '创建群组' }}
+        </el-button>
+      </el-form-item>
+    </el-form>
   </el-form>
 </template>
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, computed } from 'vue'
 const { proxy } = getCurrentInstance()
-
+//TODO保存封面
+const saveCover = () => {
+ 
+}
 const formData = ref({})
 const formDataRef = ref()
 const rules = {
@@ -55,41 +58,55 @@ const rules = {
   joinType: [{ required: true, message: '请选择加入权限' }],
   avatarFile: [{ required: true, message: '请上传群封面' }]
 }
-import{useContactStateStore} from '@/stores/ContactStateStore'
+import { useContactStateStore } from '@/stores/ContactStateStore'
 const contactStateStore = useContactStateStore()
 
 const emit = defineEmits(['editBack'])
 
-
-const submit= async()=>{
-    formDataRef.value.validate(async (valid) => {
-      if (!valid) {
-        return
-      }
-      let params={}
-      //TODO 重新加载头像
-      Object.assign(params,formData.value)
-
-      let resp = await proxy.Request({
-        url: proxy.Api.saveGroup,
-        params
-      })
-      if (!resp) {
-        return
-      }
-      if(params.groupId){
-        proxy.Message.success('群聊修改成功')
-        emit('editBack')
-      }else{
-        proxy.Message.success('群聊创建成功')
-       
-      }
-      formDataRef.value.resetFields()
-
-      contactStateStore.setContactReload("MY")
-      //TODO 重新加载头像
-    })
+const show = (data) => {
+  formDataRef.value.resetFields()
+  // 转换 joinType 为字符串类型
+  formData.value = {
+    ...data,
+    joinType: String(data.joinType), 
+    avatarFile: data.groupId
+  }
 }
+
+
+
+const submit = async () => {
+  formDataRef.value.validate(async (valid) => {
+    if (!valid) {
+      return
+    }
+    let params = {}
+    //TODO 重新加载头像
+    Object.assign(params, formData.value)
+
+    let resp = await proxy.Request({
+      url: proxy.Api.saveGroup,
+      params
+    })
+    if (!resp) {
+      return
+    }
+    if (params.groupId) {
+      proxy.Message.success('群聊修改成功')
+      emit('editBack')
+    } else {
+      proxy.Message.success('群聊创建成功')
+    }
+    formDataRef.value.resetFields()
+
+    contactStateStore.setContactReload('MY')
+    //TODO 重新加载头像
+  })
+}
+
+defineExpose({
+  show,
+});
 </script>
 <style lang="scss" scoped>
 </style>

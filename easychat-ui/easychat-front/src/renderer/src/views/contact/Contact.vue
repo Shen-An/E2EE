@@ -69,11 +69,21 @@ watch(
         loadContact('USER')
         router.push('/contact/blank')
         rightTitle.value = null
-        break 
-      case 'GROUP':
-        loadContact(newVal)
+        break
+      case 'LEAVE_GROUP':
+        loadContact('GROUP')
+        router.push('/contact/blank')
+        rightTitle.value = null
+        break
+      case 'DISSOLUTION_GROUP':
+        loadMyGroup()
+        router.push('/contact/blank')
+        rightTitle.value = null
         break
       case 'USER':
+
+      case 'GROUP':
+        loadContact(newVal)
         break
     }
   },
@@ -179,7 +189,7 @@ const partList = ref([
     contactName: 'groupName',
     showTitle: true,
     contactData: [],
-    contactPath: '/group/groupDetail'
+    contactPath: '/contact/groupDetail'
   },
   {
     partName: '我加入的群聊',
@@ -187,7 +197,7 @@ const partList = ref([
     contactName: 'contactName',
     showTitle: true,
     contactData: [],
-    contactPath: '/group/groupDetail',
+    contactPath: '/contact/groupDetail',
     emptyMsg: '暂未加入群聊'
   },
   {
