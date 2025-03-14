@@ -6,7 +6,9 @@ import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
 import com.easyChat.entity.vo.UserInfoVo;
 import com.easyChat.exception.BusinessException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,4 +85,6 @@ public interface UserInfoService {
 	void register(String email, String nickName, String password);
 
 	UserInfoVo login(String email, String password);
+
+	void updateUserInfo(UserInfo userInfo, MultipartFile avatarFile,MultipartFile avatarCover) throws IOException;
 }

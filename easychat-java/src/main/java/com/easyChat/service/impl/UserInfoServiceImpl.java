@@ -22,8 +22,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -224,6 +227,30 @@ public class UserInfoServiceImpl implements UserInfoService {
         userInfoVo.setAdmin(tokenUserInfoDto.getAdmin());
 
         return userInfoVo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserInfo(UserInfo userInfo, MultipartFile avatarFile, MultipartFile avatarCover) throws IOException {
+        if(avatarFile != null) {
+            String baseFoder = appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE;
+            File targetFile = new File(baseFoder + Constants.FILE_FOLDER_AVATAR_NAME);
+            if(!targetFile.exists()) {
+                targetFile.mkdirs();
+            }
+            String filePath =targetFile.getPath()+"/"+userInfo.getUserId()+Constants.IMAGE_SUFFIX;
+            avatarFile.transferTo(new File(filePath));
+            avatarCover.transferTo(new File(filePath+Constants.COVER_IMAGE_SUFFIX));
+        }
+
+        UserInfo dbInfo = this.userInfoMapper.selectByUserId(userInfo.getUserId());
+
+        this.userInfoMapper.updateByUserId(userInfo,userInfo.getUserId());
+        String contactNameUpdate = null;
+        if (!dbInfo.getNickName().equals(userInfo.getNickName())) {
+            contactNameUpdate = userInfo.getNickName();
+        }
+        //TODO 更新会话信息中的昵称信息
     }
 
     private TokenUserInfoDto getTokenUserInfoDto(UserInfo userInfo) {
