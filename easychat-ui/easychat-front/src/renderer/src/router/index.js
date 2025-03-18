@@ -61,9 +61,25 @@ const router = createRouter({
       {
         path: '/setting',
         name: '设置',
-        component: () => import('@/views/setting/Setting.vue')
-      }
+        component: () => import('@/views/setting/Setting.vue'),
+        redirect: '/setting/userInfo',
+        children: [{
+          path: '/setting/userInfo',
+          name: '个人信息',
+          component: () => import('@/views/setting/UserInfo.vue')
+        },
+        {
+          path: '/setting/fileManage',
+          name: '文件管理',
+          component: () => import('@/views/setting/fileManage.vue')
+        },
+        {
+          path: '/setting/about',
+          name: '关于',
+          component: () => import('@/views/setting/About.vue')
+        },
       ]
+      }]
     }
   ]
 })

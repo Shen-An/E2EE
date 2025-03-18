@@ -26,15 +26,20 @@
         :multiple="false"
         :http-request="uploadImage"
       >
-        <el-button size="primary" type="small">选择</el-button>
+        <el-button size="small" type="primary">选择</el-button>
     </el-upload>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted, computed } from 'vue'
 const { proxy } = getCurrentInstance()
+
+const preview = computed(() => {
+  return props.modelValue instanceof File
+})
+//TODO文件上传
 
 const props = defineProps({
   modelValue: {
