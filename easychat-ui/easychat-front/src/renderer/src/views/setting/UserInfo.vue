@@ -35,11 +35,16 @@
       <UserInfoEdit :data="userInfo" @editBack="editBack"></UserInfoEdit>
    
     </div>
+    <div v-if="showType == 2">
+      <UserInfoPassword  @editBack="editBack"></UserInfoPassword>
+   
+    </div>
   </ContentPanel>
 </template>
 
 <script setup>
 import UserInfoEdit from './UserInfoEdit.vue'
+import UserInfoPassword from './UserInfoPassword.vue';
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
