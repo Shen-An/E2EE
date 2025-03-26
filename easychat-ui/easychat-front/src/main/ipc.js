@@ -29,8 +29,24 @@ const winTitleOp = (callback) => {
         callback(event,data)
     })
 }
+
+const onSetLocalStore = () => {
+    ipcMain.on('setLocalStore', (e, {key,value}) => {
+        store.setData(key, value)
+        // console.log(store.getData(key))
+    })
+}
+
+const onGetLocalStore = () => {
+    ipcMain.on('getLocalStore', (e, key) => {
+        e.sender.send('getLocalStoreCallback', "主进程返回内容"+store.getData(key))
+    })
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
-    winTitleOp
+    winTitleOp,
+    onSetLocalStore,
+    onGetLocalStore
 }

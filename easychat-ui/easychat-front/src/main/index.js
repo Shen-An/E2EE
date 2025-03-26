@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 const NODE_ENV = process.env.NODE_ENV
-import { onLoginOrRegister, onLoginSuccess, winTitleOp } from './ipc'
+import { onLoginOrRegister, onLoginSuccess, winTitleOp, onSetLocalStore, onGetLocalStore } from './ipc'
 import { on } from 'events'
 const login_width = 300
 const login_height = 362
@@ -60,7 +60,7 @@ function createWindow() {
   const contextMenu = [
     {
       label: '退出',
-      click: function() {
+      click: function () {
         app.exit()
       }
     }
@@ -99,8 +99,8 @@ function createWindow() {
     if (config.admin) {
     }
     contextMenu.unshift({
-      label:'用户:'+config.nickName,click:function(){
-        
+      label: '用户:' + config.nickName, click: function () {
+
       }
     })
     tray.setContextMenu(Menu.buildFromTemplate(contextMenu))
@@ -141,6 +141,10 @@ function createWindow() {
       }
     }
   })
+
+  onSetLocalStore()
+  onGetLocalStore()
+
 }
 
 // This method will be called when Electron has finished

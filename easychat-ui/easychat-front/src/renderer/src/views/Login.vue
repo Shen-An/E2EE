@@ -2,14 +2,20 @@
   <div class="login_panel">
     <div class="title drag">飞信</div>
     <div class="loading-panel" v-if="showLoading">
-      <img src="../assets/img/loading3.gif" alt="">
+      <img src="../assets/img/loading3.gif" alt="" />
     </div>
-    <div class="login-form" >
+    <div class="login-form">
       <div class="error-msg">{{ errorMsg }}</div>
       <el-form :model="formData" :rules="rules" label-width="0px" @submit.prevent>
         <el-form-item prop="email">
-          <el-input size="large" clearable placeholder="请输入邮箱" maxLength="30" v-model.trim="formData.email"
-            @focus="cleanVerify">
+          <el-input
+            size="large"
+            clearable
+            placeholder="请输入邮箱"
+            maxLength="30"
+            v-model.trim="formData.email"
+            @focus="cleanVerify"
+          >
             <template #prefix>
               <span class="iconfont icon-email"></span>
             </template>
@@ -17,8 +23,14 @@
         </el-form-item>
 
         <el-form-item prop="nickName" v-if="isLogin == false">
-          <el-input size="large" clearable maxLength="15" placeholder="请输入昵称" v-model.trim="formData.nickName"
-            @focus="cleanVerify">
+          <el-input
+            size="large"
+            clearable
+            maxLength="15"
+            placeholder="请输入昵称"
+            v-model.trim="formData.nickName"
+            @focus="cleanVerify"
+          >
             <template #prefix>
               <span class="iconfont icon-user-nick"></span>
             </template>
@@ -26,8 +38,14 @@
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input size="large" show-password clearable placeholder="请输入密码" v-model.trim="formData.password"
-            @focus="cleanVerify">
+          <el-input
+            size="large"
+            show-password
+            clearable
+            placeholder="请输入密码"
+            v-model.trim="formData.password"
+            @focus="cleanVerify"
+          >
             <template #prefix>
               <span class="iconfont icon-password"></span>
             </template>
@@ -35,8 +53,14 @@
         </el-form-item>
 
         <el-form-item prop="rePassword" v-if="isLogin == false">
-          <el-input size="large" show-password clearable placeholder="请确认密码" v-model.trim="formData.rePassword"
-            @focus="cleanVerify">
+          <el-input
+            size="large"
+            show-password
+            clearable
+            placeholder="请确认密码"
+            v-model.trim="formData.rePassword"
+            @focus="cleanVerify"
+          >
             <template #prefix>
               <span class="iconfont icon-password"></span>
             </template>
@@ -45,35 +69,39 @@
 
         <el-form-item prop="checkCode">
           <div class="check-code-panel">
-            <el-input clearable placeholder="请输入验证码" v-model.trim="formData.checkCode" @focus="cleanVerify">
+            <el-input
+              clearable
+              placeholder="请输入验证码"
+              v-model.trim="formData.checkCode"
+              @focus="cleanVerify"
+            >
               <template #prefix>
                 <span size="large" class="iconfont icon-checkcode"></span>
               </template>
             </el-input>
-            <img :src="checkCodeUrl" class="check-code" @click="changeCheckCode">
+            <img :src="checkCodeUrl" class="check-code" @click="changeCheckCode" />
           </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="submit" class="login-btn">{{
-        isLogin ? '登录' : '注册'
-      }}</el-button>
+            isLogin ? '登录' : '注册'
+          }}</el-button>
         </el-form-item>
         <div class="bottom-link">
           <span class="a-link" @click="changeOpType">{{
-        isLogin ? '还没有账号？注册' : '已有账号？登录'
-            }}</span>
+            isLogin ? '还没有账号？注册' : '已有账号？登录'
+          }}</span>
         </div>
       </el-form>
     </div>
-   
   </div>
   <win-op :showSetTop="false" :showMin="false" :showMax="false" :closeType="0"></win-op>
 </template>
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 import { md5 } from 'js-md5'
-import {useUserInfoStore} from '@/stores/UserInfoStore'
-import {useRouter} from 'vue-router'
+import { useUserInfoStore } from '@/stores/UserInfoStore'
+import { useRouter } from 'vue-router'
 const router = useRouter()
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
@@ -96,7 +124,7 @@ const changeCheckCode = async () => {
   checkCodeUrl.value = resp.data.checkCode
   localStorage.setItem('checkCodeKey', resp.data.checkCodeKey)
 }
-changeCheckCode();
+changeCheckCode()
 const changeOpType = () => {
   //触发回调函数
   window.ipcRenderer.send('loginOrRegister', !isLogin.value)
@@ -108,7 +136,7 @@ const changeOpType = () => {
   })
 }
 
-const submit = async() => {
+const submit = async () => {
   cleanVerify()
   if (!checkValue('checkEmail', formData.value.email, '请输入正确的邮箱')) {
     return
@@ -135,13 +163,13 @@ const submit = async() => {
 
   let resp = await proxy.Request({
     url: isLogin.value ? proxy.Api.login : proxy.Api.register,
-    showLoading:isLogin.value?false:true,
+    showLoading: isLogin.value ? false : true,
     showError: false,
     params: {
       email: formData.value.email,
       nickName: formData.value.nickName,
       password: isLogin.value ? md5(formData.value.password) : formData.value.password,
-      checkCode : formData.value.checkCode,
+      checkCode: formData.value.checkCode,
       checkCodeKey: localStorage.getItem('checkCodeKey')
     },
     errorCallback: (resp) => {
@@ -157,13 +185,13 @@ const submit = async() => {
   if (isLogin.value) {
     //登录
     userInfoStore.setInfo(resp.data)
-   
+
     localStorage.setItem('token', resp.data.token)
-    router.push({path:'/main'})
+    router.push({ path: '/main' })
 
     const screenWidth = window.screen.width
     const screenHeight = window.screen.height
-  
+
     window.ipcRenderer.send('openChat', {
       email: formData.value.email,
       token: resp.data.token,
@@ -174,12 +202,34 @@ const submit = async() => {
       height: screenHeight
     })
 
+    window.ipcRenderer.send('setLocalStore', {
+      key: 'devWsDomain',
+      value: proxy.Api.devWsDomain
+    })
+    window.ipcRenderer.send('getLocalStore', 'devWsDomain')
   } else {
     // 注册
     proxy.Message.success('注册成功')
     changeOpType()
   }
 }
+
+const init = () => {
+  window.ipcRenderer.send('setLocalStore', {key:'prodDomain',value:proxy.Api.prodDomain})
+  window.ipcRenderer.send('setLocalStore', {key:'devWsDomain',value:proxy.Api.devWsDomain})
+  window.ipcRenderer.send('setLocalStore', {key:'prodWsDomain',value:proxy.Api.prodWsDomain})
+  window.ipcRenderer.send('setLocalStore', {key:'devWsDomain',value:proxy.Api.devWsDomain})
+
+  // window.ipcRenderer.on('getLocalStoreCallback', (e, data) => {
+    
+  //   console.log('getLocalStoreCallback:', data)
+  // })
+}
+
+onMounted(() => {
+  init()
+})
+
 const checkValue = (type, value, msg) => {
   if (proxy.Utils.isEmpty(value)) {
     errorMsg.value = msg
@@ -236,9 +286,7 @@ const cleanVerify = () => {
     :deep(.el-input__wrapper) {
       box-shadow: none;
       border-radius: none;
-
     }
-
 
     .el-form-item {
       border-bottom: 1px solid #ddd;
