@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
+import java.util.List;
+
 import static com.easyChat.constants.Constants.REDIS_KEY_WS_USER_HEART_BEAT;
 
 @Component
@@ -24,6 +26,15 @@ public class RedisComponent {
         return (Long) redisUtils.get(REDIS_KEY_WS_USER_HEART_BEAT + userId);
     }
 
+
+    public void saveHeartBeat(String userId) {
+        redisUtils.setex(REDIS_KEY_WS_USER_HEART_BEAT + userId,System.currentTimeMillis(),Constants.REDIS_KEY_EXPIRES_HEART_BEAT);
+    }
+
+    public void removeHeartBeat(String userId) {
+        redisUtils.delete(REDIS_KEY_WS_USER_HEART_BEAT + userId);
+    }
+
     /**
      * redis 保存 token
      *
@@ -32,7 +43,12 @@ public class RedisComponent {
     public void saveTokenUserInfoDto(TokenUserInfoDto tokenUserInfoDto) {
         //userId存token,token存 用户信息
         redisUtils.setex(Constants.REDIS_KEY_WS_TOKEN + tokenUserInfoDto.getToken(), tokenUserInfoDto, Constants.REDIS_KEY_EXPIRES_DAY);
-        redisUtils.setex(Constants.REDIS_KEY_WS_TOKEN_USERID + tokenUserInfoDto.getToken(), tokenUserInfoDto.getToken(), Constants.REDIS_KEY_EXPIRES_DAY);
+        redisUtils.setex(Constants.REDIS_KEY_WS_TOKEN_USERID + tokenUserInfoDto.getUserId(), tokenUserInfoDto.getToken(), Constants.REDIS_KEY_EXPIRES_DAY);
+    }
+
+    public TokenUserInfoDto getTokenUserInfoDto(String token) {
+        TokenUserInfoDto tokenUserInfoDto = (TokenUserInfoDto) redisUtils.get(Constants.REDIS_KEY_WS_TOKEN + token);
+        return tokenUserInfoDto;
     }
 
     public SysSettingDto getSysSetting() {
@@ -40,6 +56,20 @@ public class RedisComponent {
         sysSettingDto = sysSettingDto == null ? new SysSettingDto() : sysSettingDto;
 
         return sysSettingDto;
+    }
+
+
+    //清空联系人
+    public void cleanUserContact(String userId) {
+        redisUtils.delete(Constants.REDIS_KEY_USER_CONTACT + userId);
+    }
+    //批量添加联系人
+    public void addUserContactBatch(String userId, List<String>contactIdList) {
+        redisUtils.lpushAll(Constants.REDIS_KEY_USER_CONTACT+userId,contactIdList,Constants.REDIS_KEY_TOKEN_EXPIRES);
+    }
+
+    public List<String> getUserContactList(String userId) {
+        return (List<String>) redisUtils.get(Constants.REDIS_KEY_USER_CONTACT+userId);
     }
 
 }

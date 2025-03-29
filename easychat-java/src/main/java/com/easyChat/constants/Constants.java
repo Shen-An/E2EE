@@ -5,11 +5,14 @@ import com.easyChat.enums.UserContactTypeEnum;
 public class Constants {
     public static final String REDIS_KEY_CHECK_CODE = "easyChat:checkCode";
 
+    public static final Integer REDIS_KEY_EXPIRES_HEART_BEAT = 6;
     //验证码有效时间
     public static final Integer REDIS_TIME_1MIN = 60;
 
     //token有效时间
     public static final Integer REDIS_KEY_EXPIRES_DAY = REDIS_TIME_1MIN * 60 * 24;
+    //token失效时间
+    public static final Integer REDIS_KEY_TOKEN_EXPIRES = REDIS_KEY_EXPIRES_DAY * 2;
 
     //websocket心跳key
     public static final String REDIS_KEY_WS_USER_HEART_BEAT = "easyChat:ws:user:Heartbeat";
@@ -21,9 +24,9 @@ public class Constants {
     public static final String REDIS_KEY_WS_TOKEN_USERID = "easyChat:ws:token:userid";
 
     //系统设置key
-    public static final String REDIS_KEY_SYS_SETTING="easyChat:syssetting";
+    public static final String REDIS_KEY_SYS_SETTING = "easyChat:syssetting";
     //机器人Id
-    public static final String ROBOT_UID= UserContactTypeEnum.USER.getPrefix()+"robot";
+    public static final String ROBOT_UID = UserContactTypeEnum.USER.getPrefix() + "robot";
     //用户id长度
     public static final Integer LENGTH_11 = 11;
 
@@ -39,5 +42,10 @@ public class Constants {
     public static final String APPLY_INFO_TEMPLATE = "我是%s";
 
     public static final String REGEX_PASSWORD = "^(?=.*\\d)(?=.*[a-zA-Z])[\\da-zA-Z~!@#$%^&*_]{8,18}$";
+
+    //用户联系人列表
+    public static final String REDIS_KEY_USER_CONTACT = "easyChat:ws:user:contact";
+
+    public static final Long MILLS_SECONDS_3DAYS_AGO = 3 * 24 * 60 * 60 * 1000L;
 
 }

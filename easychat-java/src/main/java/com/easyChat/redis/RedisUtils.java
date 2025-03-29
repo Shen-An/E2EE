@@ -1,9 +1,11 @@
 package com.easyChat.redis;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -129,4 +131,11 @@ public class RedisUtils {
     public Long decrement(String key, long delta) {
         return redisTemplate.opsForValue().decrement(key, delta);
     }
+
+    public void lpushAll(String key, List<String> values, long timeout) {
+        ListOperations<String, Object> listOps = redisTemplate.opsForList();
+        listOps.leftPushAll(key, values); // 将值推入列表
+        redisTemplate.expire(key, timeout, TimeUnit.SECONDS); // 设置过期时间
+    }
+
 }

@@ -3,8 +3,10 @@ package com.easyChat.service.impl;
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.po.UserInfoBeauty;
 import com.easyChat.entity.query.SimplePage;
+import com.easyChat.entity.query.UserContactQuery;
 import com.easyChat.entity.query.UserInfoBeautyQuery;
 import com.easyChat.entity.vo.UserInfoVo;
 import com.easyChat.enums.*;
@@ -28,6 +30,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Description:用户信息表Service
@@ -145,7 +148,6 @@ public class UserInfoServiceImpl implements UserInfoService {
     }
 
     /**
-     *
      * @param email
      * @param nickName
      * @param password
@@ -207,8 +209,19 @@ public class UserInfoServiceImpl implements UserInfoService {
         if (UserStatusEnum.DISABLE.equals(userInfo.getStatus())) {
             throw new BusinessException("账号已禁用");
         }
-        //TODO 查询联系人
-        //TODO 查询群组
+        // 查询联系人 放入redis
+        UserContactQuery contactQuery = new UserContactQuery();
+        contactQuery.setUserId(userInfo.getUserId());
+        contactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+        List<UserContact> list = this.userInfoBeautyMapper.selectList(contactQuery);
+        List<String> contactIdList = list.stream().map(item -> item.getUserId()).collect(Collectors.toList());
+        if (!contactIdList.isEmpty()) {
+            redisComponent.cleanUserContact(userInfo.getUserId());
+        }
+        redisComponent.addUserContactBatch(userInfo.getUserId(), contactIdList);
+
+
+        //TODO 查询群组 放入redis
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfoDto(userInfo);
 
         //判断心跳是否存在---》存在则已经登录，
@@ -222,7 +235,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         tokenUserInfoDto.setToken(token);
         redisComponent.saveTokenUserInfoDto(tokenUserInfoDto);
 
-        UserInfoVo userInfoVo =  CopyUtils.copy(userInfo, UserInfoVo.class);
+        UserInfoVo userInfoVo = CopyUtils.copy(userInfo, UserInfoVo.class);
         userInfoVo.setToken(tokenUserInfoDto.getToken());
         userInfoVo.setAdmin(tokenUserInfoDto.getAdmin());
 
@@ -232,20 +245,20 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateUserInfo(UserInfo userInfo, MultipartFile avatarFile, MultipartFile avatarCover) throws IOException {
-        if(avatarFile != null) {
-            String baseFoder = appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE;
+        if (avatarFile != null) {
+            String baseFoder = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
             File targetFile = new File(baseFoder + Constants.FILE_FOLDER_AVATAR_NAME);
-            if(!targetFile.exists()) {
+            if (!targetFile.exists()) {
                 targetFile.mkdirs();
             }
-            String filePath =targetFile.getPath()+"/"+userInfo.getUserId()+Constants.IMAGE_SUFFIX;
+            String filePath = targetFile.getPath() + "/" + userInfo.getUserId() + Constants.IMAGE_SUFFIX;
             avatarFile.transferTo(new File(filePath));
-            avatarCover.transferTo(new File(filePath+Constants.COVER_IMAGE_SUFFIX));
+            avatarCover.transferTo(new File(filePath + Constants.COVER_IMAGE_SUFFIX));
         }
 
         UserInfo dbInfo = this.userInfoMapper.selectByUserId(userInfo.getUserId());
 
-        this.userInfoMapper.updateByUserId(userInfo,userInfo.getUserId());
+        this.userInfoMapper.updateByUserId(userInfo, userInfo.getUserId());
         String contactNameUpdate = null;
         if (!dbInfo.getNickName().equals(userInfo.getNickName())) {
             contactNameUpdate = userInfo.getNickName();
