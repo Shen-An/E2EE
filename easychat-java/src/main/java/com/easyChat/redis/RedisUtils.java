@@ -1,5 +1,6 @@
 package com.easyChat.redis;
 
+import com.easyChat.constants.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 public class RedisUtils {
@@ -136,6 +138,13 @@ public class RedisUtils {
         ListOperations<String, Object> listOps = redisTemplate.opsForList();
         listOps.leftPushAll(key, values); // 将值推入列表
         redisTemplate.expire(key, timeout, TimeUnit.SECONDS); // 设置过期时间
+    }
+
+    public List<String> getQueueList(String userId) {
+        List<Object> objectList = redisTemplate.opsForList().range(Constants.REDIS_KEY_USER_CONTACT + userId, 0, -1);
+        return objectList.stream()
+                .map(String.class::cast) // 将 Object 转换为 String
+                .collect(Collectors.toList());
     }
 
 }

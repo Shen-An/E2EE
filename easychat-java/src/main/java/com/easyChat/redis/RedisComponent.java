@@ -69,7 +69,7 @@ public class RedisComponent {
     }
 
     public List<String> getUserContactList(String userId) {
-        return (List<String>) redisUtils.get(Constants.REDIS_KEY_USER_CONTACT+userId);
+        return  redisUtils.getQueueList(Constants.REDIS_KEY_USER_CONTACT+userId);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.easyChat.entity.po;
 
+import com.easyChat.enums.UserContactTypeEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
@@ -30,6 +31,45 @@ public class ChatSessionUser implements Serializable {
 	 * 联系人名称
 	 */
 	private String contactName;
+
+	private String lastMessage;
+	private String lastReceiveTime;
+
+	private Integer memberCount;
+
+	private Integer contactType;
+
+	public Integer getContactType() {
+		return UserContactTypeEnum.getByPrefix(contactId).getType();
+	}
+
+	public void setContactType(Integer contactType) {
+		this.contactType = contactType;
+	}
+
+	public Integer getMemberCount() {
+		return memberCount;
+	}
+
+	public void setMemberCount(Integer memberCount) {
+		this.memberCount = memberCount;
+	}
+
+	public String getLastMessage() {
+		return lastMessage;
+	}
+
+	public void setLastMessage(String lastMessage) {
+		this.lastMessage = lastMessage;
+	}
+
+	public String getLastReceiveTime() {
+		return lastReceiveTime;
+	}
+
+	public void setLastReceiveTime(String lastReceiveTime) {
+		this.lastReceiveTime = lastReceiveTime;
+	}
 
 	public void setUserId(String userId) {
 		this.userId = userId;

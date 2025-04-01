@@ -14,9 +14,11 @@ import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.query.UserInfoQuery;
 import com.easyChat.exception.BusinessException;
+import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.mappers.UserInfoBeautyMapper;
 import com.easyChat.mappers.UserInfoMapper;
 import com.easyChat.redis.RedisComponent;
+import com.easyChat.service.UserContactService;
 import com.easyChat.service.UserInfoService;
 import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
@@ -50,6 +52,10 @@ public class UserInfoServiceImpl implements UserInfoService {
     private AppConfig appConfig;
     @Resource
     private RedisComponent redisComponent;
+    @Resource
+    private UserContactService userContactService;
+    @Resource
+    private UserContactMapper userContactMapper;
 
     /**
      * 用户信息表根据条件查询列表
@@ -193,7 +199,8 @@ public class UserInfoServiceImpl implements UserInfoService {
             this.userInfoBeautyMapper.updateById(updateBeauty, beautyAccount.getId());
         }
 
-        //TODO 创建机器人
+        // 创建机器人
+        userContactService.addContact4Robot(userId);
 
     }
 
@@ -213,7 +220,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         UserContactQuery contactQuery = new UserContactQuery();
         contactQuery.setUserId(userInfo.getUserId());
         contactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
-        List<UserContact> list = this.userInfoBeautyMapper.selectList(contactQuery);
+        List<UserContact> list = this.userContactMapper.selectList(contactQuery);
         List<String> contactIdList = list.stream().map(item -> item.getUserId()).collect(Collectors.toList());
         if (!contactIdList.isEmpty()) {
             redisComponent.cleanUserContact(userInfo.getUserId());
