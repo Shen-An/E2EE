@@ -7,6 +7,7 @@ import { onLoginOrRegister, onLoginSuccess, winTitleOp, onSetLocalStore, onGetLo
 import { on } from 'events'
 const login_width = 300
 const login_height = 362
+import{createTable}from './db/ADB'
 
 const register_height = 478
 

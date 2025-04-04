@@ -63,7 +63,7 @@ public class NettyWebSocketStarter implements Runnable {
                             //保证接受的Htpp的完整性
                             pipeline.addLast(new HttpObjectAggregator(64*1024));
                             //心跳
-                            pipeline.addLast(new IdleStateHandler(60,0,0, TimeUnit.SECONDS));
+                            pipeline.addLast(new IdleStateHandler(6,0,0, TimeUnit.SECONDS));
 
                             pipeline.addLast(new HandlerHeardBeat());
 

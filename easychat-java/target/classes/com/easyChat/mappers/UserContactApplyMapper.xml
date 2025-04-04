@@ -70,6 +70,11 @@
         <if test="query.applyInfoFuzzy != null and query.applyInfoFuzzy !=''">
             and apply_info like concat('%', #{query.applyInfoFuzzy}, '%')
         </if>
+        <!--额外条件 -->
+        <if test="query.lastApplyTimeStamp != null">
+            and last_apply_time >= #{query.lastApplyTimeStamp}
+        </if>
+
     </sql>
 
     <!--扩展的查询条件-->

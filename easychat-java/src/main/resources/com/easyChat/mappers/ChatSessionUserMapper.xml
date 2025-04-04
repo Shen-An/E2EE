@@ -63,8 +63,8 @@
 	<select id="selectList" resultMap="base_result_map">
 		SELECT
 		u.*,
-		c.last_message lastMessage
-		c.last_receive_time lastReceiveTime
+		c.last_message lastMessage,
+		c.last_receive_time lastReceiveTime,
 		case when SUBSTRING(contact_id,1,1)='G'
 		then (SELECT count(1) from user_contact uc where uc.contact_id = u.contact_id)
 		else 0
