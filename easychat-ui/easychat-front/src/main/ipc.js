@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 const NODE_ENV = process.env.NODE_ENV
 import store from './store'
 import { initWs } from './wsClient'
+import { addUserSetting } from './db/UserSettingModel'
 
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
@@ -18,6 +19,7 @@ const onLoginSuccess = (callback) => {
         store.initUserId(config.userId)
         store.setUserData('token', config.token)
         //TODO 增加用户配置
+        addUserSetting(config.userId,config.email)
         callback(config)
          //初始化ws连接
          initWs(config,e.sender)

@@ -4,9 +4,9 @@ const os = require('os');
 const NODE_ENV = process.env.NODE_ENV;
 import { add_tables, alter_tables, add_indexex } from './Tables.js'
 const userDir = 'D:'
-console.log(userDir)
+// console.log(userDir)
 const dbFolder = userDir + (NODE_ENV === 'development' ? '/.easyChatDev/' : '/.easyChat/');
-console.log(dbFolder)
+// console.log(dbFolder)
 if (!fs.existsSync(dbFolder)) {
     fs.mkdirSync(dbFolder);
 }
@@ -52,9 +52,7 @@ const run = (sql, params) => {
             if (err) {
                 resolve("操作数据库失败")
             }
-            rows.forEach((item, index) => {
-                rows[index] = convertDbObj2BizObj(item)
-            })
+           
             resolve(this.changes)
         });
         stmt.finalize()
@@ -62,7 +60,9 @@ const run = (sql, params) => {
 }
 
 const insert = (sqlPrefix, tableName, data) => {
+    // console.log(data)
     const columnsMap = globalColumnsMap[tableName]
+    // console.log(columnsMap)
     const dbColumns = []
     const params = []
     for (let item in data) {
@@ -72,7 +72,9 @@ const insert = (sqlPrefix, tableName, data) => {
         }
     }
     const preper = "?".repeat(dbColumns.length).split("").join(",")
+    // console.log(preper)
     const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`
+    console.log(sql)
     return run(sql, params)
 }
 
@@ -151,7 +153,7 @@ const initTableColumnsMap = async () => {
         globalColumnsMap[tables[i].name] = columnMapItem
     }
 
-    console.log(globalColumnsMap)
+    // console.log(globalColumnsMap)
 }
 const convertDbObj2BizObj = (data) => {
     if (!data) {

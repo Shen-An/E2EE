@@ -2,7 +2,9 @@ import webSocket from 'ws';
 const NODE_ENV = process.env.NODE_ENV;
 
 import store from './store'
-
+import {saveOrUpdateChatSessionBatch4Init}from './db/ChatSessionUserModel.js'
+import {saveMessageBatch}from './db/ChatMessageModel.js'
+import {updateContactNoReadCount}from './db/UserSettingModel.js'
 let ws = null;
 let maxReconnectTimes = null;
 let lockReconnect = false;
@@ -30,9 +32,20 @@ const createWs = () => {
         maxReconnectTimes = 5;
     }
     //从服务器接收到信息的回调函数
-    ws.onmessage = function (e) {
+    ws.onmessage = async function (e) {
         console.log("从服务器接收到信息", e.data);
-        // sender.send("receiveMessage", e.data);
+        const message = JSON.parse(e.data);
+        const messageType = message.messageType;
+        switch (messageType) {
+            case 0://ws连接成功
+                //保存会话信息
+                await saveOrUpdateChatSessionBatch4Init(message.extendData.chatSessionList);
+                //保存消息
+                await saveMessageBatch(message.extendData.chatMessageList);
+                //更新联系人数量
+                await updateContactNoReadCount({userId:store.getUserId(), noReadCount:message.extendData.applyCount});
+                break;
+        }
     }
     ws.onclose = function () {
         console.log("客户端关闭");
