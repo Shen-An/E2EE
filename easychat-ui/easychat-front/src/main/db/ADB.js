@@ -74,7 +74,7 @@ const insert = (sqlPrefix, tableName, data) => {
     const preper = "?".repeat(dbColumns.length).split("").join(",")
     // console.log(preper)
     const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`
-    console.log(sql)
+    // console.log(sql)
     return run(sql, params)
 }
 
