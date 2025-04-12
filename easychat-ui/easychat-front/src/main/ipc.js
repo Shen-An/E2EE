@@ -6,7 +6,8 @@ const NODE_ENV = process.env.NODE_ENV
 import store from './store'
 import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
-
+import { selectUserSessionList, delChatSession, topChatSession } from './db/ChatSessionUserModel'
+import {selectMessageList} from './db/ChatMessageModel'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -19,23 +20,23 @@ const onLoginSuccess = (callback) => {
         store.initUserId(config.userId)
         store.setUserData('token', config.token)
         //TODO 增加用户配置
-        addUserSetting(config.userId,config.email)
+        addUserSetting(config.userId, config.email)
         callback(config)
-         //初始化ws连接
-         initWs(config,e.sender)
+        //初始化ws连接
+        initWs(config, e.sender)
 
     })
 }
 
 const winTitleOp = (callback) => {
     ipcMain.on('winTitleOp', (event, data) => {
-        console.log('winTitleOp',data)
-        callback(event,data)
+        // console.log('winTitleOp',data)
+        callback(event, data)
     })
 }
 
 const onSetLocalStore = () => {
-    ipcMain.on('setLocalStore', (e, {key,value}) => {
+    ipcMain.on('setLocalStore', (e, { key, value }) => {
         store.setData(key, value)
         // console.log(store.getData(key))
     })
@@ -43,14 +44,46 @@ const onSetLocalStore = () => {
 
 const onGetLocalStore = () => {
     ipcMain.on('getLocalStore', (e, key) => {
-        e.sender.send('getLocalStoreCallback', "主进程返回内容"+store.getData(key))
+        e.sender.send('getLocalStoreCallback', "主进程返回内容" + store.getData(key))
     })
 }
 
+
+
+const onLoadSessionData = () => {
+    ipcMain.on('loadSessionData', async (e) => {
+        const dataList = await selectUserSessionList()
+        e.sender.send('loadSessionDataCallback', dataList)
+
+    })
+}
+
+const onDelChatSession = () => {
+    ipcMain.on('delChatSession', (e, contactId) => {
+        delChatSession(contactId)
+    })
+}
+const onTopChatSession = () => {
+    ipcMain.on('topChatSession', (e, { contactId, topType }) => {
+        console.log("ipc", contactId, topType)
+        topChatSession(contactId, topType)
+    })
+}
+
+const onLoadChatMessage = () => {
+    ipcMain.on('loadChatMessage', async (e, data) => {
+        const result = await selectMessageList(data)
+        e.sender.send('loadChatMessageCallback', result)
+    })
+}
 export {
     onLoginOrRegister,
     onLoginSuccess,
     winTitleOp,
     onSetLocalStore,
-    onGetLocalStore
+    onGetLocalStore,
+    onLoadSessionData,
+    onDelChatSession,
+    onTopChatSession,
+    onLoadChatMessage
 }

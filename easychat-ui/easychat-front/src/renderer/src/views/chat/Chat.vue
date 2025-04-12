@@ -9,31 +9,187 @@
           </template>
         </el-input>
       </div>
+      <div class="chat-session-list">
+        <template v-for="item in chatSessionList">
+          <ChatSession :data="item" @contextmenu.stop="onContextMenu(item, $event)"></ChatSession>
+        </template>
+      </div>
     </template>
+    <template #right-content></template>
   </Layout>
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick,onMounted } from 'vue'
+import ChatSession from './ChatSession.vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted, onUnmounted } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
+import ContextMenu from '@imengyu/vue3-context-menu'
+
+import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import { pa } from 'element-plus/es/locale'
+
 const router = useRouter()
 const route = useRoute()
+const searchKey = ref()
+const search = () => {}
 
+const chatSessionList = ref([])
 
-const init = () => {
-  window.ipcRenderer.send('getLocalStore', 'devWsDomain')
-  window.ipcRenderer.on('getLocalStoreCallback', (e, data) => {
-    
-    console.log('getLocalStoreCallback:', data)
+const loadChatSession = () => {
+  window.ipcRenderer.send('loadSessionData')
+}
+
+// 会话排序
+const sortChatSessionList = (dataList) => {
+  dataList.sort((a, b) => {
+    const topTypeResult = b['topType'] - a['topType']
+    if (topTypeResult == 0) {
+      return b['lastReceiveTime'] - a['lastReceiveTime']
+    }
+    return topTypeResult
   })
 }
 
+//删除会话
+const delChatSessionList = (contactId) => {
+  chatSessionList.value = chatSessionList.value.filter((item) => {
+    return item.contactId != contactId
+  })
+}
+
+const setTop = (data) => {
+  // console.log('setTop:', data)
+  data.topType = data.topType == 0 ? 1 : 0
+  // 会话排序
+  sortChatSessionList(chatSessionList.value)
+
+  window.ipcRenderer.send('topChatSession', { contactId: data.contactId, topType: data.topType })
+}
+
+//当前选中的会话
+const currentChatSession = ref({})
+
+const messageCountInfo = {
+  totalPage: 0,
+  pageNO: 0,
+  maxMessageId: null, //最大消息ID,只取小于该ID的消息
+  noData: false
+}
+//点击会话
+const messageList = ref([])
+const chatSessionClickHandler = (item) => {
+  currentChatSession.value = Object.assign({}, item)
+  //TODO 未读消息记录要清空
+  messageList.value = []
+  loadChatMessage()
+}
+const loadChatMessage = () => {
+  if (messageCountInfo.noData) {
+    return
+  }
+  messageCountInfo.pageNO++
+  window.ipcRenderer.send('loadChatMessage', {
+    sessionId: currentChatSession.value.sessionId,
+    pageNO: messageCountInfo.pageNO,
+    maxMessageId: messageCountInfo.maxMessageId
+  })
+}
+
+const delChatSession = (contactId) => {
+  // 从当前列表中删除
+  delChatSessionList(contactId)
+  //TODO 设置选中的会话
+  currentChatSession.value = {}
+  window.ipcRenderer.send('delChatSession', contactId)
+}
+
+const onContextMenu = (data, e) => {
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: data.topType == 0 ? '置顶' : '取消置顶',
+        onClick: () => {
+          setTop(data)
+        }
+      },
+      {
+        label: '删除聊天',
+        onClick: () => {
+          proxy.Confirm({
+            message: `确定删除与${data.contactName}的聊天记录吗？`,
+            okfun: () => {
+              delChatSession(data.contactId)
+            }
+          })
+        }
+      }
+    ]
+  })
+}
+
+const onLoadChatMessage = () => {
+  window.ipcRenderer.on('loadChatMessageCallback', (e, dataList, pageTotal, pageNo) => {
+    if (pageNo == pageTotal) {
+      messageCountInfo.noData = true
+    }
+    dataList.sort((a, b) => {
+      return a.messageId - b.messageId
+    })
+    messageList.value = dataList.concat(messageList.value)
+    messageCountInfo.pageNO = pageNo
+    messageCountInfo.pageTotal = pageTotal
+    if (pageNo == 1) {
+      messageCountInfo.maxMessageId =
+        dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
+      //TODO 滚动条滚动到底部
+    }
+    console.log('loadChatMessageCallback:', messageList.value)
+  })
+}
+
+const onLoadSessionData = () => {
+  window.ipcRenderer.on('loadSessionDataCallback', (e, dataList) => {
+    // 会话排序
+    sortChatSessionList(dataList)
+    chatSessionList.value = dataList
+    // console.log('loadSessionDataCallback:', chatSessionList.value)
+  })
+}
+const onReceiveMessage = () => {
+  window.ipcRenderer.on('receiveMessage', (e, message) => {
+    console.log('receiveMessage:', message)
+    // //ws连接成功
+    // if(message.messageType == 0){
+    //   loadChatSession()
+    // }
+  })
+}
 onMounted(() => {
-  init()
+  onReceiveMessage()
+  onLoadSessionData()
+  loadChatSession()
+  onLoadChatMessage()
+})
+onUnmounted(() => {
+  window.ipcRenderer.removeAllListeners('receiveMessage')
+  window.ipcRenderer.removeAllListeners('loadSessionDataCallback')
+  window.ipcRenderer.removeAllListeners('loadChatMessageCallback')
 })
 
+// const init = () => {
+//   window.ipcRenderer.send('getLocalStore', 'devWsDomain')
+//   window.ipcRenderer.on('getLocalStoreCallback', (e, data) => {
 
+//     console.log('getLocalStoreCallback:', data)
+//   })
+// }
+
+// onMounted(() => {
+//   init()
+// })
 </script>
 
 <style lang="scss" scoped>

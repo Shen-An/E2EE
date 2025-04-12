@@ -41,6 +41,14 @@ const saveMessageBatch = (chatMessageList) => {
         resolve();
     })
 }
+
+const selectMessageList=(query)=>{
+    return new Promise((resolve,reject)=>{
+        const {contactId,pageNO,maxMessage}=query;
+        let sql=``;
+    })
+}
+
 export {
     saveMessageBatch
 }
