@@ -11,15 +11,46 @@
       </div>
       <div class="chat-session-list">
         <template v-for="item in chatSessionList">
-          <ChatSession :data="item" @contextmenu.stop="onContextMenu(item, $event)"></ChatSession>
+          <ChatSession
+            :data="item"
+            @click="chatSessionClickHandler(item)"
+            @contextmenu.stop="onContextMenu(item, $event)"
+          ></ChatSession>
         </template>
       </div>
     </template>
-    <template #right-content></template>
+    <template #right-content>
+      <div class="title-panel drag" v-if="Object.keys(currentChatSession).length > 0">
+        <div class="title">
+          <span>{{ currentChatSession.contactName }}</span>
+          <span v-if="currentChatSession.contactType == 1"
+            >({{ currentChatSession.memberCount }})</span
+          >
+        </div>
+      </div>
+      <div
+        v-if="currentChatSession.contactType == 1"
+        class="iconfont icon-more no-drag"
+        @click="showGroupDetail"
+      ></div>
+      <div class="chat-panel" v-show="Object.keys(currentChatSession).length > 0">
+        <div class="message-panel" id="message-panel">
+          <div
+            class="message-item"
+            v-for="(data, index) in messageList"
+            :id="'message' + data.messageId"
+          >
+            {{ data.messageContent }}
+          </div>
+        </div>
+        <MessageSend :currentSession="currentChatSession"></MessageSend>
+      </div>
+    </template>
   </Layout>
 </template>
 
 <script setup>
+import MessageSend from './MessageSend.vue'
 import ChatSession from './ChatSession.vue'
 import { ref, reactive, getCurrentInstance, nextTick, onMounted, onUnmounted } from 'vue'
 const { proxy } = getCurrentInstance()
@@ -27,7 +58,6 @@ import { useRouter, useRoute } from 'vue-router'
 import ContextMenu from '@imengyu/vue3-context-menu'
 
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
-import { pa } from 'element-plus/es/locale'
 
 const router = useRouter()
 const route = useRoute()
@@ -72,26 +102,31 @@ const currentChatSession = ref({})
 
 const messageCountInfo = {
   totalPage: 0,
-  pageNO: 0,
+  pageNo: 0,
   maxMessageId: null, //最大消息ID,只取小于该ID的消息
   noData: false
 }
 //点击会话
 const messageList = ref([])
 const chatSessionClickHandler = (item) => {
+  // debugger
   currentChatSession.value = Object.assign({}, item)
   //TODO 未读消息记录要清空
   messageList.value = []
+  messageCountInfo.pageNo = 0
+  messageCountInfo.totalPage = 1
+  messageCountInfo.maxMessageId = null
+  messageCountInfo.noData = false
   loadChatMessage()
 }
 const loadChatMessage = () => {
   if (messageCountInfo.noData) {
     return
   }
-  messageCountInfo.pageNO++
+  messageCountInfo.pageNo++
   window.ipcRenderer.send('loadChatMessage', {
     sessionId: currentChatSession.value.sessionId,
-    pageNO: messageCountInfo.pageNO,
+    pageNo: messageCountInfo.pageNo,
     maxMessageId: messageCountInfo.maxMessageId
   })
 }
@@ -131,7 +166,7 @@ const onContextMenu = (data, e) => {
 }
 
 const onLoadChatMessage = () => {
-  window.ipcRenderer.on('loadChatMessageCallback', (e, dataList, pageTotal, pageNo) => {
+  window.ipcRenderer.on('loadChatMessageCallback', (e, { dataList, pageTotal, pageNo }) => {
     if (pageNo == pageTotal) {
       messageCountInfo.noData = true
     }
@@ -139,7 +174,7 @@ const onLoadChatMessage = () => {
       return a.messageId - b.messageId
     })
     messageList.value = dataList.concat(messageList.value)
-    messageCountInfo.pageNO = pageNo
+    messageCountInfo.pageNo = pageNo
     messageCountInfo.pageTotal = pageTotal
     if (pageNo == 1) {
       messageCountInfo.maxMessageId =
