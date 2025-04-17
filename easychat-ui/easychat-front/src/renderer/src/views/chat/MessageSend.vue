@@ -57,7 +57,7 @@
     <div class="send-btn-panel">
       <el-popover
         trigger="click"
-        :visible="showEmojiPopover"
+        :visible="showSendMsgPopover"
         :hide-after="1500"
         placement="top-end"
         :teleported="false"
@@ -71,24 +71,132 @@
       >
         <template #default> <span class="empty-msg">不能发送空白信息</span> </template>
         <template #reference>
-          <span class="send-btn" @click="sendMessage">发送</span>   
+          <span class="send-btn" @click="sendMessage">发送(S)</span>
         </template>
       </el-popover>
     </div>
+    <!-- 添加好友 -->
+    <SearchAdd ref="searchAddRef"></SearchAdd>
   </div>
 </template>
 
 <script setup>
+import SearchAdd from '@/views/contact/SearchAdd.vue'
 import emojiList from '@/utils/Emoji'
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
+import { useUserInfoStore } from '@/stores/UserInfoStore'
+const userInfoStore = useUserInfoStore()
 
+const props=defineProps({
+  currentChatSession:{
+    type:Object,
+    default:{}
+  }
+})
 const acticeEmoji = ref('人物')
+
+//隐藏显示pop
+const showEmojiPopover = ref(false)
+const showSendMsgPopover = ref(false)
+const hidePopover = () => {
+  showEmojiPopover.value = false
+  showSendMsgPopover.value = false
+}
+
 const msgContent = ref('')
-const sendMessage = () => {}
+const sendMessage = (e) => {
+  
+  if (e.shiftKey && e.keyCode === 13) {
+    return
+  }
+  e.preventDefault()
+  const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
+  // debugger
+  if (messageContent == '') {
+    showSendMsgPopover.value = true
+    return
+  }
+  sendMessageDo(
+    {
+      messageContent,
+      messageType: 2
+    },
+    true
+  )
+}
+
+//真正发送消息
+const sendMessageDo = async(
+  messageObj = {
+    messageContent,
+    messageType,
+    localFilePath,
+    fileSize,
+    fileName,
+    filePath,
+    fileType
+  },
+  cleanMsgContent
+) => {
+  //TODO判断文件大小
+  if(messageObj.fileSize==0){
+    proxy.Confirm({
+      message:`${messageObj.fileName}文件为空，无法发送`,
+      showCancelBtn:false
+    })
+    return
+  }
+  messageObj.sessionId = props.currentChatSession.sessionId
+  messageObj.sendUserId = userInfoStore.getInfo().sendUserId
+
+  let resp = await proxy.Request({
+    url:proxy.Api.sendMessage,
+    showLoading:false,
+    params:{
+      messageContent:messageObj.messageContent,
+      contactId:props.currentChatSession.contactId,
+      messageType:messageObj.messageType,
+      fileSize:messageObj.fileSize,
+      fileName:messageObj.fileName,
+      fileType:messageObj.fileType,
+    },
+    showError:false,
+    errorCallBack:(responseData)=>{
+      proxy.Confirm({
+        message:responseData.info,
+        okfun:()=>{
+          addContact(props.currentChatSession.contactId,responseData.code)
+        }
+,
+        okText:'重新申请'
+      })
+    }
+  })
+  if(!resp){
+    return
+  }
+  if(cleanMsgContent){
+    msgContent.value = ''
+  }
+  Object.assign(messageObj,resp.data)
+
+  //TODO更新列表
+  //保存消息到本地
+  window.ipcRenderer.send('addLocalMessage',messageObj)
+}
+
+// 添加好友
+const searchAddRef = ref()
+const addContact=(contactId,code)=>{
+  searchAddRef.value.show({
+    contactId,
+    contactType:code == 902 ?'USER':"GROUP"
+  })
+}
 </script>
 
 <style lang="scss" scoped>

@@ -6,8 +6,8 @@ const NODE_ENV = process.env.NODE_ENV
 import store from './store'
 import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
-import { selectUserSessionList, delChatSession, topChatSession } from './db/ChatSessionUserModel'
-import {selectMessageList} from './db/ChatMessageModel'
+import { selectUserSessionList, delChatSession, topChatSession ,updateSessionInfo4Message,readAll} from './db/ChatSessionUserModel'
+import {selectMessageList,saveMessage} from './db/ChatMessageModel'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -76,6 +76,29 @@ const onLoadChatMessage = () => {
         e.sender.send('loadChatMessageCallback', result)
     })
 }
+
+const onSetSessionSelect=()=>{
+    ipcMain.on('setSessionSelect',async(e,{contactId,sessionId})=>{
+        if(sessionId){
+            store.setUserData("currentSessionId",sessionId)
+            readAll(contactId)
+        }else{
+            store.deleteUserData("currentSessionId")
+        }
+    })
+}
+const onAddLocalMessage=()=>{
+    ipcMain.on("addLocalMessage",async(e,data)=>{
+        await saveMessage(data)
+        //TODO保存文件
+        //更新session
+        data.lastReceiveTime = data.sendTime
+        //TODO 更新会话
+        updateSessionInfo4Message(store.getUserData("currentSessionId"), data)
+        e.sender.send('addLocalCallback', {status:1,messageId:data.messageId})
+    })
+
+}
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -85,5 +108,7 @@ export {
     onLoadSessionData,
     onDelChatSession,
     onTopChatSession,
-    onLoadChatMessage
+    onLoadChatMessage,
+    onAddLocalMessage,
+    onSetSessionSelect
 }

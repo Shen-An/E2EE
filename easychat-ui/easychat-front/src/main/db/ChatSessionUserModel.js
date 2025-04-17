@@ -51,12 +51,12 @@ const selectUserSessionByContactId = (contactId) => {
 }
 
 //更新未读数
-const updateNoReadCount = ({contactId, noReadCount}) => {
+const updateNoReadCount = ({ contactId, noReadCount }) => {
     let sql = "update chat_session_user set no_read_count = no_read_count+? where user_id = ? and contact_id = ? ";
     return run(sql, [noReadCount, store.getUserId(), contactId])
 }
 
-const selectUserSessionList =()=>{
+const selectUserSessionList = () => {
     let sql = "select * from chat_session_user where user_id = ? and status = 1 ";
     return queryAll(sql, [store.getUserId()])
 }
@@ -66,26 +66,63 @@ const delChatSession = (contactId) => {
         userId: store.getUserId(),
         contactId: contactId
     }
-    const sessionInfo={
-        status:0
+    const sessionInfo = {
+        status: 0
     }
     return update("chat_session_user", sessionInfo, paramData);
 }
-const topChatSession = (contactId,topType) => {
-    console.log("topChatSession",contactId,topType)
+const topChatSession = (contactId, topType) => {
+    console.log("topChatSession", contactId, topType)
     const paramData = {
         userId: store.getUserId(),
         contactId: contactId
     }
-    const sessionInfo={
-        topType:topType 
+    const sessionInfo = {
+        topType: topType
     }
     return update("chat_session_user", sessionInfo, paramData);
+}
+
+const updateSessionInfo4Message = async (currentSessionId, {
+    sessionId,
+    contactName,
+    lastMessage,
+    lastReceiveTime,
+    contactId,
+    memberCount,
+}) => {
+    const params = [lastMessage, lastReceiveTime];
+    let sql = "update chat_session_user set last_message = ? ,last_receive_time = ? ,status =1";
+    if (contactName) {
+        sql += " ,contact_name = ?"
+        params.push(contactName)
+    }
+    //成员数量
+    if (memberCount != null) {
+        sql += " ,member_count = ?"
+        params.push(memberCount)
+    }
+    //未选中当前session增加未读消息数
+    if (currentSessionId != sessionId) {
+        sql += " ,no_read_count = no_read_count + 1"
+    }
+    sql += " where user_id = ? and contact_id = ?"
+    params.push(store.getUserId())
+    params.push(contactId)
+    return run(sql, params)
+}
+
+const readAll = (contactId) => {
+    let sql = "update chat_session_user set no_read_count = 0 where user_id = ? and contact_id = ? ";
+
+    return run(sql, [store.getUserId(), contactId])
 }
 export {
     saveOrUpdateChatSessionBatch4Init,
     updateNoReadCount,
     selectUserSessionList,
     delChatSession,
-    topChatSession
+    topChatSession,
+    updateSessionInfo4Message,
+    readAll
 }

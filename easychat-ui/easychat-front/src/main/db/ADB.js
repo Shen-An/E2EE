@@ -46,6 +46,7 @@ const queryOne = (sql, params) => {
 }
 
 const run = (sql, params) => {
+    console.log(sql)
     return new Promise((resolve, reject) => {
         const stmt = db.prepare(sql);
         stmt.get(params, (err, rows) => {

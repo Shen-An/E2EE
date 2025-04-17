@@ -6,7 +6,8 @@ const NODE_ENV = process.env.NODE_ENV
 import {
   onLoginOrRegister, onLoginSuccess, winTitleOp,
   onSetLocalStore, onGetLocalStore, onLoadSessionData,
-  onDelChatSession, onTopChatSession, onLoadChatMessage
+  onDelChatSession, onTopChatSession, onLoadChatMessage,
+  onAddLocalMessage,onSetSessionSelect
 } from './ipc'
 
 const login_width = 300
@@ -153,6 +154,8 @@ function createWindow() {
   onDelChatSession()
   onTopChatSession()
   onLoadChatMessage()
+  onAddLocalMessage()
+  onSetSessionSelect()
 
 
 }
