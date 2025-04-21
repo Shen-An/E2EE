@@ -2,6 +2,7 @@ package com.easyChat.websocket.netty;
 
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.redis.RedisUtils;
+import com.easyChat.utils.StringTools;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -73,7 +74,13 @@ public class NettyWebSocketStarter implements Runnable {
                             pipeline.addLast(handlerWebSocket);
                         }
                     });
-            ChannelFuture channelFuture=serverBootstrap.bind(appConfig.getWsPort()).sync();
+
+            Integer wsPort=appConfig.getWsPort();
+            String wsPortStr = System.getProperty("ws.port");
+            if(!StringTools.isEmpty(wsPortStr)){
+                wsPort=Integer.parseInt(wsPortStr);
+            }
+            ChannelFuture channelFuture=serverBootstrap.bind(wsPort).sync();
             logger.info("netty server started on port {}",appConfig.getWsPort());
             channelFuture.channel().closeFuture().sync();
         }catch (Exception e){

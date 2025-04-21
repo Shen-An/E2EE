@@ -1,6 +1,7 @@
 package com.easyChat.service.impl;
 
 import com.easyChat.constants.Constants;
+import com.easyChat.entity.dto.MessageSendDto;
 import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.dto.UserContactSearchResultDto;
@@ -18,6 +19,7 @@ import com.easyChat.service.UserContactService;
 import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
 
+import com.easyChat.websocket.ChannelContextUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,8 @@ public class UserContactServiceImpl implements UserContactService {
     private ChatSessionUserMapper<ChatSessionUser, ChatSessionUserQuery> chatSessionUserMapper;
     @Resource
     private ChatMessageMapper<ChatMessage, ChatMessageQuery> chatMessageMapper;
+    @Resource
+    private ChannelContextUtils channelContextUtils;
 
     /**
      * 联系人根据条件查询列表
@@ -251,7 +255,12 @@ public class UserContactServiceImpl implements UserContactService {
             userContactApplyMapper.updateByApplyId(userContactApply, dbApply.getApplyId());
         }
         if (dbApply == null || !UserContactApplyStatusEnum.INIT.getStatus().equals(dbApply.getStatus())) {
-            //TODO发送ws消息，通知对方要处理申请了
+            //发送ws消息，通知对方要处理申请了
+            MessageSendDto messageSendDto = new MessageSendDto();
+            messageSendDto.setMessageType(MessageTypeEnum.CONTACT_APPLY.getType());
+            messageSendDto.setMessageContent(applyInfo);
+            messageSendDto.setContactId(receiveUserId);
+            channelContextUtils.sendMsg(messageSendDto,receiveUserId);
 
         }
         return joinType;

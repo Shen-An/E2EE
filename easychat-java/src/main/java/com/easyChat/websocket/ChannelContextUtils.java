@@ -129,7 +129,7 @@ public class ChannelContextUtils {
 
 
     //发送消息
-    public static void sendMsg(MessageSendDto messageSendDto,String receiverId) {
+    public void sendMsg(MessageSendDto messageSendDto,String receiverId) {
         if(receiverId==null){
             return;
         }
