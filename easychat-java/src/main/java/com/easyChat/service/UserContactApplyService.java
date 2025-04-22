@@ -1,5 +1,6 @@
 package com.easyChat.service;
 
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.UserContactApply;
 import com.easyChat.entity.query.UserContactApplyQuery;
@@ -72,6 +73,9 @@ public interface UserContactApplyService {
      * 根据ApplyUserIdAndReceiveUserIdAndContactId删除
      */
     Integer deleteUserContactApplyByApplyUserIdAndReceiveUserIdAndContactId(String applyUserId, String receiveUserId, String contactId);
+
+
+    Integer applyAdd(TokenUserInfoDto tokenUserInfoDto, String contactId, String applyInfo);
 
     /**
      * 处理申请

@@ -67,7 +67,7 @@ public interface UserContactService {
 	 */
 	UserContactSearchResultDto searchContact(String userId, String contactId);
 
-	Integer applyAdd(TokenUserInfoDto tokenUserInfoDto,String contactId,String applyInfo);
+
 
 	/**
 	 * 添加联系人/群组

@@ -3,6 +3,7 @@ package com.easyChat.redis;
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.utils.StringTools;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -72,4 +73,11 @@ public class RedisComponent {
         return  redisUtils.getQueueList(Constants.REDIS_KEY_USER_CONTACT+userId);
     }
 
+    public void cleanUserTokenByUserId(String userId) {
+        String token = (String) redisUtils.get(Constants.REDIS_KEY_WS_TOKEN_USERID+ userId);
+        if(StringTools.isEmpty(token)) {
+            return;
+        }
+        redisUtils.delete(Constants.REDIS_KEY_WS_TOKEN + token);
+    }
 }
