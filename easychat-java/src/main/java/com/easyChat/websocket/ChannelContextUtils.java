@@ -46,7 +46,7 @@ public class ChannelContextUtils {
     @Resource
     private RedisComponent redisComponent;
     @Resource
-    private ChatMessageMapper<ChatMessage,ChatMessageQuery> chatMessageMapper;
+    private ChatMessageMapper<ChatMessage, ChatMessageQuery> chatMessageMapper;
     @Resource
     private UserContactApplyMapper userContactApplyMapper;
 
@@ -123,14 +123,12 @@ public class ChannelContextUtils {
         messageSendDto.setContactId(userId);
         messageSendDto.setExtendData(wsInitData);
 
-        sendMsg(messageSendDto,userId);
+        sendMsg(messageSendDto, userId);
 
     }
 
 
-
-
-    private void add2Group(String groupId, Channel channel) {
+    public void add2Group(String groupId, Channel channel) {
         ChannelGroup group = GROUP_CONTEXT_MAP.get(groupId);
         if (group == null) {
             group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -163,7 +161,7 @@ public class ChannelContextUtils {
 
     public void sendMessage(MessageSendDto messageSendDto) {
         UserContactTypeEnum contactTypeEnum = UserContactTypeEnum.getByPrefix(messageSendDto.getContactId());
-        switch (contactTypeEnum){
+        switch (contactTypeEnum) {
             case USER:
                 send2User(messageSendDto);
                 break;
@@ -172,24 +170,25 @@ public class ChannelContextUtils {
                 break;
         }
     }
+
     private void send2User(MessageSendDto messageSendDto) {
-        if(StringTools.isEmpty(messageSendDto.getContactId())){
+        if (StringTools.isEmpty(messageSendDto.getContactId())) {
             return;
         }
         String contactId = messageSendDto.getContactId();
-        sendMsg(messageSendDto,contactId);
+        sendMsg(messageSendDto, contactId);
         //强制下线的消息
-        if(MessageTypeEnum.FORCE_OFF_LINE.getType().equals(messageSendDto.getMessageType())){
+        if (MessageTypeEnum.FORCE_OFF_LINE.getType().equals(messageSendDto.getMessageType())) {
             closeContext(contactId);
         }
     }
 
     private void send2Group(MessageSendDto messageSendDto) {
-        if(StringTools.isEmpty(messageSendDto.getContactId())){
+        if (StringTools.isEmpty(messageSendDto.getContactId())) {
             return;
         }
         ChannelGroup channelGroup = GROUP_CONTEXT_MAP.get(messageSendDto.getContactId());
-        if(channelGroup == null){
+        if (channelGroup == null) {
             return;
         }
         channelGroup.writeAndFlush(new TextWebSocketFrame(JsonUtils.convertObjectToJson(messageSendDto)));
@@ -197,26 +196,39 @@ public class ChannelContextUtils {
     }
 
     //发送消息
-    public void sendMsg(MessageSendDto messageSendDto,String receiverId) {
+    public void sendMsg(MessageSendDto messageSendDto, String receiverId) {
         Channel sendChannel = USER_CONTEXT_MAP.get(receiverId);
-        if(sendChannel==null){
+        if (sendChannel == null) {
             return;
         }
-        messageSendDto.setContactId(messageSendDto.getSendUserId());
-        messageSendDto.setContactName(messageSendDto.getSendUserNickName());
+        if (MessageTypeEnum.ADD_FRIEND_SELF.getType().equals(messageSendDto.getMessageType())) {
+            UserInfo userInfo = (UserInfo) messageSendDto.getExtendData();
+            messageSendDto.setContactId(userInfo.getUserId());
+            messageSendDto.setContactName(userInfo.getNickName());
+            messageSendDto.setExtendData(null);
+        }else{
+            messageSendDto.setContactId(messageSendDto.getSendUserId());
+            messageSendDto.setContactName(messageSendDto.getSendUserNickName());
+        }
         sendChannel.writeAndFlush(new TextWebSocketFrame(JsonUtils.convertObjectToJson(messageSendDto)));
 
     }
 
-    public void closeContext(String userId){
-        if(StringTools.isEmpty(userId)){
+    public void closeContext(String userId) {
+        if (StringTools.isEmpty(userId)) {
             return;
         }
         redisComponent.cleanUserTokenByUserId(userId);
         Channel channel = USER_CONTEXT_MAP.get(userId);
-        if(channel!=null){
+        if (channel != null) {
             return;
         }
         channel.close();
     }
+    public void addUser2Group(String userId, String groupId) {
+        Channel channel = USER_CONTEXT_MAP.get(userId);
+        add2Group(groupId, channel);
+    }
+
+
 }

@@ -100,4 +100,7 @@ public class StringTools {
         Arrays.sort(userIds);
         return encodeMd5(StringUtils.join(userIds,""));
     }
+    public static final String getChatSessionId4Group(String groupId){
+        return encodeMd5(groupId);
+    }
 }

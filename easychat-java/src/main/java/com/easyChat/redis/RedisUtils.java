@@ -147,4 +147,41 @@ public class RedisUtils {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 将单个值推入列表头部，并设置过期时间（以秒为单位）
+     *
+     * @param key     键
+     * @param value   值
+     * @param timeout 过期时间（秒）
+     */
+    public void lpush(String key, Object value, long timeout) {
+        ListOperations<String, Object> listOps = redisTemplate.opsForList();
+        listOps.leftPush(key, value);
+        redisTemplate.expire(key, timeout, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 将单个值推入列表头部，并设置自定义单位的过期时间
+     *
+     * @param key      键
+     * @param value    值
+     * @param timeout  过期时间
+     * @param timeUnit 时间单位
+     */
+    public void lpush(String key, Object value, long timeout, TimeUnit timeUnit) {
+        ListOperations<String, Object> listOps = redisTemplate.opsForList();
+        listOps.leftPush(key, value);
+        redisTemplate.expire(key, timeout, timeUnit);
+    }
+
+    /**
+     * 将单个值推入列表头部（不设置过期时间）
+     *
+     * @param key   键
+     * @param value 值
+     */
+    public void lpush(String key, Object value) {
+        redisTemplate.opsForList().leftPush(key, value);
+    }
+
 }
