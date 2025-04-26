@@ -18,6 +18,7 @@ import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.mappers.UserInfoBeautyMapper;
 import com.easyChat.mappers.UserInfoMapper;
 import com.easyChat.redis.RedisComponent;
+import com.easyChat.service.ChatSessionUserService;
 import com.easyChat.service.UserContactService;
 import com.easyChat.service.UserInfoService;
 import com.easyChat.utils.CopyUtils;
@@ -56,6 +57,8 @@ public class UserInfoServiceImpl implements UserInfoService {
     private UserContactService userContactService;
     @Resource
     private UserContactMapper userContactMapper;
+    @Resource
+    private ChatSessionUserService chatSessionUserService;
 
     /**
      * 用户信息表根据条件查询列表
@@ -270,7 +273,17 @@ public class UserInfoServiceImpl implements UserInfoService {
         if (!dbInfo.getNickName().equals(userInfo.getNickName())) {
             contactNameUpdate = userInfo.getNickName();
         }
-        //TODO 更新会话信息中的昵称信息
+        // 更新会话信息中的昵称信息
+        if(contactNameUpdate == null) {
+            return;
+        }
+
+        //更新token中的昵称
+        TokenUserInfoDto tokenUserInfoDto = redisComponent.getTokenUserInfoDtoByUserId(userInfo.getUserId());
+        tokenUserInfoDto.setNickName(contactNameUpdate);
+        redisComponent.saveTokenUserInfoDto(tokenUserInfoDto);
+
+        chatSessionUserService.updateRedundanceInfo(contactNameUpdate,userInfo.getUserId());
     }
 
     private TokenUserInfoDto getTokenUserInfoDto(UserInfo userInfo) {

@@ -3,6 +3,7 @@ package com.easyChat.service;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.GroupInfo;
 import com.easyChat.entity.query.GroupInfoQuery;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -59,6 +60,8 @@ public interface GroupInfoService {
      * 根据GroupId删除
      */
     Integer deleteGroupInfoByGroupId(String groupId);
+
+
 
     void saveGroup(GroupInfo groupInfo, MultipartFile avatarFile, MultipartFile avatarCove) throws IOException;
 }

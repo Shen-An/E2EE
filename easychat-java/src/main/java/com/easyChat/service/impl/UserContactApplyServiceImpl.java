@@ -261,7 +261,7 @@ public class UserContactApplyServiceImpl implements UserContactApplyService{
 		//通过
 		if(UserContactApplyStatusEnum.PASS.getStatus().equals(status)){
 			// 添加联系人
-			userContactService.addContact(userContactApply.getApplyUserId(),userContactApply.getReceiveUserId(),userContactApply.getContactId(),userContactApply.getContactType(),userContactApply.getApplyUserId());
+			userContactService.addContact(userContactApply.getApplyUserId(),userContactApply.getReceiveUserId(),userContactApply.getContactId(),userContactApply.getContactType(),userContactApply.getApplyInfo());
 
 			return;
 		}
