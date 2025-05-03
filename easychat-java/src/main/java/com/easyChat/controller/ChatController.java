@@ -45,12 +45,7 @@ public class ChatController extends ABaseController {
                                   Long fileSize,
                                   String fileName,
                                   Integer fileType) {
-        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(messageType);
-        if(messageTypeEnum == null || ArrayUtils.contains(new Integer[]{
-                MessageTypeEnum.CHAT.getType(),MessageTypeEnum.MEDIA_CHAT.getType()},messageType
-        )){
-            throw new BusinessException(ResponseCodeEnum.CODE_600);
-        }
+
         TokenUserInfoDto tokenUserInfoDto=getTokenUserInfo(request);
         ChatMessage chatMessage=new ChatMessage();
         chatMessage.setContactId(contactId);
@@ -58,6 +53,7 @@ public class ChatController extends ABaseController {
         chatMessage.setFileSize(fileSize);
         chatMessage.setFileName(fileName);
         chatMessage.setFileType(fileType);
+        chatMessage.setMessageType(messageType);
         MessageSendDto messageSendDto =chatMessageService.saveMessage(chatMessage,tokenUserInfoDto);
         return getSuccessResponseVo(messageSendDto);
     }
