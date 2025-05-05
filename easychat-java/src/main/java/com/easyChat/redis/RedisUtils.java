@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -141,10 +142,27 @@ public class RedisUtils {
     }
 
     public List<String> getQueueList(String userId) {
-        List<Object> objectList = redisTemplate.opsForList().range(Constants.REDIS_KEY_USER_CONTACT + userId, 0, -1);
-        return objectList.stream()
-                .map(String.class::cast) // 将 Object 转换为 String
-                .collect(Collectors.toList());
+        String key = Constants.REDIS_KEY_USER_CONTACT + userId;
+        ListOperations<String, Object> listOps = redisTemplate.opsForList();
+
+        List<Object> redisData = listOps.range(key, 0, -1);
+        List<String> contactList = new ArrayList<>();
+
+        if (redisData != null) {
+            for (Object item : redisData) {
+                if (item instanceof List) {
+                    // 如果是列表，提取其中的元素
+                    List<?> innerList = (List<?>) item;
+                    for (Object innerItem : innerList) {
+                        contactList.add(innerItem.toString());
+                    }
+                } else {
+                    contactList.add(item.toString());
+                }
+            }
+        }
+
+        return contactList;
     }
 
     /**

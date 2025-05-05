@@ -14,7 +14,7 @@
         }"
       >
         <template #default>
-          <el-tabs v-model="acticeEmoji" @click.stop>
+          <el-tabs v-model="activeEmoji" @click.stop>
             <el-tab-pane :label="emoji.name" :name="emoji.name" v-for="emoji in emojiList">
               <div class="emoji-list">
                 <div class="emoji-item" v-for="item in emoji.emojiList" @click="sendEmoji(item)">
@@ -97,7 +97,7 @@ const props=defineProps({
     default:{}
   }
 })
-const acticeEmoji = ref('人物')
+const activeEmoji = ref('人物')
 
 //隐藏显示pop
 const showEmojiPopover = ref(false)
@@ -129,6 +129,8 @@ const sendMessage = (e) => {
   )
 }
 
+const emit = defineEmits(['sendMessage4Local'])
+
 //真正发送消息
 const sendMessageDo = async(
   messageObj = {
@@ -142,6 +144,7 @@ const sendMessageDo = async(
   },
   cleanMsgContent
 ) => {
+ 
   //TODO判断文件大小
   if(messageObj.fileSize==0){
     proxy.Confirm({
@@ -152,7 +155,8 @@ const sendMessageDo = async(
   }
   messageObj.sessionId = props.currentChatSession.sessionId
   messageObj.sendUserId = userInfoStore.getInfo().sendUserId
-
+  // console.log("currentChatSession33:", props.currentChatSession);
+  // console.log("99"+props.currentChatSession.contactId)
   let resp = await proxy.Request({
     url:proxy.Api.sendMessage,
     showLoading:false,
@@ -184,7 +188,8 @@ const sendMessageDo = async(
   }
   Object.assign(messageObj,resp.data)
 
-  //TODO更新列表
+  //更新列表
+  emit('sendMessage4Local',messageObj)
   //保存消息到本地
   window.ipcRenderer.send('addLocalMessage',messageObj)
 }

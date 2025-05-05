@@ -224,7 +224,9 @@ public class UserInfoServiceImpl implements UserInfoService {
         contactQuery.setUserId(userInfo.getUserId());
         contactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
         List<UserContact> list = this.userContactMapper.selectList(contactQuery);
-        List<String> contactIdList = list.stream().map(item -> item.getUserId()).collect(Collectors.toList());
+
+        //只需要Id放入
+        List<String> contactIdList = list.stream().map(item -> item.getContactId()).collect(Collectors.toList());
         if (!contactIdList.isEmpty()) {
             redisComponent.cleanUserContact(userInfo.getUserId());
         }

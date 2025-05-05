@@ -123,7 +123,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         //不是机器人回复，判断好友状态
         if (!Constants.ROBOT_UID.equals(tokenUserInfoDto.getUserId())) {
             List<String> contactList = redisComponent.getUserContactList(tokenUserInfoDto.getUserId());
-            if (!contactList.contains(tokenUserInfoDto.getUserId())) {
+            for (String contact : contactList) {
+                System.out.println(contact);
+            }
+            System.out.println(chatMessage.getContactId());
+            if (!contactList.contains(chatMessage.getContactId())) {
+
                 UserContactTypeEnum userContactTypeEnum = UserContactTypeEnum.getByPrefix(chatMessage.getContactId());
                 if (userContactTypeEnum == UserContactTypeEnum.USER) {
                     throw new BusinessException(ResponseCodeEnum.CODE_902);

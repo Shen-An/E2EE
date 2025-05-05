@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.easyChat.constants.Constants.REDIS_KEY_WS_USER_HEART_BEAT;
@@ -71,6 +72,7 @@ public class RedisComponent {
     }
     //批量添加联系人
     public void addUserContactBatch(String userId, List<String>contactIdList) {
+
         redisUtils.lpushAll(Constants.REDIS_KEY_USER_CONTACT+userId,contactIdList,Constants.REDIS_KEY_TOKEN_EXPIRES);
     }
 
@@ -82,12 +84,18 @@ public class RedisComponent {
         if(contactIdList.contains(contactId)) {
             return;
         }
+
+        List <String> contactIdList1 = redisUtils.getQueueList(Constants.REDIS_KEY_USER_CONTACT+userId);
+        for(String contactId1 : contactIdList1) {
+            System.out.println("8881"+contactId1);
+        }
         redisUtils.lpush(Constants.REDIS_KEY_USER_CONTACT+userId,contactId,Constants.REDIS_KEY_TOKEN_EXPIRES);
 
     }
 
     public List<String> getUserContactList(String userId) {
-        return  redisUtils.getQueueList(Constants.REDIS_KEY_USER_CONTACT+userId);
+
+        return  redisUtils.getQueueList(userId);
     }
 
     public void cleanUserTokenByUserId(String userId) {

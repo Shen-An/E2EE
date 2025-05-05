@@ -45,7 +45,7 @@ public class ChatController extends ABaseController {
                                   Long fileSize,
                                   String fileName,
                                   Integer fileType) {
-
+        System.out.println("66"+contactId);
         TokenUserInfoDto tokenUserInfoDto=getTokenUserInfo(request);
         ChatMessage chatMessage=new ChatMessage();
         chatMessage.setContactId(contactId);

@@ -2,9 +2,12 @@ import webSocket from 'ws';
 const NODE_ENV = process.env.NODE_ENV;
 
 import store from './store'
-import {saveOrUpdateChatSessionBatch4Init}from './db/ChatSessionUserModel.js'
-import {saveMessageBatch}from './db/ChatMessageModel.js'
-import {updateContactNoReadCount}from './db/UserSettingModel.js'
+import {
+    saveOrUpdateChatSessionBatch4Init, saveOrUpdate4Message,
+    selectUserSessionByContactId
+} from './db/ChatSessionUserModel.js'
+import { saveMessage,saveMessageBatch } from './db/ChatMessageModel.js'
+import { updateContactNoReadCount } from './db/UserSettingModel.js'
 let ws = null;
 let maxReconnectTimes = null;
 let lockReconnect = false;
@@ -14,7 +17,7 @@ let wsUrl = null;
 
 let sender = null;
 let needReconnect = null;
-const initWs = (config, _sender)  => {
+const initWs = (config, _sender) => {
     wsUrl = `${NODE_ENV !== 'development' ? store.getData("proWsDomain") : store.getData("devWsDomain")}?token=${config.token}`;
     sender = _sender;
     needReconnect = true;
@@ -43,10 +46,35 @@ const createWs = () => {
                 //保存消息
                 await saveMessageBatch(message.extendData.chatMessageList);
                 //更新联系人数量
-                await updateContactNoReadCount({userId:store.getUserId(), noReadCount:message.extendData.applyCount});
+                await updateContactNoReadCount({ userId: store.getUserId(), noReadCount: message.extendData.applyCount });
                 //发送消息
-                sender.send("receiveMessage", {messageType: message.messageType});
+                sender.send("receiveMessage", { messageType: message.messageType });
                 break;
+            case 2:
+                //如果是自己发送的消息且是群聊，不处理
+                if (message.sendUserId == store.getUserId() && message.contactType == 1) {
+                    break;
+                }
+                const sessionInfo = {};
+
+                if (message.extendData && typeof message.extendData === 'Object') {
+                    Object.assign(sessionInfo, message.extendData);
+                } else {
+                    Object.assign(sessionInfo, message);
+                    if (message.contactType == 0 && messageType != 1) {
+                        sessionInfo.contactName = message.sendUserNickName;
+                    }
+                    sessionInfo.lastReceiveTime = message.sendTime;
+                }
+                await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
+                //写入本地消息
+                await saveMessage(message);
+                // TODO BUG
+                const dbSessionInfo = await selectUserSessionByContactId(message.contactId);
+                message.extendData = dbSessionInfo;
+                sender.send("receiveMessage", message);
+                break;
+
         }
     }
     ws.onclose = function () {
@@ -82,8 +110,7 @@ const createWs = () => {
         }
     }
     setInterval(() => {
-        if(ws!=null && ws.readyState == 1)
-        {
+        if (ws != null && ws.readyState == 1) {
             // console.log("发送心跳");
             ws.send("heartBeat");
         }

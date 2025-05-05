@@ -117,6 +117,23 @@ const readAll = (contactId) => {
 
     return run(sql, [store.getUserId(), contactId])
 }
+
+//保存或更新消息
+const saveOrUpdate4Message = (currentSessionId, sessionInfo) => {
+    return new Promise(async (resolve, reject) => {
+        let sessionData = await selectUserSessionByContactId(sessionInfo.contactId);
+        //如果是当前会话，不增加未读数
+        if (sessionData) {
+            updateSessionInfo4Message(currentSessionId,sessionInfo);
+        } else {
+            //如果是新会话，增加未读数
+            sessionInfo.noReadCount = 1;
+            await addChatSession(sessionInfo);
+        }
+        resolve();
+    })
+
+}
 export {
     saveOrUpdateChatSessionBatch4Init,
     updateNoReadCount,
@@ -124,5 +141,7 @@ export {
     delChatSession,
     topChatSession,
     updateSessionInfo4Message,
-    readAll
+    readAll,
+    saveOrUpdate4Message,
+    selectUserSessionByContactId
 }

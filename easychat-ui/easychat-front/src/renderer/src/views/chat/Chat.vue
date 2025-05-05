@@ -15,6 +15,7 @@
             :data="item"
             @click="chatSessionClickHandler(item)"
             @contextmenu.stop="onContextMenu(item, $event)"
+            :currentSession="item.contactId == currentChatSession.contactId"
           ></ChatSession>
         </template>
       </div>
@@ -40,16 +41,24 @@
             v-for="(data, index) in messageList"
             :id="'message' + data.messageId"
           >
-            {{ data.messageContent }}
+            <template
+              v-if="data.messageType == 1 || data.messageType == 2 || data.messageType == 5"
+            >
+              <ChatMessage :data="data" :currentChatSession="currentChatSession"></ChatMessage>
+            </template>
           </div>
         </div>
-        <MessageSend :currentSession="currentChatSession"></MessageSend>
+        <MessageSend
+          :currentChatSession="currentChatSession"
+          @sendMessage4Local="sendMessage4LocalHandler"
+        ></MessageSend>
       </div>
     </template>
   </Layout>
 </template>
 
 <script setup>
+import ChatMessage from './ChatMessage.vue'
 import MessageSend from './MessageSend.vue'
 import ChatSession from './ChatSession.vue'
 import { ref, reactive, getCurrentInstance, nextTick, onMounted, onUnmounted } from 'vue'
@@ -122,7 +131,7 @@ const chatSessionClickHandler = (item) => {
   //设置选中session
   setSessionSelect({ contactId: item.contactId, sessionId: item.sessionId })
 }
-const setSessionSelect = ({contactId,sessionId}) => {
+const setSessionSelect = ({ contactId, sessionId }) => {
   window.ipcRenderer.send('setSessionSelect', {
     contactId,
     sessionId
@@ -188,7 +197,8 @@ const onLoadChatMessage = () => {
     if (pageNo == 1) {
       messageCountInfo.maxMessageId =
         dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
-      //TODO 滚动条滚动到底部
+      //滚动条滚动到底部
+      gotoBottom()
     }
     console.log('loadChatMessageCallback:', messageList.value)
   })
@@ -204,13 +214,67 @@ const onLoadSessionData = () => {
 }
 const onReceiveMessage = () => {
   window.ipcRenderer.on('receiveMessage', (e, message) => {
-    console.log('receiveMessage:', message)
-    // //ws连接成功
-    // if(message.messageType == 0){
-    //   loadChatSession()
-    // }
+    // console.log('receiveMessage:', message)
+
+    let curSession = chatSessionList.value.find((item) => {
+      return item.contactId == message.contactId
+    })
+    if (curSession == null) {
+      chatSessionList.value.push(message.extendData)
+    } else {
+      Object.assign(curSession,message.extendData) 
+    }
+    sortChatSessionList(chatSessionList.value)
+    if (message.sessionId != currentChatSession.value.sessionId) {
+      // TODO 未读消息气泡提醒
+    } else {
+      Object.assign(currentChatSession.value, message.extendData)
+      messageList.value.push(message)
+      gotoBottom()
+    }
   })
 }
+/*
+在代码中，curSession 被修改后，sortChatSessionList(chatSessionList.value)会对chatSessionList.value 进行排序。
+由于 curSession 是 chatSessionList.value 中某个对象的引用，Object.assign(curSession, message.extendData)
+ 的修改会直接影响 chatSessionList.value，从而影响排序的结果。
+如果使用 curSession = message.extendData，chatSessionList.value 中的对应对象不会被修改，
+排序的结果也不会受到影响。
+*/
+
+/*
+Object.assign(curSession, message.extendData): 这种方式会将 message.extendData 的属性合并到 curSession 中，
+保留 curSession 原有的属性，除非 message.extendData 中有同名的属性，才会覆盖。
+curSession = message.extendData: 这种方式会完全替换 curSession，curSession 原有的属性会被丢弃，
+curSession 会变成 message.extendData 的一个引用。
+ */
+
+const sendMessage4LocalHandler = (messageObj) => {
+  messageList.value.push(messageObj)
+  const chatSession = chatSessionList.value.find((item) => {
+    return item.contactId == messageObj.contactId
+  })
+  if (chatSession) {
+    chatSession.lastMessage = messageObj.lastMessage
+    chatSession.lastReceiveTime = messageObj.sendTime
+  }
+  sortChatSessionList(chatSessionList.value)
+
+  gotoBottom()
+}
+
+//滚动到底部，解决发送消息后滚动条不自动滚动到底部
+const gotoBottom = () => {
+  nextTick(() => {
+    const items = document.querySelectorAll('.message-item')
+    if (items.length > 0) {
+      setTimeout(() => {
+        items[items.length - 1].scrollIntoView()
+      }, 100)
+    }
+  })
+}
+
 onMounted(() => {
   onReceiveMessage()
   onLoadSessionData()

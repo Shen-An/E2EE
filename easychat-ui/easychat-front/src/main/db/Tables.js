@@ -24,7 +24,7 @@ const add_tables = [
     "status integer default 1," +
     "contact_name varchar(20)," +
     "last_message varchar(500)," +
-    "last_receive time bigint," +
+    "last_receive_time bigint," +
     "no_read_count integer default 0," +
     "member_count integer," +
     "top_type integer default 0," +
