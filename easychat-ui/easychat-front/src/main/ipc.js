@@ -6,8 +6,9 @@ const NODE_ENV = process.env.NODE_ENV
 import store from './store'
 import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
-import { selectUserSessionList, delChatSession, topChatSession ,updateSessionInfo4Message,readAll} from './db/ChatSessionUserModel'
-import {selectMessageList,saveMessage} from './db/ChatMessageModel'
+import { selectUserSessionList, delChatSession, topChatSession, updateSessionInfo4Message, readAll } from './db/ChatSessionUserModel'
+import { selectMessageList, saveMessage,updateMessage } from './db/ChatMessageModel'
+import { saveFile2Local } from './file'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -77,25 +78,35 @@ const onLoadChatMessage = () => {
     })
 }
 
-const onSetSessionSelect=()=>{
-    ipcMain.on('setSessionSelect',async(e,{contactId,sessionId})=>{
-        if(sessionId){
-            store.setUserData("currentSessionId",sessionId)
+const onSetSessionSelect = () => {
+    ipcMain.on('setSessionSelect', async (e, { contactId, sessionId }) => {
+        if (sessionId) {
+            store.setUserData("currentSessionId", sessionId)
             readAll(contactId)
-        }else{
+        } else {
             store.deleteUserData("currentSessionId")
         }
     })
 }
-const onAddLocalMessage=()=>{
-    ipcMain.on("addLocalMessage",async(e,data)=>{
+const onAddLocalMessage = () => {
+    ipcMain.on("addLocalMessage", async (e, data) => {
         await saveMessage(data)
-        //TODO保存文件
+        //保存文件
+        if (data.messageType == 5) {
+            
+            await saveFile2Local(data.messageId, data.filePath, data.fileType)
+
+            const updateInfo = {
+                status: 1,
+            }
+            await updateMessage(updateInfo, { messageId: data.messageId })
+        }
+
         //更新session
         data.lastReceiveTime = data.sendTime
         //TODO 更新会话
         updateSessionInfo4Message(store.getUserData("currentSessionId"), data)
-        e.sender.send('addLocalCallback', {status:1,messageId:data.messageId})
+        e.sender.send('addLocalCallback', { status: 1, messageId: data.messageId })
     })
 
 }

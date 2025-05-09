@@ -90,11 +90,12 @@ const router = useRouter()
 const route = useRoute()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
+import { getFileType } from '@/utils/Constants.js'
 
-const props=defineProps({
-  currentChatSession:{
-    type:Object,
-    default:{}
+const props = defineProps({
+  currentChatSession: {
+    type: Object,
+    default: {}
   }
 })
 const activeEmoji = ref('人物')
@@ -109,7 +110,6 @@ const hidePopover = () => {
 
 const msgContent = ref('')
 const sendMessage = (e) => {
-  
   if (e.shiftKey && e.keyCode === 13) {
     return
   }
@@ -132,7 +132,7 @@ const sendMessage = (e) => {
 const emit = defineEmits(['sendMessage4Local'])
 
 //真正发送消息
-const sendMessageDo = async(
+const sendMessageDo = async (
   messageObj = {
     messageContent,
     messageType,
@@ -144,62 +144,90 @@ const sendMessageDo = async(
   },
   cleanMsgContent
 ) => {
- 
   //TODO判断文件大小
-  if(messageObj.fileSize==0){
+  if (messageObj.fileSize == 0) {
     proxy.Confirm({
-      message:`${messageObj.fileName}文件为空，无法发送`,
-      showCancelBtn:false
+      message: `${messageObj.fileName}文件为空，无法发送`,
+      showCancelBtn: false
     })
     return
   }
+
   messageObj.sessionId = props.currentChatSession.sessionId
   messageObj.sendUserId = userInfoStore.getInfo().sendUserId
   // console.log("currentChatSession33:", props.currentChatSession);
   // console.log("99"+props.currentChatSession.contactId)
   let resp = await proxy.Request({
-    url:proxy.Api.sendMessage,
-    showLoading:false,
-    params:{
-      messageContent:messageObj.messageContent,
-      contactId:props.currentChatSession.contactId,
-      messageType:messageObj.messageType,
-      fileSize:messageObj.fileSize,
-      fileName:messageObj.fileName,
-      fileType:messageObj.fileType,
+    url: proxy.Api.sendMessage,
+    showLoading: false,
+    params: {
+      messageContent: messageObj.messageContent,
+      contactId: props.currentChatSession.contactId,
+      messageType: messageObj.messageType,
+      fileSize: messageObj.fileSize,
+      fileName: messageObj.fileName,
+      fileType: messageObj.fileType
     },
-    showError:false,
-    errorCallBack:(responseData)=>{
+    showError: false,
+    errorCallBack: (responseData) => {
       proxy.Confirm({
-        message:responseData.info,
-        okfun:()=>{
-          addContact(props.currentChatSession.contactId,responseData.code)
-        }
-,
-        okText:'重新申请'
+        message: responseData.info,
+        okfun: () => {
+          addContact(props.currentChatSession.contactId, responseData.code)
+        },
+        okText: '重新申请'
       })
     }
   })
-  if(!resp){
+  if (!resp) {
     return
   }
-  if(cleanMsgContent){
+  if (cleanMsgContent) {
     msgContent.value = ''
   }
-  Object.assign(messageObj,resp.data)
+  Object.assign(messageObj, resp.data)
 
   //更新列表
-  emit('sendMessage4Local',messageObj)
+  emit('sendMessage4Local', messageObj)
   //保存消息到本地
-  window.ipcRenderer.send('addLocalMessage',messageObj)
+  window.ipcRenderer.send('addLocalMessage', messageObj)
+}
+
+const uploadRef = ref()
+
+const uploadFile = (file) => {
+  uploadFileDo(file.file)
+  uploadRef.value.clearFiles()
+}
+
+const getFileTypeByName = (fileName) => {
+  const fileSuffix = fileName.substr(fileName.lastIndexOf('.') + 1)
+  return getFileType(fileSuffix)
+}
+
+//文件上传
+const uploadFileDo = (file) => {
+  // console.log(  getFileTypeByName(file.name))
+  const fileType = getFileTypeByName(file.name)
+  sendMessageDo(
+    {
+      messageContent: '[' + getFileType(fileType) + ']',
+      messageType: 5,
+      filePath: file.path,
+      fileSize: file.size,
+      fileName: file.name,
+      fileType: fileType
+    },
+    false
+  )
 }
 
 // 添加好友
 const searchAddRef = ref()
-const addContact=(contactId,code)=>{
+const addContact = (contactId, code) => {
   searchAddRef.value.show({
     contactId,
-    contactType:code == 902 ?'USER':"GROUP"
+    contactType: code == 902 ? 'USER' : 'GROUP'
   })
 }
 </script>

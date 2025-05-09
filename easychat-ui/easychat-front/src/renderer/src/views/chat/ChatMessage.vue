@@ -29,7 +29,7 @@
       ]"
     >
       <div class="nick-name" v-if="data.contactType == 1">
-        {{ data.sendUserName }}
+        {{ data.sendUserNickName }}
       </div>
       <div class="sending" v-if="data.status == 0">
         <el-skeleton :animated="true">
@@ -45,6 +45,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
@@ -108,7 +109,7 @@ const props = defineProps({
     top: 13px;
   }
 }
-.content-parel-media {
+.content-panel-media {
   .content {
     border-radius: 5px;
     background: none !important;
