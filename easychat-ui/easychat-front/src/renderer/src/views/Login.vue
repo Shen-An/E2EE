@@ -216,7 +216,7 @@ const submit = async () => {
 
 const init = () => {
   window.ipcRenderer.send('setLocalStore', {key:'prodDomain',value:proxy.Api.prodDomain})
-  window.ipcRenderer.send('setLocalStore', {key:'devWsDomain',value:proxy.Api.devWsDomain})
+  window.ipcRenderer.send('setLocalStore', {key:'devDomain',value:proxy.Api.devDomain})
   window.ipcRenderer.send('setLocalStore', {key:'prodWsDomain',value:proxy.Api.prodWsDomain})
   window.ipcRenderer.send('setLocalStore', {key:'devWsDomain',value:proxy.Api.devWsDomain})
 
