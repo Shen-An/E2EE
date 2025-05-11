@@ -48,4 +48,11 @@ public class Constants {
 
     public static final Long MILLS_SECONDS_3DAYS_AGO = 3 * 24 * 60 * 60 * 1000L;
 
+
+    public static final String[] IMAGE_SUFFIX_LIST = new String[]{".jpeg", ".jpg", ".png", ".gif", ".bmp", ".webp"};
+
+    public static final String[] VIDEO_SUFFIX_LIST = new String[]{".mp4", ".avi", ".rmvb", ".mkv", ".mov"};
+
+    //用于MB转成字节
+    public static final Long FILE_SIZE_MB = 1024 * 1024L;
 }

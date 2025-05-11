@@ -412,8 +412,39 @@
 		</set>
 		where message_id=#{messageId}
 		</update>
+	<update id="updateByParam" parameterType="com.easyChat.entity.query.ChatMessageQuery">
+        update chat_message
+        <set>
+            <if test="bean.sessionId !=null">
+                session_id = #{bean.session_id},
+            </if>
 
-	<!-- 根据MessageId删除-->
+            <if test="bean.messageContent !=null">
+                message_content=#{bean.message_content},
+            </if>
+            <if test="bean.sendUserId !=null">
+                send_user_id=#{bean.send_user_id},
+            </if>
+            <if test="bean.sendUserNickName!=null">
+                send_user_nick_name = #{bean.send_user_nick_name},
+            </if>
+
+            <if test="bean.contactId!=null">
+                contact_id=#{bean.contact_id},
+            </if>
+
+            <if test="bean.fileName!=null">
+                file_name=#{bean.file_name},
+            </if>
+			<if test="bean.status != null">
+				status = #{bean.status}
+			</if>
+
+        </set>
+        <include refid="query_condition"></include>
+    </update>
+
+    <!-- 根据MessageId删除-->
 	<delete id="deleteByMessageId">
 		delete from chat_message where message_id=#{messageId}
 	</delete>

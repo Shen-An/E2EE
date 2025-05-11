@@ -15,7 +15,7 @@ public class SysSettingDto implements Serializable {
     private Integer maxGroupMemberCount = 500;
     //最大图片大小
     private Integer maxImageSize = 2;
-    //最大视频大小
+    //最大视频大小TODO修改
     private Integer maxVideoSize = 5;
     private Integer maxFileSize = 5;
     private String robotNickName= "robot";

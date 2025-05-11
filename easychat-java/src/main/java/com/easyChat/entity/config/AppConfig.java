@@ -12,15 +12,15 @@ public class AppConfig {
     /**
      * websocket端口
      */
-    @Value("${ws.port:}")
+    @Value("${ws.port}")
     private Integer wsPort;
     /**
      * 文件目录
      */
-    @Value("${D:/java code/Chat/:}")
+    @Value("${project.folder}")
     private String projectFolder;
 
-    @Value("${lcf2214457971@163.com:}")
+    @Value("${admin.emails}")
     private String adminEmails;
 
     public Integer getWsPort() {

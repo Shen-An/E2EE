@@ -1,29 +1,39 @@
 package com.easyChat.service.impl;
 
 import com.easyChat.constants.Constants;
+import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.MessageSendDto;
 import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.ChatMessage;
 import com.easyChat.entity.po.ChatSession;
+import com.easyChat.entity.po.UserContact;
 import com.easyChat.entity.query.ChatMessageQuery;
 import com.easyChat.entity.query.ChatSessionQuery;
 import com.easyChat.entity.query.SimplePage;
+import com.easyChat.entity.query.UserContactQuery;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.enums.*;
 import com.easyChat.exception.BusinessException;
 import com.easyChat.mappers.ChatMessageMapper;
 import com.easyChat.mappers.ChatSessionMapper;
+import com.easyChat.mappers.UserContactMapper;
 import com.easyChat.redis.RedisComponent;
 import com.easyChat.service.ChatMessageService;
 import com.easyChat.utils.CopyUtils;
+import com.easyChat.utils.DateUtils;
 import com.easyChat.utils.StringTools;
 import com.easyChat.websocket.MessageHandler;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +44,8 @@ import java.util.List;
 @Service("chatMessageService")
 public class ChatMessageServiceImpl implements ChatMessageService {
 
+    private static Logger logger = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
+
     @Resource
     private ChatMessageMapper<ChatMessage, ChatMessageQuery> chatMessageMapper;
     @Resource
@@ -42,6 +54,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private ChatSessionMapper<ChatSession, ChatSessionQuery> chatSessionMapper;
     @Resource
     private MessageHandler messageHandler;
+    @Resource
+    private AppConfig appConfig;
+    @Resource
+    private UserContactMapper<UserContact,UserContactQuery> userContactMapper;
 
     /**
      * 聊天信息表根据条件查询列表
@@ -123,10 +139,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         //不是机器人回复，判断好友状态
         if (!Constants.ROBOT_UID.equals(tokenUserInfoDto.getUserId())) {
             List<String> contactList = redisComponent.getUserContactList(tokenUserInfoDto.getUserId());
-            for (String contact : contactList) {
-                System.out.println(contact);
-            }
-            System.out.println(chatMessage.getContactId());
+//            for (String contact : contactList) {
+////                System.out.println(contact);
+//            }
+//            System.out.println(chatMessage.getContactId());
             if (!contactList.contains(chatMessage.getContactId())) {
 
                 UserContactTypeEnum userContactTypeEnum = UserContactTypeEnum.getByPrefix(chatMessage.getContactId());
@@ -160,20 +176,20 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         )) {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
-        Integer status = MessageTypeEnum.MEDIA_CHAT==messageTypeEnum? MessageStatusEnum.SENDING.getStatus() : MessageStatusEnum.SENDED.getStatus();
+        Integer status = MessageTypeEnum.MEDIA_CHAT == messageTypeEnum ? MessageStatusEnum.SENDING.getStatus() : MessageStatusEnum.SENDED.getStatus();
         chatMessage.setStatus(status);
 
         String messageContent = StringTools.cleanHtmlTag(chatMessage.getMessageContent());
         chatMessage.setMessageContent(messageContent);
 
         //更新会话
-        ChatSession chatSession =new ChatSession();
+        ChatSession chatSession = new ChatSession();
         chatSession.setLastMessage(messageContent);
-        if(UserContactTypeEnum.GROUP==contactTypeEnum){
-            chatSession.setLastMessage(tokenUserInfoDto.getNickName()+": "+messageContent);
+        if (UserContactTypeEnum.GROUP == contactTypeEnum) {
+            chatSession.setLastMessage(tokenUserInfoDto.getNickName() + ": " + messageContent);
         }
         chatSession.setLastReceiveTime(curTime);
-        chatSessionMapper.updateBySessionId(chatSession,sessionId);
+        chatSessionMapper.updateBySessionId(chatSession, sessionId);
 
 
         //记录消息表
@@ -185,7 +201,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         MessageSendDto messageSendDto = CopyUtils.copy(chatMessage, MessageSendDto.class);
 
-        if(Constants.ROBOT_UID.equals(contactId)){
+        if (Constants.ROBOT_UID.equals(contactId)) {
             SysSettingDto sysSettingDto = redisComponent.getSysSetting();
             TokenUserInfoDto robot = new TokenUserInfoDto();
             robot.setUserId(sysSettingDto.getRobotUid());
@@ -196,12 +212,120 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             //TODO这里对接AI，实现聊天
             robotChatMessage.setMessageContent("我只是一个机器人无法识别您的消息");
             robotChatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
-            saveMessage(robotChatMessage,robot );
-        }else {
+            saveMessage(robotChatMessage, robot);
+        } else {
             messageHandler.sendMessage(messageSendDto);
         }
-
-
         return messageSendDto;
+    }
+
+    @Override
+    public void saveMessageFile(String userId, Long messageId, MultipartFile file, MultipartFile cover) {
+        //防止通过url绕行客户端访问
+        ChatMessage chatMessage = chatMessageMapper.selectByMessageId(messageId);
+        if (chatMessage == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        if (!chatMessage.getSendUserId().equals(userId)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        SysSettingDto sysSettingDto = redisComponent.getSysSetting();
+        String fileSuffix = StringTools.getFileSuffix(file.getOriginalFilename());
+
+        if (!StringTools.isEmpty(fileSuffix)
+                && ArrayUtils.contains(Constants.IMAGE_SUFFIX_LIST, fileSuffix.toLowerCase())
+                && file.getSize() > sysSettingDto.getMaxImageSize() * Constants.FILE_SIZE_MB) {
+            //是图片但是大小超出
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        } else if (!StringTools.isEmpty(fileSuffix)
+                && ArrayUtils.contains(Constants.VIDEO_SUFFIX_LIST, fileSuffix.toLowerCase())
+                && file.getSize() > sysSettingDto.getMaxVideoSize() * Constants.FILE_SIZE_MB
+        ) {
+            //是视频但是大小超出
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        } else if (!StringTools.isEmpty(fileSuffix)
+                && !ArrayUtils.contains(Constants.IMAGE_SUFFIX_LIST, fileSuffix.toLowerCase())
+                && !ArrayUtils.contains(Constants.VIDEO_SUFFIX_LIST, fileSuffix.toLowerCase())
+                && file.getSize() > sysSettingDto.getMaxVideoSize() * Constants.FILE_SIZE_MB
+        ) {
+            //除图片和视频之外的文件大小超出
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String fileName = file.getOriginalFilename();
+        String fileExtName = StringTools.getFileSuffix(fileName);
+        String fileRealName = messageId + fileExtName;
+        String month = DateUtils.format(new Date(chatMessage.getSendTime()),DateTimePatternEnum.YYYYMM.getPattern());
+        File folder = new File(appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE+month);
+
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        File uploadFile = new File(folder.getPath()+"/"+fileRealName);
+
+        try {
+            file.transferTo(uploadFile);
+            cover.transferTo(new File(uploadFile.getPath()+Constants.COVER_IMAGE_SUFFIX));
+
+        }catch (IOException e) {
+            logger.error("上传文件失败",e);
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        ChatMessage uploadInfo  = new ChatMessage();
+        uploadInfo.setStatus(MessageStatusEnum.SENDED.getStatus());
+        ChatMessageQuery messageQuery = new ChatMessageQuery();
+        messageQuery.setMessageId(messageId);
+        chatMessageMapper.updateByParam(uploadInfo, messageQuery);
+
+        MessageSendDto messageSendDto = new MessageSendDto();
+        messageSendDto.setStatus(MessageStatusEnum.SENDED.getStatus());
+        messageSendDto.setMessageId(messageId);
+        messageSendDto.setMessageType(MessageTypeEnum.FILE_UPLOAD.getType());
+        messageSendDto.setContactId(chatMessage.getContactId());
+        messageHandler.sendMessage(messageSendDto);
+    }
+
+    @Override
+    public File downLoadFile(TokenUserInfoDto tokenUserInfoDto, Long messageId, Boolean showCover) {
+        ChatMessage chatMessage = chatMessageMapper.selectByMessageId(messageId);
+        String contactId = chatMessage.getContactId();
+        UserContactTypeEnum contactTypeEnum = UserContactTypeEnum.getByPrefix(contactId);
+
+        //接收者contactId不同
+        if(UserContactTypeEnum.USER == contactTypeEnum && !tokenUserInfoDto.getUserId().equals(contactId)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        if(UserContactTypeEnum.GROUP == contactTypeEnum) {
+            //不在群聊中
+            UserContactQuery userContactQuery = new UserContactQuery();
+            userContactQuery.setUserId(tokenUserInfoDto.getUserId());
+            userContactQuery.setContactType(UserContactTypeEnum.GROUP.getType());
+            userContactQuery.setContactId(contactId);
+            userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+            Integer contactCount = userContactMapper.selectCount(userContactQuery);
+            if(contactCount == 0 ){
+                throw new BusinessException(ResponseCodeEnum.CODE_600);
+            }
+        }
+        String month = DateUtils.format(new Date(chatMessage.getSendTime()),DateTimePatternEnum.YYYYMM.getPattern());
+        File folder = new File(appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE+month);
+        if(!folder.exists()) {
+            folder.mkdirs();
+        }
+        String fileName = chatMessage.getFileName();
+        String fileExtName = StringTools.getFileSuffix(fileName);
+        String fileRealName = messageId + fileExtName;
+
+        if(showCover !=null && showCover){
+            fileRealName = fileRealName+Constants.COVER_IMAGE_SUFFIX;
+        }
+        File file = new File(folder.getPath()+"/"+fileRealName);
+        if(!file.exists()) {
+//            file.mkdirs();
+            logger.info("文件不存在{}",messageId);
+            throw new BusinessException(ResponseCodeEnum.CODE_602);
+        }
+
+        return file;
     }
 }

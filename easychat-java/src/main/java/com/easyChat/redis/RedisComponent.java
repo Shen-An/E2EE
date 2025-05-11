@@ -86,9 +86,9 @@ public class RedisComponent {
         }
 
         List <String> contactIdList1 = redisUtils.getQueueList(Constants.REDIS_KEY_USER_CONTACT+userId);
-        for(String contactId1 : contactIdList1) {
-            System.out.println("8881"+contactId1);
-        }
+//        for(String contactId1 : contactIdList1) {
+//            System.out.println("8881"+contactId1);
+//        }
         redisUtils.lpush(Constants.REDIS_KEY_USER_CONTACT+userId,contactId,Constants.REDIS_KEY_TOKEN_EXPIRES);
 
     }
