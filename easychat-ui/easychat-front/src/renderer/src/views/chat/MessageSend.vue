@@ -100,9 +100,29 @@ const props = defineProps({
 })
 const activeEmoji = ref('人物')
 
+
+
+const openPopover = ()=>{
+  document.addEventListener('click',hidePopover,false)
+}
+//触发点击事件收起emoji,无论点击哪里
+const closePopover =()=>{
+  document.removeEventListener('click',hidePopover,false)
+}
+const showSendMsgPopover = ref(false)
+
+const showEmojiPopoverHandler =()=>{
+  showEmojiPopover.value = true
+}
+
+const sendEmoji=(emoji)=>{
+  msgContent.value = msgContent.value +emoji
+  showEmojiPopover.value = false;
+}
+
 //隐藏显示pop
 const showEmojiPopover = ref(false)
-const showSendMsgPopover = ref(false)
+
 const hidePopover = () => {
   showEmojiPopover.value = false
   showSendMsgPopover.value = false
@@ -128,6 +148,7 @@ const sendMessage = (e) => {
     true
   )
 }
+
 
 const emit = defineEmits(['sendMessage4Local'])
 
@@ -179,6 +200,7 @@ const sendMessageDo = async (
       })
     }
   })
+  // console.log(resp.info+resp.code)
   if (!resp) {
     return
   }

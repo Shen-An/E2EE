@@ -1,9 +1,11 @@
 package com.easyChat.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.MessageSendDto;
+import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.ChatMessage;
 import com.easyChat.entity.vo.ResponseVo;
@@ -72,6 +74,19 @@ public class ChatController extends ABaseController {
                                  @NotNull MultipartFile file,
                                  @NotEmpty MultipartFile cover) {
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+        String fileSuffix = StringTools.getFileSuffix(file.getOriginalFilename());
+
+        if (!StringTools.isEmpty(fileSuffix)
+                && ArrayUtils.contains(Constants.IMAGE_SUFFIX_LIST, fileSuffix.toLowerCase())
+                && file.getSize() >(new SysSettingDto()).getMaxImageSize() * Constants.FILE_SIZE_MB) {
+            //是图片但是大小超出
+//            ResponseVo responseVo = new ResponseVo();
+//            responseVo.setStatus("error");
+//            responseVo.setCode(603);
+//            responseVo.setInfo("文件大小超出限制");
+//            return responseVo;
+            throw new BusinessException(ResponseCodeEnum.CODE_603);
+        }
         chatMessageService.saveMessageFile(tokenUserInfoDto.getUserId(), messageId, file, cover);
         return getSuccessResponseVo(null);
     }
@@ -98,7 +113,15 @@ public class ChatController extends ABaseController {
                 }
                 file = new File(avatarPath);
                 if (!file.exists()) {
-                    throw new BusinessException(ResponseCodeEnum.CODE_602);
+                    response.reset();
+                    response.setContentType("application/json;charset=utf-8");
+                    response.getWriter().write(
+                            JSON.toJSONString(
+                                    getBusinessErrorResponseVo(null,ResponseCodeEnum.CODE_602.getMsg())
+                            )
+                    );
+                    return; // 立即终止执行
+//                    throw new BusinessException(ResponseCodeEnum.CODE_602);
                 }
             } else {
                 file = chatMessageService.downLoadFile(tokenUserInfoDto, Long.parseLong(fileId), showCover);

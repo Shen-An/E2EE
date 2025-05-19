@@ -10,6 +10,7 @@ import {
 } from './ADB.js'
 const os = require('os');
 import store from '../store.js'
+import { startLocalServer } from '../file.js';
 
 const userDir = 'D:'
 // const fileFolder = userDir + (NODE_ENV === 'development' ? '/.easyChatDev/' : '/.easyChat/');
@@ -38,11 +39,12 @@ const updateContactNoReadCount = ({ userId, noReadCount }) => {
 const addUserSetting=async(userId,email)=>{
 
     let sql = "select max(server_port) server_port from user_setting";
-    let {server_port} = await queryOne(sql, []);
-    if(server_port == null){
-        server_port=10240;
+    let {serverPort} = await queryOne(sql, []);
+    // console.log("serverPort",serverPort)
+    if(serverPort == null){
+        serverPort=10240;
     }else{
-        server_port++;
+        serverPort++;
     }
     const sysSetting={
         localFileFolder:userDir + "\\.easyChat\\fileStorage\\",
@@ -54,19 +56,22 @@ const addUserSetting=async(userId,email)=>{
     let localFileFolder = sysSetting.localFileFolder + userId
     if(userInfo){
         await update("user_setting",{"email":email,},{"user_id":userId});
-        resultServerPort = server_port;
+      
+        resultServerPort = userInfo.serverPort;
         localFileFolder = JSON.parse(userInfo.sysSetting).localFileFolder+userId;
+            // console.log("serverPort",serverPort)
     }else{
         await insertOrIgnore("user_setting",{
             userId:userId,
             email:email,
             sysSetting:JSON.stringify(sysSetting),
             contactNoRead:0,
-            serverPort:server_port
+            serverPort:serverPort
         })
-        resultServerPort = server_port;
+        resultServerPort = serverPort;
     }
-    //TODO 启动本地服务
+    // 启动本地服务
+    startLocalServer(resultServerPort)
     store.setUserData("localServerPort",resultServerPort);
     store.setUserData("localFileFolder",localFileFolder);
 }

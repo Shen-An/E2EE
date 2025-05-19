@@ -236,7 +236,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 && ArrayUtils.contains(Constants.IMAGE_SUFFIX_LIST, fileSuffix.toLowerCase())
                 && file.getSize() > sysSettingDto.getMaxImageSize() * Constants.FILE_SIZE_MB) {
             //是图片但是大小超出
-            throw new BusinessException(ResponseCodeEnum.CODE_600);
+            throw new BusinessException(ResponseCodeEnum.CODE_603);
         } else if (!StringTools.isEmpty(fileSuffix)
                 && ArrayUtils.contains(Constants.VIDEO_SUFFIX_LIST, fileSuffix.toLowerCase())
                 && file.getSize() > sysSettingDto.getMaxVideoSize() * Constants.FILE_SIZE_MB

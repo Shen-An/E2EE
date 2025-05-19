@@ -20,22 +20,23 @@
     </div>
     <div class="select-btn">
       <el-upload
-        name = "file"
+        name="file"
         :show-file-list="false"
         accept=".png,.PNG,.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.bmp,.BMP"
         :multiple="false"
         :http-request="uploadImage"
       >
         <el-button size="small" type="primary">选择</el-button>
-    </el-upload>
+      </el-upload>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick, onMounted, computed } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted, computed, onUnmounted } from 'vue'
 const { proxy } = getCurrentInstance()
 
+const localFile = ref(null)
 const preview = computed(() => {
   return props.modelValue instanceof File
 })
@@ -47,11 +48,33 @@ const props = defineProps({
     default: null
   }
 })
-
+const emit = defineEmits(['coverFile'])
 const uploadImage = async (file) => {
-    file = file.file
-    //TODO
+  file = file.file
+  //
+  window.ipcRenderer.send('createCover', file.path)
 }
+
+onMounted(() => {
+  window.ipcRenderer.on('createCoverCallback', (e, { avatarStream, coverStream }) => {
+    //得到流，转成图片
+    const coverBlob = new Blob([coverStream], { type: 'image/png' })
+    const coverFile = new File([coverBlob], '666.jpg')
+    let img = new FileReader()
+    img.readAsDataURL(coverFile)
+    img.onload = ({ target }) => {
+      // debugger
+      localFile.value = target.result
+    }
+
+    const avatarBlob = new Blob([avatarStream], { type: 'image/png' })
+    const avatarFile = new File([avatarBlob], '6662.jpg')
+    emit('coverFile', { avatarFile, coverFile }) //传到UserInfoEdit.vue saveCover方法
+  })
+})
+onUnmounted(() => {
+  window.ipcRenderer.removeAllListeners('createCoverCallback')
+})
 </script>
 
 <style lang="scss" scoped>

@@ -22,6 +22,7 @@ instance.interceptors.request.use(
             })
         }
         return config
+        
     },
     (error) => {
         if (config.showLoading && loading) {
@@ -34,6 +35,7 @@ instance.interceptors.request.use(
 //请求后拦截器
 instance.interceptors.response.use(
     (response) => {
+        console.log("完整响应数据:", response); // 调试
         const { showLoading, errorCallback, showError = true, responseType } =
             response.config
         if (showLoading && loading) {

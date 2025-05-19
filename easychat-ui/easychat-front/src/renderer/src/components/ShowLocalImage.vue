@@ -1,57 +1,74 @@
 <template>
   <div class="image-panel" @click="showImageHandler">
-    <el-image :src="serverUrl" fit="scale-down" :width="width" ></el-image>
+    <el-image :src="serverUrl" fit="scale-down" :width="width">
+      <template #error>
+        <div class="iconfont icon-image-error"></div>
+      </template>
+    </el-image>
+
+    <div class="play-panel" v-if="showPlay">
+      <span class="iconfont icon-video-play"></span>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, onMounted, computed } from 'vue'
 const { proxy } = getCurrentInstance()
-
-const props =defineProps({
-    width: {
-        type: Number,
-        default: 170
-    },
-    height: {
-        type: Number,
-      
-    },
-    showPlay: {
-        type: Boolean,
-        default: false
-    },
-    fileId:{
-        type:[String, Number],
-    },
-    partType: {
-        type: String,
-        default: 'avatar'
-    },
-    fileType:{
-        type: Number,
-        default: 0
-    },
-    forceGet: {
-        type: Boolean,
-        default: false
-    }
+import { useGlobalInfoStore } from '../stores/GlobalInfoStore'
+const globalInfoStore = useGlobalInfoStore()
+const props = defineProps({
+  width: {
+    type: Number,
+    default: 170
+  },
+  height: {
+    type: Number
+  },
+  showPlay: {
+    type: Boolean,
+    default: false
+  },
+  fileId: {
+    type: [String, Number]
+  },
+  partType: {
+    type: String,
+    default: 'avatar'
+  },
+  fileType: {
+    type: Number,
+    default: 0
+  },
+  forceGet: {
+    type: Boolean,
+    default: false
+  }
 })
 
-const serverUrl = computed(()=>{
-    if(!props.fileId){
-        return
-    }
-    return ''
-    //TODO 获取本地服务的图片URL
+const serverUrl = computed(() => {
+  if (!props.fileId) {
+    return
+  }
+
+  const serverPort = globalInfoStore.getInfo('localServerPort')
+  let str = `http://127.0.0.1:${serverPort}/file?fileId=${props.fileId}&partType=${
+    props.partType
+  }&fileType=${props.fileType}&showCover=true&forceGet=${props.forceGet}&${new Date().getTime()}`
+  console.log(str)
+  //获取本地服务的图片URL
+  return `http://127.0.0.1:${serverPort}/file?fileId=${props.fileId}&partType=${
+    props.partType
+  }&fileType=${props.fileType}&showCover=true&forceGet=${props.forceGet}&${new Date().getTime()}`
 })
 </script>
 
 <style lang="scss" scoped>
-.imge-panel {
+.image-panel {
   position: relative;
   display: flex;
   overflow: hidden;
+
   cursor: pointer;
   max-width: 170px;
   max-height: 170px;
@@ -71,6 +88,8 @@ const serverUrl = computed(()=>{
     display: flex;
     align-items: center;
     cursor: pointer;
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
     .icon-video-play {
       font-size: 35px;
       color: #fff;

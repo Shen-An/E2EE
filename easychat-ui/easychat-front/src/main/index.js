@@ -7,8 +7,10 @@ import {
   onLoginOrRegister, onLoginSuccess, winTitleOp,
   onSetLocalStore, onGetLocalStore, onLoadSessionData,
   onDelChatSession, onTopChatSession, onLoadChatMessage,
-  onAddLocalMessage,onSetSessionSelect
+  onAddLocalMessage,onSetSessionSelect, onCreateCover,
+  openNewWindow
 } from './ipc'
+import { saveWidnow } from './windowProxy'
 
 const login_width = 300
 const login_height = 362
@@ -19,6 +21,7 @@ const register_height = 478
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    icon:icon,
     width: login_width,
     height: login_height,
     show: false,
@@ -26,8 +29,8 @@ function createWindow() {
     autoHideMenuBar: true,
     resizable: false,//不允许修改窗体大小
     frame: true,//：显示窗口边框和标题栏
-    transparent: false,//控制窗口背景是否透明。
-    icon: icon,
+    transparent: true,//控制窗口背景是否透明。
+ 
 
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -36,6 +39,8 @@ function createWindow() {
     }
   })
 
+  //管理主窗口
+  saveWidnow("main",mainWindow)
   //打开控制台
   if (NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools()
@@ -156,7 +161,8 @@ function createWindow() {
   onLoadChatMessage()
   onAddLocalMessage()
   onSetSessionSelect()
-
+  onCreateCover()
+  openNewWindow()
 
 }
 

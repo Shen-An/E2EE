@@ -33,12 +33,14 @@ const createTable = () => {
 
 
 const queryOne = (sql, params) => {
+    // console.log(sql);
     return new Promise((resolve, reject) => {
         const stmt = db.prepare(sql);
         stmt.get(params, (err, row) => {
             if (err) {
                 resolve({})
             }
+            // console.log(convertDbObj2BizObj(row))
             resolve(convertDbObj2BizObj(row))
         });
         stmt.finalize()
@@ -46,7 +48,7 @@ const queryOne = (sql, params) => {
 }
 
 const run = (sql, params) => {
-    console.log(sql)
+    // console.log(sql)
     return new Promise((resolve, reject) => {
         const stmt = db.prepare(sql);
         stmt.get(params, (err, rows) => {

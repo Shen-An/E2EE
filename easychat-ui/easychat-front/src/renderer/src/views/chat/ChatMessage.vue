@@ -12,7 +12,17 @@
       <!-- 状态1 -->
       <template v-else>
         <div class="content" v-html="data.messageContent" v-if="data.messageType != 5"></div>
-        <div class="content" v-else>媒体信息</div>
+        <div class="content" v-else>
+          <template v-if="data.fileType == 0">
+            <ChatMessageImage :data="data" @click="showDetail"></ChatMessageImage>
+          </template>
+          <template v-if="data.fileType == 1">
+            <ChatMessageViedo :data="data" @click="showDetail"></ChatMessageViedo
+          ></template>
+          <template v-if="data.fileType == 2">
+            <ChatMessageFile :data="data" @click="showDetail"></ChatMessageFile>
+          </template>
+        </div>
       </template>
     </div>
     <Avatar :width="35" :userId="userInfoStore.getInfo().userId"></Avatar>
@@ -40,7 +50,17 @@
       </div>
       <template v-else>
         <div class="content" v-html="data.messageContent" v-if="data.messageType != 5"></div>
-        <div class="content" v-else></div>
+        <div class="content" v-else>
+          <template v-if="data.fileType == 0">
+            <ChatMessageImage :data="data" @click="showDetail"></ChatMessageImage>
+          </template>
+          <template v-if="data.fileType == 1">
+            <ChatMessageViedo :data="data" @click="showDetail"></ChatMessageViedo>
+          </template>
+          <template v-if="data.fileType == 2">
+            <ChatMessageFile :data="data" @click="showDetail"></ChatMessageFile>
+          </template>
+        </div>
       </template>
     </div>
   </div>
@@ -48,6 +68,9 @@
 
 
 <script setup>
+import ChatMessageImage from './ChatMessageImage.vue'
+import ChatMessageViedo from './ChatMessageViedo.vue'
+import ChatMessageFile from './ChatMessageFile.vue'
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
@@ -67,6 +90,15 @@ const props = defineProps({
     default: {}
   }
 })
+
+const emit = defineEmits(['showMediaDetail'])
+
+const showDetail=()=>{
+  if(props.data.status == 0){
+    return
+  }
+  emit('showMediaDetail',props.data.messageId)
+}
 </script>
 
 
@@ -153,15 +185,15 @@ const props = defineProps({
     .content {
       background: #fff;
     }
-    .sending{
-        float: left;
+    .sending {
+      float: left;
     }
     &::after {
       left: -4px;
       background: #fff;
     }
   }
-  
+
   .content-panel-media {
     justify-content: flex-start;
   }

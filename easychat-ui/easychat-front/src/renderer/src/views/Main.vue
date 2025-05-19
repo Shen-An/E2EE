@@ -1,7 +1,9 @@
 <template>
     <div class="main">
         <div class="left-sider">
-            <div></div>
+            <div>
+                <Avatar :userId ="userInfoStore.getInfo().userId" :width="35" :showDetail="false"></Avatar>
+            </div>
             <div class="menu-list">
                 <template v-for="item in menuList">
                     <div :class="['tab-item iconfont', item.icon, item.icon, item.path == currentMenu.path ? 'active' : '']"
@@ -36,6 +38,8 @@
 </template>
 
 <script setup>
+import { useGlobalInfoStore } from '../stores/GlobalInfoStore';
+const globalInfoStore = useGlobalInfoStore();
 import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 const { proxy } = getCurrentInstance()
 import{useUserInfoStore} from '@/stores/UserInfoStore'
@@ -50,9 +54,13 @@ const getLoginInfo =async () => {
     return
   }
   userInfoStore.setInfo(resp.data)
+  window.ipcRenderer.send('getLocalStore',resp.data.userId+'localServerPort');
 }
 onMounted(() => {
   getLoginInfo()
+  window.ipcRenderer.on('getLocalStoreCallback', (event, serverPort) => {
+    globalInfoStore.setInfo("localServerPort", serverPort)
+  })
 })
 const menuList = ref([
     {

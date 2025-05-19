@@ -72,7 +72,7 @@ const delChatSession = (contactId) => {
     return update("chat_session_user", sessionInfo, paramData);
 }
 const topChatSession = (contactId, topType) => {
-    console.log("topChatSession", contactId, topType)
+    // console.log("topChatSession", contactId, topType)
     const paramData = {
         userId: store.getUserId(),
         contactId: contactId

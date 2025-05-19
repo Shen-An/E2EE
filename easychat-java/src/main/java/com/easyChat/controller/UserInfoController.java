@@ -143,7 +143,7 @@ public class UserInfoController extends ABaseController {
     @RequestMapping("/saveUserInfo")
     public ResponseVo saveUserInfo(HttpServletRequest request, UserInfo userInfo,
                                    MultipartFile avatarFile,
-                                   MultipartFile avatarCover) throws IOException {
+                                       MultipartFile avatarCover) throws IOException {
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
         userInfo.setUserId(tokenUserInfoDto.getUserId());
         userInfo.setPassword(null);

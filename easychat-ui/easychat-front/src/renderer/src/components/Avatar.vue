@@ -32,10 +32,24 @@
       <template #default>
         <UserBaseInfo :userInfo="userInfo"></UserBaseInfo>
         <div class="op-btn" v-if="userId != userInfoStore.getInfo.userId">
+          <!-- 好友 -->
           <el-button v-if="userInfo.contactStatus == 1" type="primary" @click="sendMessage"
             >发消息</el-button
           >
-          <el-button v-else type="primary" @click="addContact">添加好友</el-button>
+          <!-- 非好友 -->
+          <el-button
+            v-else-if="
+              userInfo.contactStatus == 0 ||
+              userInfo.contactStatus == 2 ||
+              userInfo.contactStatus == 3 ||
+              userInfo.contactStatus == 4 ||
+              userInfo.contactStatus == 5 ||
+              userInfo.contactStatus == 6
+            "
+            type="primary"
+            @click="addContact"
+            >添加好友</el-button
+          >
         </div>
       </template>
     </el-popover>
@@ -81,7 +95,7 @@ const props = defineProps({
   },
   borderRadius: {
     type: Number,
-    default: 0
+    default: 2
   },
   groupId: {
     type: String
@@ -90,8 +104,8 @@ const props = defineProps({
 </script>
 <style lang="scss" scoped>
 .op-btn {
-    text-align: center;
-    border-top: 1px solid #eaeaea;
-    padding-top: 10px;
+  text-align: center;
+  border-top: 1px solid #eaeaea;
+  padding-top: 10px;
 }
 </style>

@@ -6,7 +6,7 @@ import {
     saveOrUpdateChatSessionBatch4Init, saveOrUpdate4Message,
     selectUserSessionByContactId
 } from './db/ChatSessionUserModel.js'
-import { saveMessage,saveMessageBatch } from './db/ChatMessageModel.js'
+import { saveMessage,saveMessageBatch, updateMessage } from './db/ChatMessageModel.js'
 import { updateContactNoReadCount } from './db/UserSettingModel.js'
 let ws = null;
 let maxReconnectTimes = null;
@@ -50,7 +50,8 @@ const createWs = () => {
                 //发送消息
                 sender.send("receiveMessage", { messageType: message.messageType });
                 break;
-            case 2:
+            case 2://文字
+            case 5://图片视频
                 //如果是自己发送的消息且是群聊，不处理
                 if (message.sendUserId == store.getUserId() && message.contactType == 1) {
                     break;
@@ -74,7 +75,11 @@ const createWs = () => {
                 message.extendData = dbSessionInfo;
                 sender.send("receiveMessage", message);
                 break;
-
+            //文件上传完成，需要更新消息状态，如图片/视频 状态改为1，代表发送完成。
+            case 6:
+                updateMessage({status:message.status},{messageId:message.messageId})
+                sender.send("receiveMessage", message);
+                break;
         }
     }
     ws.onclose = function () {

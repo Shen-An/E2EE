@@ -15,6 +15,7 @@
       </div>
         <div class="info">ID:{{ userInfo.userId || userInfo.contactId }}</div>
         <div class="info" v-if="showArea">地区：{{ proxy.Utils.getAreaInfo(userInfo.areaName) }}</div>
+        <div class="info">个性签名：{{ userInfo.personalSignature }}</div>
     </div>
 </div>
 </template>

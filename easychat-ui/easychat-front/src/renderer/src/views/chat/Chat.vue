@@ -44,7 +44,11 @@
             <template
               v-if="data.messageType == 1 || data.messageType == 2 || data.messageType == 5"
             >
-              <ChatMessage :data="data" :currentChatSession="currentChatSession"></ChatMessage>
+              <ChatMessage
+                :data="data"
+                :currentChatSession="currentChatSession"
+                @showMediaDetail="showMediaDetailHandler"
+              ></ChatMessage>
             </template>
           </div>
         </div>
@@ -52,6 +56,9 @@
           :currentChatSession="currentChatSession"
           @sendMessage4Local="sendMessage4LocalHandler"
         ></MessageSend>
+      </div>
+      <div class="chat-blank" v-show="Object.keys(currentChatSession).length == 0">
+        <Blank></Blank>
       </div>
     </template>
   </Layout>
@@ -216,13 +223,28 @@ const onReceiveMessage = () => {
   window.ipcRenderer.on('receiveMessage', (e, message) => {
     // console.log('receiveMessage:', message)
 
+    //更新对方发送来的图片/视频
+    if (message.messageType == 6) {
+      //6文件上传完成
+      const localMessage = messageList.value.find((item) => {
+        if (item.messageId == message.messageId) {
+          return item
+        }
+      })
+      if (localMessage != null) {
+        localMessage.status = 1
+      }
+      return
+    }
+
     let curSession = chatSessionList.value.find((item) => {
       return item.contactId == message.contactId
     })
+
     if (curSession == null) {
       chatSessionList.value.push(message.extendData)
     } else {
-      Object.assign(curSession,message.extendData) 
+      Object.assign(curSession, message.extendData)
     }
     sortChatSessionList(chatSessionList.value)
     if (message.sessionId != currentChatSession.value.sessionId) {
@@ -248,6 +270,20 @@ Object.assign(curSession, message.extendData): 这种方式会将 message.extend
 curSession = message.extendData: 这种方式会完全替换 curSession，curSession 原有的属性会被丢弃，
 curSession 会变成 message.extendData 的一个引用。
  */
+
+const onAddLocalMessage = () => {
+  window.ipcRenderer.on('addLocalCallback', (e, { messageId, status }) => {
+    // debugger
+    const findMessage = messageList.value.find((item) => {
+      if (item.messageId == messageId) {
+        return item
+      }
+    })
+    if (findMessage != null) {
+      findMessage.status = status
+    }
+  })
+}
 
 const sendMessage4LocalHandler = (messageObj) => {
   messageList.value.push(messageObj)
@@ -275,16 +311,44 @@ const gotoBottom = () => {
   })
 }
 
+//用于媒体信息查看
+const showMediaDetailHandler = (messageId) => {
+  let showFileList = messageList.value.filter((item) => {
+    return item.messageType == 5
+  })
+  showFileList = showFileList.map((item) => {
+    return {
+      partType: 'chat',
+      fileId: item.messageId,
+      fileType: item.fileType,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      forceGet: false
+    }
+  })
+  window.ipcRenderer.send('newWindow', {
+    windowId: 'media',
+    title: '图片查看',
+    path: '/showMedia',
+    data: {
+      currentField: messageId,
+      fileList: showFileList
+    }
+  })
+}
+
 onMounted(() => {
   onReceiveMessage()
   onLoadSessionData()
   loadChatSession()
   onLoadChatMessage()
+  onAddLocalMessage()
 })
 onUnmounted(() => {
   window.ipcRenderer.removeAllListeners('receiveMessage')
   window.ipcRenderer.removeAllListeners('loadSessionDataCallback')
   window.ipcRenderer.removeAllListeners('loadChatMessageCallback')
+  window.ipcRenderer.removeAllListeners('addLocalCallback')
 })
 
 // const init = () => {

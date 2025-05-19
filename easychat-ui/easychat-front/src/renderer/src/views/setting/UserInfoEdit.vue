@@ -55,6 +55,9 @@ const router = useRouter()
 const route = useRoute()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
+import {useAvatarInfoStore} from '@/stores/AvatarUpdateStore'
+
+const avatarInfoStore = useAvatarInfoStore()
 
 const formDataRef = ref()
 const rules = {
@@ -62,9 +65,11 @@ const rules = {
   nickName: [{ required: true, message: '请输入昵称' }]
 }
 
-const saveCover = (avatarFile, coverFile) => {
+//保存封面
+const saveCover = ({avatarFile, coverFile }) => {
+  console.log(avatarFile)
   formData.value.avatarFile = avatarFile
-  formData.value.coverFile = coverFile
+  formData.value.avatarCover = coverFile
 }
 const emit = defineEmits(['editBack'])
 
@@ -83,8 +88,8 @@ const saveUserInfo = async () => {
       params.areaCode = params.area.areaCode.join(',')
       delete params.area
     }
-    //TODO 强制刷新头像
-
+    //强制刷新头像
+    avatarInfoStore.setForceReload(userInfoStore.getInfo().userId,false)
     let resp = await proxy.Request({
       url: proxy.Api.saveUserInfo,
       params
@@ -94,7 +99,8 @@ const saveUserInfo = async () => {
     }
     proxy.Message.success('保存成功')
     userInfoStore.setInfo(resp.data)
-    //TODO 强制刷新头像
+    // 强制刷新头像
+    avatarInfoStore.setForceReload(userInfoStore.getInfo().userId,true)
     emit('editBack')
   })
 }

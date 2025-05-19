@@ -7,8 +7,9 @@ import store from './store'
 import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
 import { selectUserSessionList, delChatSession, topChatSession, updateSessionInfo4Message, readAll } from './db/ChatSessionUserModel'
-import { selectMessageList, saveMessage,updateMessage } from './db/ChatMessageModel'
-import { saveFile2Local } from './file'
+import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
+import { saveFile2Local, createCover } from './file'
+import { delWindow, getWindow, saveWidnow } from './windowProxy'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -45,7 +46,7 @@ const onSetLocalStore = () => {
 
 const onGetLocalStore = () => {
     ipcMain.on('getLocalStore', (e, key) => {
-        e.sender.send('getLocalStoreCallback', "主进程返回内容" + store.getData(key))
+        e.sender.send('getLocalStoreCallback', store.getData(key))
     })
 }
 
@@ -93,7 +94,7 @@ const onAddLocalMessage = () => {
         await saveMessage(data)
         //保存文件
         if (data.messageType == 5) {
-            
+
             await saveFile2Local(data.messageId, data.filePath, data.fileType)
 
             const updateInfo = {
@@ -108,7 +109,69 @@ const onAddLocalMessage = () => {
         updateSessionInfo4Message(store.getUserData("currentSessionId"), data)
         e.sender.send('addLocalCallback', { status: 1, messageId: data.messageId })
     })
+}
+const onCreateCover = () => {
+    ipcMain.on("createCover", async (e, localFilePath) => {
+        const stream = await createCover(localFilePath)
+        e.sender.send("createCoverCallback", stream)
+    })
 
+}
+
+const openNewWindow = () => {
+    ipcMain.on("newWindow", async (e, config) => {
+        openWindow(config)
+    })
+}
+const openWindow = ({ windowId, title = "EasyChat", path, width = 960, height = 720, data }) => {
+    let newWindow = getWindow(windowId);
+    if (!newWindow) {
+        newWindow = new BrowserWindow({
+            icon: icon,
+            width: width,
+            height: height,
+            fullscreenable: false,
+            fullscreen: false,
+            maximizable: false,
+            titleBarStyle: "hidden",//右上方 - [] X 工具条隐藏
+            autoHideMenuBar: true,
+            resizable: false,//不允许修改窗体大小
+            frame: true,//：显示窗口边框和标题栏
+            transparent: true,//控制窗口背景是否透明。
+            hasShadow: false,
+            webPreferences: {
+                preload: join(__dirname, '../preload/index.js'),
+                sandbox: false,
+                contextIsolation: false
+            }
+        })
+        saveWidnow(windowId, newWindow)
+        newWindow.setMinimumSize(600, 484)
+        if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+            newWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/index.html#${path}`)
+        } else {
+            newWindow.loadFile(join(__dirname, `../renderer/index.html`), { hash: `${path}` })
+        }
+        if (NODE_ENV === 'development') {
+            newWindow.webContents.openDevTools()
+        }
+        newWindow.on('ready-to-show', () => {
+            newWindow.setTitle(title)
+            newWindow.show()
+        })
+        newWindow.on('close', () => {
+            setTimeout(() => {
+                newWindow.webContents.send('pageInitData', data)
+            }, 500)
+        })
+        newWindow.on('closed', () => {
+            delWindow(windowId)
+        })
+    }else{
+        newWindow.show()
+        newWindow.setSkipTaskbar(false)
+        newWindow.webContents.send('pageInitData', data)
+    }
 }
 export {
     onLoginOrRegister,
@@ -121,5 +184,7 @@ export {
     onTopChatSession,
     onLoadChatMessage,
     onAddLocalMessage,
-    onSetSessionSelect
+    onSetSessionSelect,
+    onCreateCover,
+    openNewWindow
 }

@@ -9,7 +9,7 @@
       :width="width"
       :fileId="userId"
       partType="avatar"
-      :forceGet="true"
+      :forceGet="avatarInfoStore.getForceReload(userId)"
     ></ShowLocalImage>
   </div>
 </template>
@@ -17,6 +17,9 @@
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 const { proxy } = getCurrentInstance()
+import {useAvatarInfoStore} from '@/stores/AvatarUpdateStore'
+
+const avatarInfoStore = useAvatarInfoStore()
 const showImageHandler = () => {
   if (!props.showDetail) {
     return
