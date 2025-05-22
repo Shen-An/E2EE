@@ -120,10 +120,16 @@ const onCreateCover = () => {
 
 const openNewWindow = () => {
     ipcMain.on("newWindow", async (e, config) => {
+     
         openWindow(config)
     })
 }
-const openWindow = ({ windowId, title = "EasyChat", path, width = 960, height = 720, data }) => {
+const openWindow = ({ windowId, title = "EasyChat", path, width = 720, height = 540, data }) => {
+
+    //传端口
+    const localServerPort = store.getUserData("localServerPort")
+    data.localServerPort = localServerPort
+
     let newWindow = getWindow(windowId);
     if (!newWindow) {
         newWindow = new BrowserWindow({

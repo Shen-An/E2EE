@@ -313,6 +313,7 @@ const gotoBottom = () => {
 
 //用于媒体信息查看
 const showMediaDetailHandler = (messageId) => {
+  console.log('showMediaDetailHandler:', messageId)
   let showFileList = messageList.value.filter((item) => {
     return item.messageType == 5
   })
@@ -326,6 +327,8 @@ const showMediaDetailHandler = (messageId) => {
       forceGet: false
     }
   })
+  // 打印 showFileList
+  console.log('showFileList:', showFileList);
   window.ipcRenderer.send('newWindow', {
     windowId: 'media',
     title: '图片查看',
