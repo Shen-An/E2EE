@@ -3,6 +3,7 @@ package com.easyChat.controller;
 
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.dto.MessageSendDto;
+import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.UserInfo;
 import com.easyChat.entity.vo.ResponseVo;
@@ -107,6 +108,16 @@ public class AccountController extends ABaseController {
     @RequestMapping("/getSysSetting")
     public ResponseVo getSysSetting() {
         return getSuccessResponseVo(redisComponent.getSysSetting());
+    }
+
+    @RequestMapping("/getSysSetting1")
+    public ResponseVo getSysSetting1() {
+        Map<String,Integer> map = new HashMap<>();
+        map.put("0",(new SysSettingDto()).getMaxImageSize());
+        map.put("1",(new SysSettingDto()).getMaxVideoSize());
+        map.put("2",(new SysSettingDto()).getMaxFileSize());
+
+        return getSuccessResponseVo(map);
     }
 
 
