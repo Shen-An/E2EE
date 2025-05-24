@@ -207,7 +207,7 @@ const onLoadChatMessage = () => {
       //滚动条滚动到底部
       gotoBottom()
     }
-    console.log('loadChatMessageCallback:', messageList.value)
+    // console.log('loadChatMessageCallback:', messageList.value)
   })
 }
 

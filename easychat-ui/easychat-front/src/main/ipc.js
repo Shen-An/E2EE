@@ -8,7 +8,7 @@ import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
 import { selectUserSessionList, delChatSession, topChatSession, updateSessionInfo4Message, readAll } from './db/ChatSessionUserModel'
 import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
-import { saveFile2Local, createCover } from './file'
+import { saveFile2Local, createCover,saveAs } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
@@ -179,6 +179,13 @@ const openWindow = ({ windowId, title = "EasyChat", path, width = 720, height = 
         newWindow.webContents.send('pageInitData', data)
     }
 }
+
+const onSaveAs=()=>{
+    ipcMain.on("saveAs",async (e,data)=>{
+       saveAs(data)
+    })
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -192,5 +199,6 @@ export {
     onAddLocalMessage,
     onSetSessionSelect,
     onCreateCover,
-    openNewWindow
+    openNewWindow,
+    onSaveAs
 }

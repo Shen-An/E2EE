@@ -2,7 +2,7 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const NODE_ENV = process.env.NODE_ENV;
 const path = require('path');
-const { app, ipcMain, shell } = require('electron');
+const { app, ipcMain, shell, dialog } = require('electron');
 const { exec } = require('child_process');
 const FormData = require('form-data');//引入form-data模块（用于构建表单数据）
 const axios = require('axios');//引入axios模块（用于发送http请求）
@@ -212,9 +212,40 @@ expressServer.get("/file", async (req, resp) => {
     //设置响应头
     resp.setHeader("Content-Type", contentType);
     //将文件流写入到响应中
-    fs.createReadStream(localPath).pipe(resp);
-    return;
 
+    if(showCover || fileType !== "1"){
+        //不是视频或者显示封面，则直接显示图片
+        fs.createReadStream(localPath).pipe(resp);
+        return;
+    }
+    //如果是视频，则做视频切片处理
+    let stat = fs.statSync(localPath)
+    let fileSize = stat.size
+    let range = req.headers.range
+    if(range){
+        let parts = range.replace(/bytes=/,"").split("-")
+        let start = parseInt(parts[0],10)
+        let end = parts[1] ? parseInt(parts[1],10) : start + 999999
+        end = end > fileSize - 1 ? fileSize - 1 : end
+        let chunksize = (end - start) + 1
+        let stream = fs.createReadStream(localPath,{start,end})
+        let head = {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': chunksize,
+            'Content-Type': 'video/mp4'
+        }
+        resp.writeHead(206,head)
+        stream.pipe(resp)
+    }else{
+        let head = {
+            'Content-Length': fileSize,
+            'Content-Type': 'video/mp4'
+        }
+        resp.writeHead(200,head)
+        fs.createReadStream(localPath).pipe(resp)
+    }
+    return;
 })
 //头像下载
 const downLoadFile = (fileId, showCover, savePath, partType) => {
@@ -284,9 +315,32 @@ const createCover = (filePath) => {
         })
     })
 }
+
+const saveAs = async({partType,fileId}) => {
+    let fileName = "";
+    if(partType == "avatar"){
+        fileName = fileId + image_suffix;
+    }else if(partType == "chat"){
+      let messageInfo = await selectByMessageId(fileId);
+      fileName = messageInfo.fileName;
+    }
+    const localPath = await getLocalFilePath(partType,false,fileId);
+    let options = {
+        title: "保存文件",
+        defaultPath: fileName
+    }
+    let result = await dialog.showSaveDialog(options);
+    if(result.canceled || result.filePath == ""){
+        return;
+    }
+    const filePath = result.filePath;
+    fs.copyFileSync(localPath,filePath);
+}
+
 export {
     saveFile2Local,
     startLocalServer,
     closeLocalServer,
-    createCover
+    createCover, 
+    saveAs
 }

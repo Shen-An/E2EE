@@ -15,7 +15,7 @@
         @click="next(1)"
       ></div>
       <template v-if="fileList[0].fileType == 0">
-        <el-driver direction="vertical" />
+        <el-divider direction="vertical" />
         <div
           class="iconfont icon-enlarge"
           @click.stop="changeSize(0.1)"
@@ -37,6 +37,7 @@
         <div class="iconfont icon-rotate" @dblclick.stop @click="rotate" title="旋转"></div>
         <!-- 分割线 -->
         <el-divider direction="vertical" />
+        
         <div class="iconfont icon-download" @dblclick.stop @click="saveAs" title="另存为..."></div>
       </template>
     </div>
@@ -150,6 +151,15 @@ const next = (index) => {
   }
   currentIndex.value = currentIndex.value + index
   getCurrentFile()
+}
+
+const saveAs = () => {
+  const curFile = allFileList.value[currentIndex.value]
+  
+  window.ipcRenderer.send('saveAs', {
+    partType: curFile.partType,
+    fileId: curFile.fileId,
+  })
 }
 
 const getCurrentFile = () => {

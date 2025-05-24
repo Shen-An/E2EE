@@ -91,6 +91,9 @@ const route = useRoute()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 import { getFileType } from '@/utils/Constants.js'
+import {useSysSettingStore} from '@/stores/SysSettingStore'
+const sysSettingStore = useSysSettingStore()   
+
 
 const props = defineProps({
   currentChatSession: {
@@ -165,7 +168,10 @@ const sendMessageDo = async (
   },
   cleanMsgContent
 ) => {
-  //TODO判断文件大小
+  //判断文件大小
+  if(!checkFileSize(messageObj.fileType,messageObj.fileSize,messageObj.fileName)){
+    return
+  }
   if (messageObj.fileSize == 0) {
     proxy.Confirm({
       message: `${messageObj.fileName}文件为空，无法发送`,
@@ -251,6 +257,58 @@ const addContact = (contactId, code) => {
     contactId,
     contactType: code == 902 ? 'USER' : 'GROUP'
   })
+}
+
+//校验文件大小
+const checkFileSize = (fileType,fileSize,fileName)=>{
+  const SIZE_MB = 1024 * 1024;
+  const settingArray  = Object.values(sysSettingStore.getSetting());
+  console.log(settingArray)
+  console.log(fileType)
+  const fileSizeNumber = settingArray[fileType] 
+  if(fileSize > fileSizeNumber * SIZE_MB){
+    proxy.Confirm({
+      message: `文件${fileName}超过大小${fileSizeNumber}M限制，无法发送`,
+      showCancelBtn: false
+    })
+    return false
+  }
+  return true
+}
+
+//发送文件数量
+const fileLimit = 10
+const checkFileLimit = (files)=>{
+  if(files.length>fileLimit){
+    proxy.Confirm({
+      message: `一次最多发送${fileLimit}个文件`,
+      showCancelBtn: false
+    })
+    return
+  }
+  return true
+}
+
+const uploadExceed =(files)=>{
+  checkFileLimit(files)
+}
+
+
+//拖入文件
+const dragOverHandler = (e) => {
+  // console.log('拖入文件未松开')
+  e.preventDefault()
+}
+const dropHandler = (event) => {
+  // console.log('已经拖入文件')
+  event.preventDefault()
+  const files = event.dataTransfer.files
+  if(!checkFileLimit(files)){
+    return
+  }
+  for(let i=0;i<files.length;i++){
+    uploadFileDo(files[i])
+  }
 }
 </script>
 

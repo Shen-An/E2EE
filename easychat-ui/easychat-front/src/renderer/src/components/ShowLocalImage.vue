@@ -52,10 +52,10 @@ const serverUrl = computed(() => {
   }
 
   const serverPort = globalInfoStore.getInfo('localServerPort')
-  let str = `http://127.0.0.1:${serverPort}/file?fileId=${props.fileId}&partType=${
-    props.partType
-  }&fileType=${props.fileType}&showCover=true&forceGet=${props.forceGet}&${new Date().getTime()}`
-  console.log(str)
+  // let str = `http://127.0.0.1:${serverPort}/file?fileId=${props.fileId}&partType=${
+  //   props.partType
+  // }&fileType=${props.fileType}&showCover=true&forceGet=${props.forceGet}&${new Date().getTime()}`
+  // console.log(str) 
   //获取本地服务的图片URL
   return `http://127.0.0.1:${serverPort}/file?fileId=${props.fileId}&partType=${
     props.partType

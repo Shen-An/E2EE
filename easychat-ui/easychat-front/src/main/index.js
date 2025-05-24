@@ -8,7 +8,8 @@ import {
   onSetLocalStore, onGetLocalStore, onLoadSessionData,
   onDelChatSession, onTopChatSession, onLoadChatMessage,
   onAddLocalMessage,onSetSessionSelect, onCreateCover,
-  openNewWindow
+  openNewWindow,
+  onSaveAs
 } from './ipc'
 import { saveWidnow } from './windowProxy'
 
@@ -163,6 +164,7 @@ function createWindow() {
   onSetSessionSelect()
   onCreateCover()
   openNewWindow()
+  onSaveAs()
 
 }
 
