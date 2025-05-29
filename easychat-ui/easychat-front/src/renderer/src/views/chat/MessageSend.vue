@@ -83,7 +83,7 @@
 <script setup>
 import SearchAdd from '@/views/contact/SearchAdd.vue'
 import emojiList from '@/utils/Emoji'
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted, onUnmounted } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
@@ -91,9 +91,8 @@ const route = useRoute()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 import { getFileType } from '@/utils/Constants.js'
-import {useSysSettingStore} from '@/stores/SysSettingStore'
-const sysSettingStore = useSysSettingStore()   
-
+import { useSysSettingStore } from '@/stores/SysSettingStore'
+const sysSettingStore = useSysSettingStore()
 
 const props = defineProps({
   currentChatSession: {
@@ -103,24 +102,22 @@ const props = defineProps({
 })
 const activeEmoji = ref('人物')
 
-
-
-const openPopover = ()=>{
-  document.addEventListener('click',hidePopover,false)
+const openPopover = () => {
+  document.addEventListener('click', hidePopover, false)
 }
 //触发点击事件收起emoji,无论点击哪里
-const closePopover =()=>{
-  document.removeEventListener('click',hidePopover,false)
+const closePopover = () => {
+  document.removeEventListener('click', hidePopover, false)
 }
 const showSendMsgPopover = ref(false)
 
-const showEmojiPopoverHandler =()=>{
+const showEmojiPopoverHandler = () => {
   showEmojiPopover.value = true
 }
 
-const sendEmoji=(emoji)=>{
-  msgContent.value = msgContent.value +emoji
-  showEmojiPopover.value = false;
+const sendEmoji = (emoji) => {
+  msgContent.value = msgContent.value + emoji
+  showEmojiPopover.value = false
 }
 
 //隐藏显示pop
@@ -152,7 +149,6 @@ const sendMessage = (e) => {
   )
 }
 
-
 const emit = defineEmits(['sendMessage4Local'])
 
 //真正发送消息
@@ -169,7 +165,7 @@ const sendMessageDo = async (
   cleanMsgContent
 ) => {
   //判断文件大小
-  if(!checkFileSize(messageObj.fileType,messageObj.fileSize,messageObj.fileName)){
+  if (!checkFileSize(messageObj.fileType, messageObj.fileSize, messageObj.fileName)) {
     return
   }
   if (messageObj.fileSize == 0) {
@@ -260,13 +256,13 @@ const addContact = (contactId, code) => {
 }
 
 //校验文件大小
-const checkFileSize = (fileType,fileSize,fileName)=>{
-  const SIZE_MB = 1024 * 1024;
-  const settingArray  = Object.values(sysSettingStore.getSetting());
+const checkFileSize = (fileType, fileSize, fileName) => {
+  const SIZE_MB = 1024 * 1024
+  const settingArray = Object.values(sysSettingStore.getSetting())
   console.log(settingArray)
   console.log(fileType)
-  const fileSizeNumber = settingArray[fileType] 
-  if(fileSize > fileSizeNumber * SIZE_MB){
+  const fileSizeNumber = settingArray[fileType]
+  if (fileSize > fileSizeNumber * SIZE_MB) {
     proxy.Confirm({
       message: `文件${fileName}超过大小${fileSizeNumber}M限制，无法发送`,
       showCancelBtn: false
@@ -278,8 +274,8 @@ const checkFileSize = (fileType,fileSize,fileName)=>{
 
 //发送文件数量
 const fileLimit = 10
-const checkFileLimit = (files)=>{
-  if(files.length>fileLimit){
+const checkFileLimit = (files) => {
+  if (files.length > fileLimit) {
     proxy.Confirm({
       message: `一次最多发送${fileLimit}个文件`,
       showCancelBtn: false
@@ -289,10 +285,9 @@ const checkFileLimit = (files)=>{
   return true
 }
 
-const uploadExceed =(files)=>{
+const uploadExceed = (files) => {
   checkFileLimit(files)
 }
-
 
 //拖入文件
 const dragOverHandler = (e) => {
@@ -303,13 +298,64 @@ const dropHandler = (event) => {
   // console.log('已经拖入文件')
   event.preventDefault()
   const files = event.dataTransfer.files
-  if(!checkFileLimit(files)){
+  if (!checkFileLimit(files)) {
     return
   }
-  for(let i=0;i<files.length;i++){
+  for (let i = 0; i < files.length; i++) {
     uploadFileDo(files[i])
   }
 }
+
+//复制、截图粘贴
+const pasteFile = async (event) => {
+  let items = event.clipboardData && event.clipboardData.items
+  console.log(items)
+  const fileData = {}
+
+  for (const item of items) {
+    if (item.kind != 'file') {
+      break
+    }
+    const file = await item.getAsFile()
+    if (file.path != '') {
+      //直接复制文件 上传
+      uploadFileDo(file)
+    } else {
+      //剪切板截图
+      const imageFile = new File([file], 'temp.jpg')
+      let fileReader = new FileReader()
+      fileReader.onloadend = function () {
+        const byteArray = new Uint8Array(this.result)
+        fileData.byteArray = byteArray
+        fileData.name = imageFile.name
+        //渲染进程无法做此操作，交给主进程
+        window.ipcRenderer.send('saveClipBoardFile', fileData)
+      }
+      fileReader.readAsArrayBuffer(imageFile)
+    }
+  }
+}
+
+onMounted(() => {
+  window.ipcRenderer.on('saveClipBoardFileCallback', (e, file) => {
+    const fileType = 0
+    sendMessageDo(
+      {
+        messageContent: '[' + getFileType(fileType) + ']',
+        messageType: 5,
+        filePath: file.path,
+        fileSize: file.size,
+        fileName: file.name,
+        fileType: fileType
+      },
+      false
+    )
+  })
+})
+
+onUnmounted(() => {
+  window.ipcRenderer.removeAllListeners('saveClipBoardFileCallback')
+})
 </script>
 
 <style lang="scss" scoped>

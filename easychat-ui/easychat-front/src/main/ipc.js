@@ -8,7 +8,7 @@ import { initWs } from './wsClient'
 import { addUserSetting } from './db/UserSettingModel'
 import { selectUserSessionList, delChatSession, topChatSession, updateSessionInfo4Message, readAll } from './db/ChatSessionUserModel'
 import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
-import { saveFile2Local, createCover,saveAs } from './file'
+import { saveFile2Local, createCover,saveAs,saveClipBoardFile } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
@@ -186,6 +186,13 @@ const onSaveAs=()=>{
     })
 }
 
+const onSaveClipBoardFile =()=>{
+    ipcMain.on("saveClipBoardFile",async (e,data)=>{
+        const result = await saveClipBoardFile(data)
+        e.sender.send("saveClipBoardFileCallback",result)
+    })
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -200,5 +207,6 @@ export {
     onSetSessionSelect,
     onCreateCover,
     openNewWindow,
-    onSaveAs
+    onSaveAs,
+    onSaveClipBoardFile
 }

@@ -9,7 +9,8 @@ import {
   onDelChatSession, onTopChatSession, onLoadChatMessage,
   onAddLocalMessage,onSetSessionSelect, onCreateCover,
   openNewWindow,
-  onSaveAs
+  onSaveAs,
+  onSaveClipBoardFile
 } from './ipc'
 import { saveWidnow } from './windowProxy'
 
@@ -165,6 +166,7 @@ function createWindow() {
   onCreateCover()
   openNewWindow()
   onSaveAs()
+  onSaveClipBoardFile()
 
 }
 

@@ -157,6 +157,13 @@ const getLocalFilePath = (partType, showCover, fileId) => {
             if (showCover) {
                 localPath = localPath + cover_image_suffix;
             }
+        } else if (partType == "tmp") {
+            //如果是临时文件，则保存到tmp文件夹下，这时fileId为文件名,用于截图上传
+            localFolder = localFolder + "/tmp/";
+            if (!fs.existsSync(localFolder)) {
+                mkdirs(localFolder);
+            }
+            localPath = localFolder + "/" + fileId;
         }
 
         resolve(localPath);
@@ -213,7 +220,7 @@ expressServer.get("/file", async (req, resp) => {
     resp.setHeader("Content-Type", contentType);
     //将文件流写入到响应中
 
-    if(showCover || fileType !== "1"){
+    if (showCover || fileType !== "1") {
         //不是视频或者显示封面，则直接显示图片
         fs.createReadStream(localPath).pipe(resp);
         return;
@@ -222,27 +229,27 @@ expressServer.get("/file", async (req, resp) => {
     let stat = fs.statSync(localPath)
     let fileSize = stat.size
     let range = req.headers.range
-    if(range){
-        let parts = range.replace(/bytes=/,"").split("-")
-        let start = parseInt(parts[0],10)
-        let end = parts[1] ? parseInt(parts[1],10) : start + 999999
+    if (range) {
+        let parts = range.replace(/bytes=/, "").split("-")
+        let start = parseInt(parts[0], 10)
+        let end = parts[1] ? parseInt(parts[1], 10) : start + 999999
         end = end > fileSize - 1 ? fileSize - 1 : end
         let chunksize = (end - start) + 1
-        let stream = fs.createReadStream(localPath,{start,end})
+        let stream = fs.createReadStream(localPath, { start, end })
         let head = {
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Accept-Ranges': 'bytes',
             'Content-Length': chunksize,
             'Content-Type': 'video/mp4'
         }
-        resp.writeHead(206,head)
+        resp.writeHead(206, head)
         stream.pipe(resp)
-    }else{
+    } else {
         let head = {
             'Content-Length': fileSize,
             'Content-Type': 'video/mp4'
         }
-        resp.writeHead(200,head)
+        resp.writeHead(200, head)
         fs.createReadStream(localPath).pipe(resp)
     }
     return;
@@ -316,31 +323,44 @@ const createCover = (filePath) => {
     })
 }
 
-const saveAs = async({partType,fileId}) => {
+const saveAs = async ({ partType, fileId }) => {
     let fileName = "";
-    if(partType == "avatar"){
+    if (partType == "avatar") {
         fileName = fileId + image_suffix;
-    }else if(partType == "chat"){
-      let messageInfo = await selectByMessageId(fileId);
-      fileName = messageInfo.fileName;
+    } else if (partType == "chat") {
+        let messageInfo = await selectByMessageId(fileId);
+        fileName = messageInfo.fileName;
     }
-    const localPath = await getLocalFilePath(partType,false,fileId);
+    const localPath = await getLocalFilePath(partType, false, fileId);
     let options = {
         title: "保存文件",
         defaultPath: fileName
     }
     let result = await dialog.showSaveDialog(options);
-    if(result.canceled || result.filePath == ""){
+    if (result.canceled || result.filePath == "") {
         return;
     }
     const filePath = result.filePath;
-    fs.copyFileSync(localPath,filePath);
+    fs.copyFileSync(localPath, filePath);
 }
 
+const saveClipBoardFile = async(file) => {
+    const fileSuffix = file.name.substring(file.name.lastIndexOf("."));
+    const filePath = await getLocalFilePath("tmp", false,"tmp"+fileSuffix);
+    let byteArray = file.byteArray;
+    const buffer = Buffer.from(byteArray);
+    fs.writeFileSync(filePath, buffer);
+    return{
+        size:byteArray.length,
+        name:file.name,
+        path:filePath
+    }
+}
 export {
     saveFile2Local,
     startLocalServer,
     closeLocalServer,
-    createCover, 
-    saveAs
+    createCover,
+    saveAs,
+    saveClipBoardFile
 }
