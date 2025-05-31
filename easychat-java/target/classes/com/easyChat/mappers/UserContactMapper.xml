@@ -30,19 +30,19 @@
             and c.user_id = #{query.userId}
         </if>
         <if test="query.contactId != null and query.contactId != ''">
-            and contact_id = #{query.contactId}
+            and c.contact_id = #{query.contactId}
         </if>
         <if test="query.contactType != null">
-            and contact_type = #{query.contactType}
+            and c.contact_type = #{query.contactType}
         </if>
         <if test="query.createTime != null">
-            and create_time = #{query.createTime}
+            and c.create_time = #{query.createTime}
         </if>
         <if test="query.status != null">
-            and status = #{query.status}
+            and c.status = #{query.status}
         </if>
         <if test="query.lastUpdateTime != null">
-            and last_update_time = #{query.lastUpdateTime}
+            and c.last_update_time = #{query.lastUpdateTime}
         </if>
     </sql>
 
@@ -113,7 +113,7 @@
     </select>
     <!--查询数量-->
     <select id="selectCount" resultType="java.lang.Integer">
-        SELECT count(1) FROM user_contact
+        SELECT count(1) FROM user_contact c
         <include refid="query_condition"/>
     </select>
 
@@ -246,7 +246,7 @@
     <select id="selectByUserIdAndContactId" resultMap="base_result_map">
         select
         <include refid="base_column_list"/>
-        from user_contact where user_id=#{userId} and contact_id=#{contactId}
+        from user_contact c where user_id=#{userId} and contact_id=#{contactId}
     </select>
 
     <!-- 根据UserIdAndContactId更新-->

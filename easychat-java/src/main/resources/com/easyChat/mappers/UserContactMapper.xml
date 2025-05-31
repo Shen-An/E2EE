@@ -113,7 +113,7 @@
     </select>
     <!--查询数量-->
     <select id="selectCount" resultType="java.lang.Integer">
-        SELECT count(1) FROM user_contact
+        SELECT count(1) FROM user_contact c
         <include refid="query_condition"/>
     </select>
 
@@ -246,7 +246,7 @@
     <select id="selectByUserIdAndContactId" resultMap="base_result_map">
         select
         <include refid="base_column_list"/>
-        from user_contact where user_id=#{userId} and contact_id=#{contactId}
+        from user_contact c where user_id=#{userId} and contact_id=#{contactId}
     </select>
 
     <!-- 根据UserIdAndContactId更新-->
