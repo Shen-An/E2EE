@@ -30,19 +30,19 @@
             and c.user_id = #{query.userId}
         </if>
         <if test="query.contactId != null and query.contactId != ''">
-            and contact_id = #{query.contactId}
+            and c.contact_id = #{query.contactId}
         </if>
         <if test="query.contactType != null">
-            and contact_type = #{query.contactType}
+            and c.contact_type = #{query.contactType}
         </if>
         <if test="query.createTime != null">
-            and create_time = #{query.createTime}
+            and c.create_time = #{query.createTime}
         </if>
         <if test="query.status != null">
-            and status = #{query.status}
+            and c.status = #{query.status}
         </if>
         <if test="query.lastUpdateTime != null">
-            and last_update_time = #{query.lastUpdateTime}
+            and c.last_update_time = #{query.lastUpdateTime}
         </if>
     </sql>
 
