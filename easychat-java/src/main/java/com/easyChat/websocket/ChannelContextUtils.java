@@ -221,7 +221,7 @@ public class ChannelContextUtils {
         }
         redisComponent.cleanUserTokenByUserId(userId);
         Channel channel = USER_CONTEXT_MAP.get(userId);
-        if (channel != null) {
+        if (channel == null) {
             return;
         }
         channel.close();
