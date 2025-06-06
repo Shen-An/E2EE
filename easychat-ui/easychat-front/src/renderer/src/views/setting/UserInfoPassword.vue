@@ -35,7 +35,9 @@ const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
+import { useUserInfoStore } from '@/stores/UserInfoStore'
 
+const userInfoStore = useUserInfoStore()
 const formData = ref({})
 const formDataRef = ref(null)
 
@@ -76,6 +78,7 @@ const saveUserInfo = () => {
         if (!resp) {
           return
         }
+        // console.log("5"+resp.data)
         proxy.Message.success('修改成功！请重新登录', () => {
           //TODO 重新登录
           window.icpRenderer.send('reLogin')
