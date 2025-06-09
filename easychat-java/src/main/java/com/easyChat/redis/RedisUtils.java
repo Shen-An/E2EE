@@ -201,5 +201,27 @@ public class RedisUtils {
     public void lpush(String key, Object value) {
         redisTemplate.opsForList().leftPush(key, value);
     }
+    /**
+     * 从列表中移除所有匹配的元素
+     * @param key   列表的键
+     * @param value 要移除的值
+     * @return 被移除的元素数量
+     */
+    public Long remove(String key, Object value) {
+        return redisTemplate.opsForList().remove(key, 0, value);
+    }
 
+    /**
+     * 从列表中移除指定数量的元素（扩展方法）
+     * @param key   列表的键
+     * @param count 移除数量：
+     *              count > 0 : 从表头向表尾搜索，移除与 value 相等的元素，最多移除 count 个
+     *              count < 0 : 从表尾向表头搜索，移除与 value 相等的元素，最多移除 count 绝对值个
+     *              count = 0 : 移除所有与 value 相等的值
+     * @param value 要移除的值
+     * @return 被移除的元素数量
+     */
+    public Long remove(String key, long count, Object value) {
+        return redisTemplate.opsForList().remove(key, count, value);
+    }
 }
