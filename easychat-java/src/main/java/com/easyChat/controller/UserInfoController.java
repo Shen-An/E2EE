@@ -11,6 +11,7 @@ import com.easyChat.service.UserInfoService;
 
 import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
+import com.easyChat.websocket.ChannelContextUtils;
 import org.apache.tomcat.util.bcel.Const;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,8 @@ public class UserInfoController extends ABaseController {
 
     @Resource
     private UserInfoService userInfoService;
+    @Resource
+    private ChannelContextUtils channelContextUtils;
 
     @RequestMapping("loadDataList")
     public ResponseVo loadDataList(UserInfoQuery query) {
@@ -164,7 +167,8 @@ public class UserInfoController extends ABaseController {
         UserInfo userInfo = new UserInfo();
         userInfo.setPassword(StringTools.encodeMd5(password));
         this.userInfoService.updateUserInfoByUserId(userInfo, tokenUserInfoDto.getUserId());
-        //TODO 强制退出，重新登陆
+        // 强制退出，重新登陆
+        channelContextUtils.closeContext(tokenUserInfoDto.getUserId());
         return getSuccessResponseVo(null);
     }
 
@@ -172,7 +176,8 @@ public class UserInfoController extends ABaseController {
     @RequestMapping("/logout")
     public ResponseVo logout(HttpServletRequest request) {
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-        //TODO 关闭WS连接 退出登录
+        //关闭WS连接 退出登录
+        channelContextUtils.closeContext(tokenUserInfoDto.getUserId());
         return getSuccessResponseVo(null);
     }
 }
