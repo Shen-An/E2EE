@@ -52,6 +52,9 @@ const createWs = () => {
                 break;
             case 2://文字
             case 5://图片视频
+            case 9://好友加入群组
+            case 11://好友退出群组
+            case 12://好友被踢出群组
                 //如果是自己发送的消息且是群聊，不处理
                 if (message.sendUserId == store.getUserId() && message.contactType == 1) {
                     break;
@@ -66,6 +69,11 @@ const createWs = () => {
                         sessionInfo.contactName = message.sendUserNickName;
                     }
                     sessionInfo.lastReceiveTime = message.sendTime;
+                }
+
+                //加入、退出、踢出群组消息，需要更新群组人数 
+                if(messageType == 9 || messageType == 11 || messageType == 12){
+                    sessionInfo.memberCount = message.memberCount;
                 }
                 await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
                 //写入本地消息
