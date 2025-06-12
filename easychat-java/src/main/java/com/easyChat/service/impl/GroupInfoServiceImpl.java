@@ -142,6 +142,17 @@ public class GroupInfoServiceImpl implements GroupInfoService {
     @Transactional(rollbackFor = Exception.class)
     public void saveGroup(GroupInfo groupInfo, MultipartFile avatarFile, MultipartFile avatarCove) throws IOException {
         Date curDate = new Date();
+        if(null == avatarFile){
+            return;
+        }
+        String baseFolder = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
+        File targetFile = new File(baseFolder + Constants.FILE_FOLDER_AVATAR_NAME);
+        if(!targetFile.exists()){
+            targetFile.mkdirs();
+        }
+        String filePath = targetFile.getPath()+"/"+groupInfo.getGroupId()+Constants.IMAGE_SUFFIX;
+        avatarFile.transferTo(new File(filePath));
+        avatarCove.transferTo(new File(filePath+Constants.COVER_IMAGE_SUFFIX));
         //新增群组
         if (StringTools.isEmpty(groupInfo.getGroupId())) {
             GroupInfoQuery groupInfoQuery = new GroupInfoQuery();
@@ -223,7 +234,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
             if(!dbInfo.getGroupName().equals(groupInfo.getGroupName())){
                 contactNameUpdate = groupInfo.getGroupName();
             }
-            if(contactNameUpdate != null){
+            if(contactNameUpdate == null){
                 return;
             }
 
@@ -231,19 +242,58 @@ public class GroupInfoServiceImpl implements GroupInfoService {
             chatSessionUserService.updateRedundanceInfo(contactNameUpdate,groupInfo.getGroupId());
 
         }
-        if(null == avatarFile){
-            return;
-        }
-        String baseFolder = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
-        File targetFile = new File(baseFolder + Constants.FILE_FOLDER_AVATAR_NAME);
-        if(!targetFile.exists()){
-            targetFile.mkdirs();
-        }
-        String filePath = targetFile.getPath()+"/"+groupInfo.getGroupId()+Constants.IMAGE_SUFFIX;
-        avatarFile.transferTo(new File(filePath));
-        avatarCove.transferTo(new File(filePath+Constants.COVER_IMAGE_SUFFIX));
+
 
     }
 
+    @Override
+    public void dissolutionGroup(String groupOwnerId, String groupId) {
+        GroupInfo dbInfo = this.groupInfoMapper.selectByGroupId(groupId);
+        if(dbInfo==null ||!dbInfo.getGroupOwnerId().equals(groupOwnerId)){
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        //删除群组
+        GroupInfo updateInfo = new GroupInfo();
+        updateInfo.setStatus(GroupStatusEnum.DISSOLUTION.getStatus());
+        this.groupInfoMapper.updateByGroupId(updateInfo,groupId);
 
+        //更新联系人处群组信息
+        UserContactQuery userContactQuery = new UserContactQuery();
+        userContactQuery.setContactId(groupId);
+        userContactQuery.setContactType(UserContactTypeEnum.GROUP.getType());
+
+        UserContact updateUserContact = new UserContact();
+        updateUserContact.setStatus(UserContactStatusEnum.DEL.getStatus());
+        this.userContactMapper.updateByParam(updateUserContact,userContactQuery);
+
+        //移除相关群员的联系人缓存
+        List<UserContact> userContactList = this.userContactMapper.selectList(userContactQuery);
+        for (UserContact userContact : userContactList) {
+            redisComponent.removeUserContact(userContact.getUserId(), userContact.getContactId());
+        }
+        // 发消息 1、更新会话信息 2、记录群消息 3、发送解散通知消息
+        String sessionId = StringTools.getChatSessionId4Group(groupId);
+        Date curDate = new Date();
+        String messageContent = MessageTypeEnum.DISSOLUTION_GROUP.getInitMessage();//解散群聊消息
+
+        //更新会话表
+        ChatSession chatSession = new ChatSession();
+        chatSession.setLastMessage(messageContent);
+        chatSession.setLastReceiveTime(curDate.getTime());
+        chatSessionMapper.updateBySessionId(chatSession,sessionId);
+
+        //更新消息表
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSessionId(sessionId);
+        chatMessage.setSendTime(curDate.getTime());
+        chatMessage.setContactType(UserContactTypeEnum.GROUP.getType());
+        chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+        chatMessage.setMessageType(MessageTypeEnum.DISSOLUTION_GROUP.getType());
+        chatMessage.setContactId(groupId);
+        chatMessage.setMessageContent(messageContent);
+        chatMessageMapper.insert(chatMessage);
+        MessageSendDto messageSendDto = CopyUtils.copy(chatMessage, MessageSendDto.class);
+        messageHandler.sendMessage(messageSendDto);
+
+    }
 }

@@ -64,4 +64,7 @@ public interface GroupInfoService {
 
 
     void saveGroup(GroupInfo groupInfo, MultipartFile avatarFile, MultipartFile avatarCove) throws IOException;
+
+
+    void dissolutionGroup(String groupOwnerId, String groupId);
 }
