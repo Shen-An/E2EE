@@ -63,7 +63,7 @@ const run = (sql, params) => {
 }
 
 const insert = (sqlPrefix, tableName, data) => {
-    // console.log(data)
+    console.log(data)
     const columnsMap = globalColumnsMap[tableName]
     // console.log(columnsMap)
     const dbColumns = []
@@ -77,7 +77,7 @@ const insert = (sqlPrefix, tableName, data) => {
     const preper = "?".repeat(dbColumns.length).split("").join(",")
     // console.log(preper)
     const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`
-    // console.log(sql)
+    console.log(sql)
     return run(sql, params)
 }
 
