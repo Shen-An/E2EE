@@ -36,11 +36,37 @@
       ></div>
       <div class="chat-panel" v-show="Object.keys(currentChatSession).length > 0">
         <div class="message-panel" id="message-panel">
+          <!-- 为消息项添加唯一 key，缺少 key 优化导致全量 DOM 更新，导致滚动闪了一下 -->
           <div
             class="message-item"
             v-for="(data, index) in messageList"
             :id="'message' + data.messageId"
+            :key="data.messageId"
           >
+            <!--展示时间 300000ms 5分钟-->
+            <template
+              v-if="
+                index > 1 &&
+                data.sendTime - messageList[index - 1].sendTime >= 300000 &&
+                (data.messageType == 2 || data.messageType == 5)
+              "
+            >
+              <ChatMessageTime :data="data"></ChatMessageTime>
+            </template>
+            <!--系统消息 具体messageType见后端MessageTypeEnum-->
+            <template
+              v-if="
+                data.messageType == 3 ||
+                data.messageType == 1 ||
+                data.messageType == 9 ||
+                data.messageType == 8 ||
+                data.messageType == 11 ||
+                data.messageType == 12
+              "
+            >
+              <ChatMessageSys :data="data"></ChatMessageSys>
+            </template>
+
             <template
               v-if="data.messageType == 1 || data.messageType == 2 || data.messageType == 5"
             >
@@ -62,12 +88,17 @@
       </div>
     </template>
   </Layout>
+  <ChatGroupDetail ref="chatGroupDetailRef"></ChatGroupDetail>
 </template>
 
 <script setup>
-import ChatMessage from './ChatMessage.vue'
+import ChatGroupDetail from './ChatGroupDetail.vue'
+import ChatMessageSys from './ChatMessageSys.vue'
+import ChatMessageTime from './ChatMessageTime.vue'
+
 import MessageSend from './MessageSend.vue'
 import ChatSession from './ChatSession.vue'
+import ChatMessage from './ChatMessage.vue'
 import { ref, reactive, getCurrentInstance, nextTick, onMounted, onUnmounted } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
@@ -122,9 +153,13 @@ const messageCountInfo = {
   maxMessageId: null, //最大消息ID,只取小于该ID的消息
   noData: false
 }
+//是否滚动到底部,距离
+let distanceBottom = 0
+
 //点击会话
 const messageList = ref([])
 const chatSessionClickHandler = (item) => {
+  distanceBottom = 0
   // debugger
   currentChatSession.value = Object.assign({}, item)
   //TODO 未读消息记录要清空
@@ -198,6 +233,9 @@ const onLoadChatMessage = () => {
     dataList.sort((a, b) => {
       return a.messageId - b.messageId
     })
+    //记录最后一条消息，用于分页加载
+    const lastMessage = messageList.value[0]
+
     messageList.value = dataList.concat(messageList.value)
     messageCountInfo.pageNo = pageNo
     messageCountInfo.pageTotal = pageTotal
@@ -206,6 +244,11 @@ const onLoadChatMessage = () => {
         dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
       //滚动条滚动到底部
       gotoBottom()
+    } else {
+      //分页滚动调整滚动条位置
+      nextTick(() => {
+        document.querySelector('#message' + lastMessage.messageId).scrollIntoView()
+      })
     }
     // console.log('loadChatMessageCallback:', messageList.value)
   })
@@ -302,6 +345,10 @@ const sendMessage4LocalHandler = (messageObj) => {
 //滚动到底部，解决发送消息后滚动条不自动滚动到底部
 const gotoBottom = () => {
   nextTick(() => {
+    //距离超过200不自动滚动到底部
+    if(distanceBottom > 200){
+      return
+    }
     const items = document.querySelectorAll('.message-item')
     if (items.length > 0) {
       setTimeout(() => {
@@ -328,7 +375,7 @@ const showMediaDetailHandler = (messageId) => {
     }
   })
   // 打印 showFileList
-  console.log('showFileList:', showFileList);
+  console.log('showFileList:', showFileList)
   window.ipcRenderer.send('newWindow', {
     windowId: 'media',
     title: '图片查看',
@@ -340,12 +387,30 @@ const showMediaDetailHandler = (messageId) => {
   })
 }
 
+//显示群组详情
+const chatGroupDetailRef = ref()
+const showGroupDetail = () => {
+  chatGroupDetailRef.value.show(currentChatSession.value.contactId)
+}
 onMounted(() => {
   onReceiveMessage()
   onLoadSessionData()
   loadChatSession()
   onLoadChatMessage()
   onAddLocalMessage()
+  nextTick(() => {
+    // const messagePanel = document.getElementById('message-panel')
+    const messagePanel = document.querySelector('#message-panel')
+    messagePanel.addEventListener('scroll', (e) => {
+      const scrollTop = e.target.scrollTop
+      //计算滚动条距离底部的距离
+      //e.target.scrollHeight为内容高度,e.target.clientHeight为滚动条头部距离顶部的高度,scrollTop为滚动条高度
+      distanceBottom = e.target.scrollHeight - e.target.clientHeight - scrollTop
+      if (scrollTop == 0 && messageList.value.length > 0) {
+        loadChatMessage()
+      }
+    })
+  })
 })
 onUnmounted(() => {
   window.ipcRenderer.removeAllListeners('receiveMessage')

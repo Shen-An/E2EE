@@ -47,9 +47,13 @@
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, computed } from 'vue'
 const { proxy } = getCurrentInstance()
-//TODO保存封面
-const saveCover = () => {
- 
+import {useAvatarInfoStore}from '@/stores/AvatarUpdateStore'
+const avatarInfoStore = useAvatarInfoStore()
+
+//保存封面
+const saveCover = ({ avatarFile, coverFile }) => {
+  formData.value.avatarFile = avatarFile
+  formData.value.avatarCover = coverFile
 }
 const formData = ref({})
 const formDataRef = ref()
@@ -59,6 +63,7 @@ const rules = {
   avatarFile: [{ required: true, message: '请上传群封面' }]
 }
 import { useContactStateStore } from '@/stores/ContactStateStore'
+
 const contactStateStore = useContactStateStore()
 
 const emit = defineEmits(['editBack'])
@@ -68,12 +73,10 @@ const show = (data) => {
   // 转换 joinType 为字符串类型
   formData.value = {
     ...data,
-    joinType: String(data.joinType), 
-    avatarFile: data.groupId
+    joinType: String(data.joinType),
+    avatarFile: data.groupId,
   }
 }
-
-
 
 const submit = async () => {
   formDataRef.value.validate(async (valid) => {
@@ -81,9 +84,12 @@ const submit = async () => {
       return
     }
     let params = {}
-    //TODO 重新加载头像
-    Object.assign(params, formData.value)
 
+    Object.assign(params, formData.value)
+    //重新加载头像
+    if(params.groupId){
+      avatarInfoStore.setForceReload(params.groupId,false)
+    }
     let resp = await proxy.Request({
       url: proxy.Api.saveGroup,
       params
@@ -100,13 +106,16 @@ const submit = async () => {
     formDataRef.value.resetFields()
 
     contactStateStore.setContactReload('MY')
-    //TODO 重新加载头像
+    //重新加载头像
+    if(params.groupId){
+      avatarInfoStore.setForceReload(params.groupId,true)
+    }
   })
 }
 
 defineExpose({
-  show,
-});
+  show
+})
 </script>
 <style lang="scss" scoped>
 </style>
