@@ -194,6 +194,22 @@ public class ChannelContextUtils {
         }
         channelGroup.writeAndFlush(new TextWebSocketFrame(JsonUtils.convertObjectToJson(messageSendDto)));
 
+        //移出群聊
+        MessageTypeEnum messageTypeEnum = MessageTypeEnum.getByType(messageSendDto.getMessageType());
+        if(MessageTypeEnum.LEAVE_GROUP == messageTypeEnum || MessageTypeEnum.REMOVE_GROUP == messageTypeEnum) {
+            String userId = (String) messageSendDto.getExtendData();
+            redisComponent.removeUserContact(userId, messageSendDto.getContactId());
+            Channel channel = USER_CONTEXT_MAP.get(userId);
+            if (channel == null) {
+                return;
+            }
+            channelGroup.remove(channel);
+        }
+        if(MessageTypeEnum.DISSOLUTION_GROUP == messageTypeEnum) {
+            GROUP_CONTEXT_MAP.remove(messageSendDto.getContactId());
+            channelGroup.close();
+        }
+
     }
 
     //发送消息

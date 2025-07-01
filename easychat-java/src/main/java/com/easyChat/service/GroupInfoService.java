@@ -1,8 +1,10 @@
 package com.easyChat.service;
 
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.vo.PaginationResultVo;
 import com.easyChat.entity.po.GroupInfo;
 import com.easyChat.entity.query.GroupInfoQuery;
+import com.easyChat.enums.MessageTypeEnum;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,4 +69,14 @@ public interface GroupInfoService {
 
 
     void dissolutionGroup(String groupOwnerId, String groupId);
+
+    void addOrRemoveGroupUser(TokenUserInfoDto tokenUserInfoDto,String groupId,String selectContacts,Integer opType);
+
+    /**
+     * messageTyoeEnum 用于区分离开群组类型，主动退群和被踢是不一样的
+     * @param userId 谁退出
+     * @param groupId
+     * @param messageTypeEnum
+     */
+    void leaveGroup(String userId, String groupId, MessageTypeEnum messageTypeEnum);
 }

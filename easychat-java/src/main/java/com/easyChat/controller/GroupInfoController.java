@@ -210,4 +210,15 @@ public class GroupInfoController extends ABaseController {
 		}
 		return groupInfo;
 	}
+
+	@RequestMapping("/addOrRemoveGroupUser")
+	@GlobalInterceptor()
+	public ResponseVo addOrRemoveGroupUser(HttpServletRequest request,
+									 @NotEmpty String groupId,
+			  					     @NotEmpty String selectContacts,
+									 @NotNull Integer opType) {
+		TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+		groupInfoService.addOrRemoveGroupUser(tokenUserInfoDto,groupId,selectContacts,opType);
+		return getSuccessResponseVo(null);
+	}
 }

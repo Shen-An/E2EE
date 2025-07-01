@@ -4,6 +4,7 @@ import com.easyChat.constants.Constants;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.MessageSendDto;
 import com.easyChat.entity.dto.SysSettingDto;
+import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.*;
 import com.easyChat.entity.query.*;
 import com.easyChat.enums.*;
@@ -13,11 +14,13 @@ import com.easyChat.mappers.*;
 import com.easyChat.redis.RedisComponent;
 import com.easyChat.service.ChatSessionUserService;
 import com.easyChat.service.GroupInfoService;
+import com.easyChat.service.UserContactService;
 import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.StringTools;
 import com.easyChat.websocket.ChannelContextUtils;
 import com.easyChat.websocket.MessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,6 +49,8 @@ public class GroupInfoServiceImpl implements GroupInfoService {
     private AppConfig appConfig;
     @Resource
     private ChatSessionMapper<ChatSession, ChatSessionQuery> chatSessionMapper;
+    @Resource
+    private UserContactService userContactService;
 
     @Resource
     private ChatSessionUserMapper<ChatSessionUser, ChatSessionUserQuery> chatSessionUserMapper;
@@ -57,7 +62,11 @@ public class GroupInfoServiceImpl implements GroupInfoService {
     private ChannelContextUtils channelContextUtils;
     @Resource
     private ChatSessionUserService chatSessionUserService;
-
+    @Resource
+    private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
+    @Resource
+    @Lazy //重要
+    private GroupInfoService groupInfoService;
     /**
      * 群组表根据条件查询列表
      */
@@ -142,17 +151,17 @@ public class GroupInfoServiceImpl implements GroupInfoService {
     @Transactional(rollbackFor = Exception.class)
     public void saveGroup(GroupInfo groupInfo, MultipartFile avatarFile, MultipartFile avatarCove) throws IOException {
         Date curDate = new Date();
-        if(null == avatarFile){
+        if (null == avatarFile) {
             return;
         }
         String baseFolder = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
         File targetFile = new File(baseFolder + Constants.FILE_FOLDER_AVATAR_NAME);
-        if(!targetFile.exists()){
+        if (!targetFile.exists()) {
             targetFile.mkdirs();
         }
-        String filePath = targetFile.getPath()+"/"+groupInfo.getGroupId()+Constants.IMAGE_SUFFIX;
+        String filePath = targetFile.getPath() + "/" + groupInfo.getGroupId() + Constants.IMAGE_SUFFIX;
         avatarFile.transferTo(new File(filePath));
-        avatarCove.transferTo(new File(filePath+Constants.COVER_IMAGE_SUFFIX));
+        avatarCove.transferTo(new File(filePath + Constants.COVER_IMAGE_SUFFIX));
         //新增群组
         if (StringTools.isEmpty(groupInfo.getGroupId())) {
             GroupInfoQuery groupInfoQuery = new GroupInfoQuery();
@@ -225,37 +234,38 @@ public class GroupInfoServiceImpl implements GroupInfoService {
             //修改
             GroupInfo dbInfo = this.groupInfoMapper.selectByGroupId(groupInfo.getGroupId());
             if (!dbInfo.getGroupOwnerId().equals(groupInfo.getGroupOwnerId())) {
-				throw new BusinessException(ResponseCodeEnum.CODE_600);
+                throw new BusinessException(ResponseCodeEnum.CODE_600);
             }
-            this.groupInfoMapper.updateByGroupId(groupInfo,groupInfo.getGroupId());
+            this.groupInfoMapper.updateByGroupId(groupInfo, groupInfo.getGroupId());
 
             //更新相关冗余表信息
-            String contactNameUpdate =null;
-            if(!dbInfo.getGroupName().equals(groupInfo.getGroupName())){
+            String contactNameUpdate = null;
+            if (!dbInfo.getGroupName().equals(groupInfo.getGroupName())) {
                 contactNameUpdate = groupInfo.getGroupName();
             }
-            if(contactNameUpdate == null){
+            if (contactNameUpdate == null) {
                 return;
             }
 
             //修改群昵称发送ws消息
-            chatSessionUserService.updateRedundanceInfo(contactNameUpdate,groupInfo.getGroupId());
+            chatSessionUserService.updateRedundanceInfo(contactNameUpdate, groupInfo.getGroupId());
 
         }
 
 
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void dissolutionGroup(String groupOwnerId, String groupId) {
         GroupInfo dbInfo = this.groupInfoMapper.selectByGroupId(groupId);
-        if(dbInfo==null ||!dbInfo.getGroupOwnerId().equals(groupOwnerId)){
+        if (dbInfo == null || !dbInfo.getGroupOwnerId().equals(groupOwnerId)) {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
         //删除群组
         GroupInfo updateInfo = new GroupInfo();
         updateInfo.setStatus(GroupStatusEnum.DISSOLUTION.getStatus());
-        this.groupInfoMapper.updateByGroupId(updateInfo,groupId);
+        this.groupInfoMapper.updateByGroupId(updateInfo, groupId);
 
         //更新联系人处群组信息
         UserContactQuery userContactQuery = new UserContactQuery();
@@ -264,7 +274,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
 
         UserContact updateUserContact = new UserContact();
         updateUserContact.setStatus(UserContactStatusEnum.DEL.getStatus());
-        this.userContactMapper.updateByParam(updateUserContact,userContactQuery);
+        this.userContactMapper.updateByParam(updateUserContact, userContactQuery);
 
         //移除相关群员的联系人缓存
         List<UserContact> userContactList = this.userContactMapper.selectList(userContactQuery);
@@ -280,7 +290,7 @@ public class GroupInfoServiceImpl implements GroupInfoService {
         ChatSession chatSession = new ChatSession();
         chatSession.setLastMessage(messageContent);
         chatSession.setLastReceiveTime(curDate.getTime());
-        chatSessionMapper.updateBySessionId(chatSession,sessionId);
+        chatSessionMapper.updateBySessionId(chatSession, sessionId);
 
         //更新消息表
         ChatMessage chatMessage = new ChatMessage();
@@ -295,5 +305,67 @@ public class GroupInfoServiceImpl implements GroupInfoService {
         MessageSendDto messageSendDto = CopyUtils.copy(chatMessage, MessageSendDto.class);
         messageHandler.sendMessage(messageSendDto);
 
+    }
+
+    @Override
+    public void addOrRemoveGroupUser(TokenUserInfoDto tokenUserInfoDto, String groupId, String ContactIds, Integer opType) {
+        GroupInfo groupInfo = this.groupInfoMapper.selectByGroupId(groupId);
+        if (groupInfo == null || !groupInfo.getGroupOwnerId().equals(tokenUserInfoDto.getUserId())) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String[] contactIdList = ContactIds.split(",");
+        for (String contactId : contactIdList) {
+            if (Constants.ZERO.equals(opType)) {
+                //不能leaveGroup()调用，这样事务会不生效
+                groupInfoService.leaveGroup(contactId,groupId,MessageTypeEnum.REMOVE_GROUP);//保证事务生效
+            } else {
+                userContactService.addContact(contactId, null, groupId, UserContactTypeEnum.GROUP.getType(), null);
+            }
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void leaveGroup(String userId, String groupId, MessageTypeEnum messageTypeEnum) {
+        GroupInfo groupInfo = this.groupInfoMapper.selectByGroupId(groupId);
+        if (groupInfo == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        //不允许群主退出群聊
+        if(userId.equals(groupInfo.getGroupOwnerId())){
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        Integer count = userContactMapper.deleteByUserIdAndContactId(userId, groupId);
+        if(count == 0){
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        UserInfo userInfo =  userInfoMapper.selectByUserId(userId);
+        String sessionId = StringTools.getChatSessionId4Group(groupId);
+        Date curDate = new Date();
+        String messageContent = String.format(messageTypeEnum.getInitMessage(),userInfo.getNickName());
+
+        ChatSession chatSession = new ChatSession();
+        chatSession.setLastMessage(messageContent);
+        chatSession.setLastReceiveTime(curDate.getTime());
+        chatSessionMapper.updateBySessionId(chatSession, sessionId);
+
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSessionId(sessionId);
+        chatMessage.setSendTime(curDate.getTime());
+        chatMessage.setContactType(UserContactTypeEnum.GROUP.getType());
+        chatMessage.setStatus(MessageStatusEnum.SENDED.getStatus());
+        chatMessage.setMessageType(messageTypeEnum.getType());
+        chatMessage.setContactId(groupId);
+        chatMessage.setMessageContent(messageContent);
+        chatMessageMapper.insert(chatMessage);
+
+        UserContactQuery userContactQuery = new UserContactQuery();
+        userContactQuery.setContactId(groupId);
+        userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+        Integer memberCount = userContactMapper.selectCount(userContactQuery);
+        MessageSendDto messageSendDto = CopyUtils.copy(chatMessage, MessageSendDto.class);
+        messageSendDto.setExtendData(userId);
+        messageSendDto.setMemberCount(memberCount);
+        messageHandler.sendMessage(messageSendDto);
     }
 }

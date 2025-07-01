@@ -55,4 +55,7 @@ public class Constants {
 
     //用于MB转成字节
     public static final Long FILE_SIZE_MB = 1024 * 1024L;
+
+    public static final Integer ZERO = 0;//移除
+    public static final Integer ONE = 1;//增加联系人
 }
