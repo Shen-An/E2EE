@@ -163,7 +163,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         if (UserContactTypeEnum.USER == contactTypeEnum) {
             sessionId = StringTools.getChatSessionId4User(new String[]{sendUserId, contactId});
         } else {
-            sendUserId = StringTools.getChatSessionId4Group(contactId);
+            sessionId = StringTools.getChatSessionId4Group(contactId);
         }
         chatMessage.setSessionId(sessionId);
         Long curTime = System.currentTimeMillis();
