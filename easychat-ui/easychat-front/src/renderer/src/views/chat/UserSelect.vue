@@ -95,7 +95,7 @@ const submitData = async () => {
   Object.assign(params, formData.value)
   params.selectContacts = params.selectContacts.join(',')
   let resp = await proxy.Request({
-    url: proxy.Api.addOrRemoveGroupMember,
+    url: proxy.Api.addOrRemoveGroupUser,
     params
   })
   if (!resp) {
