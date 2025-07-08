@@ -233,7 +233,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         redisComponent.addUserContactBatch(userInfo.getUserId(), contactIdList);
 
 
-        //TODO 查询群组 放入redis
+        //查询联系人（包括群组）  放入redis
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfoDto(userInfo);
 
         //判断心跳是否存在---》存在则已经登录，
