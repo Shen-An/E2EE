@@ -206,8 +206,11 @@ public class UserContactServiceImpl implements UserContactService {
         }
         userContactMapper.updateByUserIdAndContactId(oldFriend, contactId, userId);
 
-        //TODO 从我的好友列表缓存中删除好友
-        //TODO 从好友列表缓存删除我
+        //从我的好友列表缓存中删除好友
+        redisComponent.removeUserContact(userId,contactId);
+        //从好友列表缓存删除我
+
+        redisComponent.removeUserContact(contactId, userId);
     }
 
     @Override
