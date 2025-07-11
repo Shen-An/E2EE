@@ -8,12 +8,16 @@ import com.easyChat.entity.dto.MessageSendDto;
 import com.easyChat.entity.dto.SysSettingDto;
 import com.easyChat.entity.dto.TokenUserInfoDto;
 import com.easyChat.entity.po.ChatMessage;
+import com.easyChat.entity.po.UserContact;
+import com.easyChat.entity.query.UserContactQuery;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.enums.MessageTypeEnum;
 import com.easyChat.enums.ResponseCodeEnum;
+import com.easyChat.enums.UserContactStatusEnum;
 import com.easyChat.exception.BusinessException;
 import com.easyChat.service.ChatMessageService;
 import com.easyChat.service.ChatSessionUserService;
+import com.easyChat.service.UserContactService;
 import com.easyChat.utils.StringTools;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -33,6 +37,8 @@ import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/chat")
@@ -44,6 +50,8 @@ public class ChatController extends ABaseController {
     private ChatSessionUserService chatSessionUserService;
     @Resource
     private AppConfig appConfig;
+    @Resource
+    private UserContactService userContactService;
 
     @RequestMapping("/sendMessage")
     @GlobalInterceptor
@@ -54,8 +62,28 @@ public class ChatController extends ABaseController {
                                   Long fileSize,
                                   String fileName,
                                   Integer fileType) {
-//        System.out.println("66" + contactId);
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+//        //TODO测试 非好友是否能通过
+        UserContactQuery userContactQuery = new UserContactQuery();
+        userContactQuery.setContactId(contactId);
+        userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
+        List<UserContact> userContactList = userContactService.findListByParam(userContactQuery);
+        List userIdList = new ArrayList();
+        for (UserContact userContact : userContactList) {
+            userIdList.add(userContact.getUserId());
+        }
+        if (!userIdList.contains(tokenUserInfoDto.getUserId())) {
+            if(contactId.contains("G")){
+                //群
+                throw new BusinessException(ResponseCodeEnum.CODE_903);
+            }else if(contactId.contains("U")){
+                //用户
+                throw new BusinessException(ResponseCodeEnum.CODE_902);
+            }
+
+        }
+//        System.out.println("66" + contactId);
+
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setContactId(contactId);
         chatMessage.setMessageContent(messageContent);
@@ -78,7 +106,7 @@ public class ChatController extends ABaseController {
 
         if (!StringTools.isEmpty(fileSuffix)
                 && ArrayUtils.contains(Constants.IMAGE_SUFFIX_LIST, fileSuffix.toLowerCase())
-                && file.getSize() >(new SysSettingDto()).getMaxImageSize() * Constants.FILE_SIZE_MB) {
+                && file.getSize() > (new SysSettingDto()).getMaxImageSize() * Constants.FILE_SIZE_MB) {
             //是图片但是大小超出
 //            ResponseVo responseVo = new ResponseVo();
 //            responseVo.setStatus("error");
@@ -117,7 +145,7 @@ public class ChatController extends ABaseController {
                     response.setContentType("application/json;charset=utf-8");
                     response.getWriter().write(
                             JSON.toJSONString(
-                                    getBusinessErrorResponseVo(null,ResponseCodeEnum.CODE_602.getMsg())
+                                    getBusinessErrorResponseVo(null, ResponseCodeEnum.CODE_602.getMsg())
                             )
                     );
                     return; // 立即终止执行
