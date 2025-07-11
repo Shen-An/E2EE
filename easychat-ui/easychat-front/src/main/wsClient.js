@@ -52,6 +52,7 @@ const createWs = () => {
                 break;
             case 2://文字
             case 5://图片视频
+            case 8://解散群组
             case 9://好友加入群组
             case 11://好友退出群组
             case 12://好友被踢出群组
