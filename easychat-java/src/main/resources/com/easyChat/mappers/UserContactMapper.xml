@@ -277,7 +277,7 @@
         where user_id=#{userId} and contact_id=#{contactId}
     </update>
     <update id="updateByParam" parameterType="com.easyChat.entity.query.UserContactQuery">
-        UPDATE  user_contact
+        UPDATE  user_contact c
         <set>
             <if test="bean.userId != null">
                 user_id = #{bean.userId}
