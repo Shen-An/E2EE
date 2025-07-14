@@ -192,7 +192,7 @@ const sendMessageDo = async (
       fileType: messageObj.fileType
     },
     showError: false,
-    errorCallBack: (responseData) => {
+    errorCallback: (responseData) => {
       proxy.Confirm({
         message: responseData.info,
         okfun: () => {

@@ -88,7 +88,7 @@
       </div>
     </template>
   </Layout>
-  <ChatGroupDetail ref="chatGroupDetailRef"></ChatGroupDetail>
+  <ChatGroupDetail ref="chatGroupDetailRef" @delChatSessionCallback="delChatSession"></ChatGroupDetail>
 </template>
 
 <script setup>
@@ -105,6 +105,7 @@ import { useRouter, useRoute } from 'vue-router'
 import ContextMenu from '@imengyu/vue3-context-menu'
 
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -130,9 +131,11 @@ const sortChatSessionList = (dataList) => {
 
 //删除会话
 const delChatSessionList = (contactId) => {
-  chatSessionList.value = chatSessionList.value.filter((item) => {
+  setTimeout(()=>{
+    chatSessionList.value = chatSessionList.value.filter((item) => {
     return item.contactId != contactId
   })
+  },100)
 }
 
 const setTop = (data) => {
@@ -179,7 +182,7 @@ const setSessionSelect = ({ contactId, sessionId }) => {
     sessionId
   })
 }
-const loadChatMessage = () => {
+const loadChatMessage = () => {delChatSession
   if (messageCountInfo.noData) {
     return
   }
@@ -194,7 +197,8 @@ const loadChatMessage = () => {
 const delChatSession = (contactId) => {
   // 从当前列表中删除
   delChatSessionList(contactId)
-  //TODO 设置选中的会话
+  console.log('delChatSession:', contactId)
+  // 设置选中的会话
   currentChatSession.value = {}
   window.ipcRenderer.send('delChatSession', contactId)
 }

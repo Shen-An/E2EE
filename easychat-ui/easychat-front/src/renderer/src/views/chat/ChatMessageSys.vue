@@ -10,6 +10,7 @@ import ChatMessageTime from './ChatMessageTime.vue'
 import { ref, reactive, getCurrentInstance, nextTick, computed } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
+
 const router = useRouter()
 const route = useRoute()
 
@@ -25,6 +26,7 @@ const dataMessage = computed(()=>{
     if(data.messageType == 1){
         data.messageContent = '我们已经成功添加为好友，可以开始聊天啦~'
     }
+    return data
 })
 </script>
 

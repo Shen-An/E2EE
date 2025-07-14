@@ -62,7 +62,6 @@ const memberList = ref([])
 const groupInfo = ref({})
 
 const show = async (groupId) => {
-  
   let resp = await proxy.Request({
     url: proxy.Api.getGroupInfo4Chat,
     params: {
@@ -85,9 +84,10 @@ defineExpose({
   show
 })
 
-const drawerRef = ref(null)
+const drawerRef = ref()
 const closeDrawerHandler = () => {
-  drawerRef.value.close()
+  // drawerRef.value.close()
+  showDrawer.value = false
 }
 
 // 添加群成员
@@ -105,7 +105,7 @@ const addUser = async () => {
   const contactIds = memberList.value.map((item) => item['userId'])
 
   let contactList = resp.data
-  console.log(contactList)
+  // console.log(contactList)
   contactList.forEach((element) => {
     if (contactIds.includes(element.contactId)) {
       element.disabled = true
@@ -117,13 +117,14 @@ const addUser = async () => {
     opType: 1
   })
 
+  // console.log("groupInfo.value.groupId", groupInfo.value.groupId)
 }
 
 // 添加或移除群成员回调
-const removeUser =  () => {
+const removeUser = () => {
   let contactList = memberList.value.map((item) => item)
   contactList.forEach((item) => {
-    item.contactId == item.userId
+    item.contactId = item.userId
   })
   contactList.splice(0, 1)
   userSelectRef.value.show({
@@ -131,10 +132,53 @@ const removeUser =  () => {
     groupId: groupInfo.value.groupId,
     opType: 0
   })
+
+  // console.log("YICHUgroupInfo.value.groupId", groupInfo.value.groupId)
 }
 
 const addOrRemoveUserCallback = () => {
-  showDrawer.value = false 
+  showDrawer.value = false
+}
+const emit = defineEmits(['delChatSessionCallback'])
+const leaveGroup = () => {
+  proxy.Confirm({
+    message: `确定要退出群聊[${groupInfo.value.groupName}]吗？`,
+    okfun: async () => {
+      let resp = await proxy.Request({
+        url: proxy.Api.leaveGroup,
+        params: {
+          groupId: groupInfo.value.groupId
+        }
+      })
+      if (!resp) {
+        return
+      }
+      //window.ipcRenderer.send('delChatSession',groupInfo.value.groupId)
+      proxy.Message.success('退出成功')
+      // drawerRef.value.close()
+      showDrawer.value = false
+      emit('delChatSessionCallback', groupInfo.value.groupId)
+    }
+  })
+}
+
+const dissolutionGroup = () => {
+  proxy.Confirm({
+    message: `确定要解散群聊[${groupInfo.value.groupName}]吗？`,
+    okfun: async () => {
+      let resp = await proxy.Request({
+        url: proxy.Api.dissolutionGroup,
+        params: {
+          groupId: groupInfo.value.groupId
+        }
+      })
+      if (!resp) {
+        return
+      }
+      proxy.Message.success('解散成功')
+      showDrawer.value = false
+    }
+  })
 }
 </script>
 
