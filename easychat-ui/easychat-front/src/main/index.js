@@ -10,7 +10,10 @@ import {
   onAddLocalMessage,onSetSessionSelect, onCreateCover,
   openNewWindow,
   onSaveAs,
-  onSaveClipBoardFile
+  onSaveClipBoardFile,
+  onLoadContactApply,
+  onUpdateContactNoReadCount,
+  onReloadChatSession
 } from './ipc'
 import { saveWidnow } from './windowProxy'
 
@@ -167,6 +170,9 @@ function createWindow() {
   openNewWindow()
   onSaveAs()
   onSaveClipBoardFile()
+  onLoadContactApply()
+  onUpdateContactNoReadCount()
+  onReloadChatSession()
 
 }
 

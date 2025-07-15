@@ -39,6 +39,7 @@ const route = useRoute()
 
 const userInfo = ref({})
 const loadUserDetail = async (contactId) => {
+  // console.log('contactId', contactId)
   let resp = await proxy.Request({
     url: proxy.Api.getContactUserInfo,
     params: {
@@ -89,12 +90,20 @@ const delContact = async () => {
   })
 }
 
-
 const delContactData = () => {
-
   contactStateStore.setContactReload('REMOVE_USER')
-
 }
+const sendMessage = () => {
+  // console.log('userInfo', userInfo.value.userId)
+  router.push({
+    path: '/chat',
+    query: {
+      chatId: userInfo.value.userId,
+      timestamp: new Date().getTime()
+    }
+  })
+}
+
 watch(
   () => route.query.contactId,
   (newVal, oldVal) => {

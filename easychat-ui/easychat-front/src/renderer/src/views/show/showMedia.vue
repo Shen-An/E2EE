@@ -167,7 +167,8 @@ const getCurrentFile = () => {
   if (dPlayer.value) {
     dPlayer.value.pause()
   }
-  console.log(currentIndex.value)
+  // console.log(currentIndex.value)
+  // console.log(allFileList.value[0])
   const curFile = allFileList.value[currentIndex.value]
   const url = getUrl(curFile)
   fileList.value.splice(0, 1, {
@@ -178,7 +179,7 @@ const getCurrentFile = () => {
     status: 1
   })
 
-  console.log(url)
+  // console.log(url)
   if (curFile.fileType == 1) {
     dPlayer.value.switchVideo({
       url: url
@@ -210,14 +211,21 @@ onMounted(() => {
   window.addEventListener('wheel', onWheel)
 
   window.ipcRenderer.on('pageInitData', (e, data) => {
+    // console.log(data)
     localServerPort.value = data.localServerPort
     allFileList.value = data.fileList
     // 初始化 currentIndex,findIndex用于返回索引
-    currentIndex.value = allFileList.value.findIndex((item) => item.fileId === data.currentField)
+    // currentIndex.value = allFileList.value.findIndex((item) => item.fileId == data.currentField)
 
-    if (currentIndex.value === -1) {
-      currentIndex.value = 0
+    // if (currentIndex.value === -1) {
+    //   currentIndex.value = 0
+    // }
+    let index = 0
+    if(data.currentField){
+      index = data.fileList.findIndex((item) => item.fileId == data.currentField)
+      index = index == -1 ? 0 : index
     }
+    currentIndex.value = index
     getCurrentFile()
   })
 })

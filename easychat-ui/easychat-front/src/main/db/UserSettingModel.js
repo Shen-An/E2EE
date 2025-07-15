@@ -75,7 +75,14 @@ const addUserSetting=async(userId,email)=>{
     store.setUserData("localServerPort",resultServerPort);
     store.setUserData("localFileFolder",localFileFolder);
 }
+
+const selectSettingInfo = (userId) => {
+    let sql = "select * from user_setting where user_id = ? ";
+    console.log("sql",sql)
+    return queryOne(sql, [userId])
+}
 export {
     updateContactNoReadCount,
-    addUserSetting
+    addUserSetting,
+    selectSettingInfo
 }

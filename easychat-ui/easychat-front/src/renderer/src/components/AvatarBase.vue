@@ -1,5 +1,5 @@
 <template>
-    <!-- 头像 -->
+  <!-- 头像 -->
   <div
     class="user-avatar"
     @click="showImageHandler"
@@ -17,14 +17,28 @@
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 const { proxy } = getCurrentInstance()
-import {useAvatarInfoStore} from '@/stores/AvatarUpdateStore'
+import { useAvatarInfoStore } from '@/stores/AvatarUpdateStore'
 
 const avatarInfoStore = useAvatarInfoStore()
 const showImageHandler = () => {
   if (!props.showDetail) {
     return
   }
-  //TODO 显示图片详情
+  // 显示图片详情
+  window.ipcRenderer.send('newWindow', {
+    windowId: 'media',
+    title: '图片查看',
+    path: '/showMedia',
+    data: {
+      fileList: [{
+        fileId: props.userId,
+        fileType: 0,
+        partType: 'avatar',
+        status: 1,
+        forceGet: true
+      }]
+    }
+  })
 }
 const props = defineProps({
   userId: {

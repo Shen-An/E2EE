@@ -1,6 +1,7 @@
 <template>
   <div :class="['chat-session-item', currentSession ? 'active' : '', data.topType ? 'active' : '']">
     <div class="contact-tag" v-if="data.contactType == 1">群</div>
+    <Badge :count="data.noReadCount" :top="2" :left="42"></Badge>
     <AvatarBase :userId="data.contactId"></AvatarBase>
     <div class="user-info">
       <div class="user-name-panel">
@@ -14,7 +15,6 @@
 </template>
 
 <script setup>
-
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'

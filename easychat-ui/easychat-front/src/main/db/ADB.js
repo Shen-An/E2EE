@@ -63,7 +63,7 @@ const run = (sql, params) => {
 }
 
 const insert = (sqlPrefix, tableName, data) => {
-    console.log(data)
+    // console.log(data)
     const columnsMap = globalColumnsMap[tableName]
     // console.log(columnsMap)
     const dbColumns = []

@@ -4,9 +4,9 @@ const NODE_ENV = process.env.NODE_ENV;
 import store from './store'
 import {
     saveOrUpdateChatSessionBatch4Init, saveOrUpdate4Message,
-    selectUserSessionByContactId
+    selectUserSessionByContactId, updateGroupName
 } from './db/ChatSessionUserModel.js'
-import { saveMessage,saveMessageBatch, updateMessage } from './db/ChatMessageModel.js'
+import { saveMessage, saveMessageBatch, updateMessage } from './db/ChatMessageModel.js'
 import { updateContactNoReadCount } from './db/UserSettingModel.js'
 let ws = null;
 let maxReconnectTimes = null;
@@ -50,6 +50,21 @@ const createWs = () => {
                 //发送消息
                 sender.send("receiveMessage", { messageType: message.messageType });
                 break;
+            case 4: //好友申请
+                await updateContactNoReadCount({ userId: store.getUserId(), noReadCount: 1 });
+                sender.send("receiveMessage", { messageType: message.messageType });
+                break;
+            case 7://强制下线
+                sender.send("receiveMessage", message);
+                closeWs();
+                break;
+            case 10://修改群昵称
+                updateGroupName(message.contactId, message.extendData);
+                sender.send("receiveMessage", message);
+                break;
+            case 1://添加好友成功
+            case 3://创建群组成功
+            case 9://好友加入群组
             case 2://文字
             case 5://图片视频
             case 8://解散群组
@@ -73,7 +88,7 @@ const createWs = () => {
                 }
 
                 //加入、退出、踢出群组消息，需要更新群组人数 
-                if(messageType == 9 || messageType == 11 || messageType == 12){
+                if (messageType == 9 || messageType == 11 || messageType == 12) {
                     sessionInfo.memberCount = message.memberCount;
                 }
                 await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
@@ -86,7 +101,7 @@ const createWs = () => {
                 break;
             //文件上传完成，需要更新消息状态，如图片/视频 状态改为1，代表发送完成。
             case 6:
-                updateMessage({status:message.status},{messageId:message.messageId})
+                updateMessage({ status: message.status }, { messageId: message.messageId })
                 sender.send("receiveMessage", message);
                 break;
         }
@@ -131,6 +146,8 @@ const createWs = () => {
     }, 5000)
 }
 const closeWs = () => {
+    needReconnect = false;
+    ws.close();
 }
 
 export {

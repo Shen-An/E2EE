@@ -17,7 +17,9 @@
             v-if="item.position == 'top'"
             @click="changeMenu(item)"
           >
-            <template v-if="item.name == 'chat'"> </template>
+            <template v-if="item.name == 'chat' || item.name == 'contact'">
+              <Badge :count="messageCountStore.getCount(item.countKey)" :top="3" :left="15"></Badge
+            ></template>
           </div>
         </template>
       </div>
@@ -49,15 +51,17 @@
 <script setup>
 import { useGlobalInfoStore } from '../stores/GlobalInfoStore'
 const globalInfoStore = useGlobalInfoStore()
-import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, onMounted, watch } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
-import { useRouter } from 'vue-router'
+import { useSysSettingStore } from '@/stores/SysSettingStore'
+const sysSettingStore = useSysSettingStore()
+import { useMessageCountStore } from '@/stores/MessageCountStore'
+const messageCountStore = useMessageCountStore()
+import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
-import {useSysSettingStore} from '@/stores/SysSettingStore'
-const sysSettingStore = useSysSettingStore()    
-
+const route = useRoute()
 
 const getLoginInfo = async () => {
   let resp = await proxy.Request({
@@ -106,9 +110,28 @@ const getSysSetting = async () => {
   if (!resp) {
     return
   }
-//   console.log(resp.data)
+  //   console.log(resp.data)
   sysSettingStore.setSetting(resp.data)
 }
+
+const menuSelect =(path)=>{
+  currentMenu.value = menuList.value.find((item)=>{
+    return path.includes(item.path)
+  })
+}
+
+watch(
+  () => route.path,
+  (newVal, oldVal) => {
+    if (newVal) {
+      menuSelect(newVal)
+    }
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+)
 
 onMounted(() => {
   getSysSetting()

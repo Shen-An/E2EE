@@ -20,6 +20,7 @@
             >
               <div :class="['iconfont', sub.icon]" :style="{ background: sub.iconBgColor }"></div>
               <div class="text">{{ sub.name }}</div>
+              <Badge :count="messageCountStore.getCount(sub.countKey)" :top="3" :left="45"></Badge>
             </div>
             <template v-for="contact in item.contactData">
               <div
@@ -55,6 +56,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useContactStateStore } from '@/stores/ContactStateStore'
 const contactStateStore = useContactStateStore()
 
+import {useMessageCountStore} from '@/stores/MessageCountStore'
+const messageCountStore = useMessageCountStore()
 watch(
   () => contactStateStore.contactReload,
   (newVal, oldVal) => {
@@ -103,7 +106,11 @@ const partJump = (data) => {
   } else {
     rightTitle.value = ''
   }
-  //TODO 处理联系人好友申请 数量已读
+  //处理联系人好友申请 数量已读
+  if(data.countKey){
+    messageCountStore.setCount(data.countKey,0,true)
+    window.ipcRenderer.send('updateContactNoReadCount')
+  } 
   router.push(data.path)
 }
 
@@ -171,7 +178,7 @@ const partList = ref([
         iconBgColor: '#08bf61',
         path: '/contact/contactNotice',
         showTitle: true,
-        countKey: 'contactApplyCount'
+        countKey: 'contactApplyCount' //通过messageCountStore获取countKey对应的store值
       }
     ]
   },

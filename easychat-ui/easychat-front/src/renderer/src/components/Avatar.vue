@@ -53,18 +53,42 @@
         </div>
       </template>
     </el-popover>
+    <searchAdd ref="searchAddRef"></searchAdd>
   </div>
 </template>
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
-const { proxy } = getCurrentInstance()
+import { ref, reactive, getCurrentInstance, nextTick } from "vue"
+const { proxy } = getCurrentInstance();
+import { useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
 import { useUserInfoStore } from '@/stores/UserInfoStore'
-
+import searchAdd from '@/views/contact/SearchAdd.vue'
 const userInfoStore = useUserInfoStore()
-//TODO 发送消息
-const sendMessage = () => {}
+// 发送消息
+const popoverRef = ref(null)
+const emit = defineEmits(['closeDrawer'])
+const sendMessage = () => {
+  popoverRef.value.hide()
+  emit('closeDrawer')
+  console.log('userId', props.userId)
+  router.push({
+    path: '/chat',
+    query:{
+      chatId:props.userId,
+      timestamp: new Date().getTime()
+    }
+  })
+}
 //TODO 添加好友
-const addContact = () => {}
+const searchAddRef = ref(null)
+const addContact = () => {
+  popoverRef.value.hide()
+  searchAddRef.value.show({
+    contactId: props.userId,
+    contactType:'USER'
+  })
+}
 const userInfo = ref({})
 const getContactInfo = async () => {
   userInfo.value.userId = props.userId

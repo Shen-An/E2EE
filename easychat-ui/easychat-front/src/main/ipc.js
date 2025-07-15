@@ -5,10 +5,13 @@ import icon from '../../resources/icon.png?asset'
 const NODE_ENV = process.env.NODE_ENV
 import store from './store'
 import { initWs } from './wsClient'
-import { addUserSetting } from './db/UserSettingModel'
-import { selectUserSessionList, delChatSession, topChatSession, updateSessionInfo4Message, readAll } from './db/ChatSessionUserModel'
+import { addUserSetting, selectSettingInfo, updateContactNoReadCount } from './db/UserSettingModel'
+import {
+    selectUserSessionList, delChatSession, topChatSession,
+    updateSessionInfo4Message, readAll, updateStatus
+} from './db/ChatSessionUserModel'
 import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
-import { saveFile2Local, createCover,saveAs,saveClipBoardFile } from './file'
+import { saveFile2Local, createCover, saveAs, saveClipBoardFile } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
@@ -120,7 +123,7 @@ const onCreateCover = () => {
 
 const openNewWindow = () => {
     ipcMain.on("newWindow", async (e, config) => {
-     
+
         openWindow(config)
     })
 }
@@ -173,26 +176,55 @@ const openWindow = ({ windowId, title = "EasyChat", path, width = 720, height = 
         newWindow.on('closed', () => {
             delWindow(windowId)
         })
-    }else{
+    } else {
         newWindow.show()
         newWindow.setSkipTaskbar(false)
         newWindow.webContents.send('pageInitData', data)
     }
 }
 
-const onSaveAs=()=>{
-    ipcMain.on("saveAs",async (e,data)=>{
-       saveAs(data)
+const onSaveAs = () => {
+    ipcMain.on("saveAs", async (e, data) => {
+        saveAs(data)
     })
 }
 
-const onSaveClipBoardFile =()=>{
-    ipcMain.on("saveClipBoardFile",async (e,data)=>{
+const onSaveClipBoardFile = () => {
+    ipcMain.on("saveClipBoardFile", async (e, data) => {
         const result = await saveClipBoardFile(data)
-        e.sender.send("saveClipBoardFileCallback",result)
+        e.sender.send("saveClipBoardFileCallback", result)
     })
 }
 
+const onLoadContactApply = () => {
+    ipcMain.on('loadContactApply', async (e) => {
+        const userId = store.getUserId()
+        let resp = await selectSettingInfo(userId)
+        let contactNoRead = 0
+        if (resp != null) {
+            contactNoRead = resp.contactNoRead
+        }
+        console.log("contactNoRead", contactNoRead)
+
+        e.sender.send("loadContactApplyCallback", contactNoRead)
+    })
+}
+
+const onUpdateContactNoReadCount = () => {
+    ipcMain.on("updateContactNoReadCount", async (e) => {
+        updateContactNoReadCount({ userId: store.getUserId() })
+    })
+
+}
+
+const onReloadChatSession = () => {
+    ipcMain.on("reloadChatSession", async (e, { contactId }) => {
+        await updateStatus(contactId)
+        const chatSessionList = await selectUserSessionList()
+        console.log(contactId, chatSessionList)
+        e.sender.send("reloadChatSessionCallback", { contactId, chatSessionList })
+    })
+}
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -208,5 +240,8 @@ export {
     onCreateCover,
     openNewWindow,
     onSaveAs,
-    onSaveClipBoardFile
+    onSaveClipBoardFile,
+    onLoadContactApply,
+    onUpdateContactNoReadCount,
+    onReloadChatSession
 }
