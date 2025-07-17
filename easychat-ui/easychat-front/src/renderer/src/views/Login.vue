@@ -102,6 +102,8 @@ import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 import { md5 } from 'js-md5'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 import { useRouter } from 'vue-router'
+
+
 const router = useRouter()
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
@@ -208,20 +210,45 @@ const submit = async () => {
     })
     window.ipcRenderer.send('getLocalStore', 'devWsDomain')
   } else {
+       //注册成功后，创建edch keys，用于E2EE加密
+    let pk = await generateKeys()
+  
+    let resp = await proxy.Request({
+      url: proxy.Api.addPk,
+      params: {
+        email: formData.value.email,
+        ecdhPublicKey: pk
+      }
+    })
+    if (!resp) {
+      return
+    }
     // 注册
     proxy.Message.success('注册成功')
     changeOpType()
   }
 }
 
+const generateKeys = async () => {
+  window.ipcRenderer.send('genKeys', { email: formData.value.email })
+  const pk = await getPK() // 等待 Promise 完成
+  // console.log('pk:', pk) // 此时 pk 有值
+  return pk
+}
+
+const getPK = () => new Promise((resolve) => {
+  window.ipcRenderer.on('genKeysPkCallback', (e, data) => {
+    resolve(data.pk)
+  })
+});
 const init = () => {
-  window.ipcRenderer.send('setLocalStore', {key:'prodDomain',value:proxy.Api.prodDomain})
-  window.ipcRenderer.send('setLocalStore', {key:'devDomain',value:proxy.Api.devDomain})
-  window.ipcRenderer.send('setLocalStore', {key:'prodWsDomain',value:proxy.Api.prodWsDomain})
-  window.ipcRenderer.send('setLocalStore', {key:'devWsDomain',value:proxy.Api.devWsDomain})
+  window.ipcRenderer.send('setLocalStore', { key: 'prodDomain', value: proxy.Api.prodDomain })
+  window.ipcRenderer.send('setLocalStore', { key: 'devDomain', value: proxy.Api.devDomain })
+  window.ipcRenderer.send('setLocalStore', { key: 'prodWsDomain', value: proxy.Api.prodWsDomain })
+  window.ipcRenderer.send('setLocalStore', { key: 'devWsDomain', value: proxy.Api.devWsDomain })
 
   // window.ipcRenderer.on('getLocalStoreCallback', (e, data) => {
-    
+
   //   console.log('getLocalStoreCallback:', data)
   // })
 }

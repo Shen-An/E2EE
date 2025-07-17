@@ -8,6 +8,7 @@ import {
 } from './db/ChatSessionUserModel.js'
 import { saveMessage, saveMessageBatch, updateMessage } from './db/ChatMessageModel.js'
 import { updateContactNoReadCount } from './db/UserSettingModel.js'
+import { decryptMessage, deriveAESKey } from './AES.js';
 let ws = null;
 let maxReconnectTimes = null;
 let lockReconnect = false;
@@ -39,11 +40,12 @@ const createWs = () => {
         console.log("从服务器接收到信息", e.data);
         const message = JSON.parse(e.data);
         const messageType = message.messageType;
+        
         switch (messageType) {
             case 0://ws连接成功
                 //保存会话信息
                 await saveOrUpdateChatSessionBatch4Init(message.extendData.chatSessionList);
-                //保存消息
+                //保存未读消息
                 await saveMessageBatch(message.extendData.chatMessageList);
                 //更新联系人数量
                 await updateContactNoReadCount({ userId: store.getUserId(), noReadCount: message.extendData.applyCount });

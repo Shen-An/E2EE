@@ -13,6 +13,10 @@ import {
 import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
 import { saveFile2Local, createCover, saveAs, saveClipBoardFile } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
+
+import{generateAndSaveECDHKeyPair,saveSharedSecretToFile,generateSharedSecret} from './GenKeys'
+import{loadECDHFromPrivateKey} from './ReadShareKey'
+import { deriveAESKey } from './AES'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -225,6 +229,32 @@ const onReloadChatSession = () => {
         e.sender.send("reloadChatSessionCallback", { contactId, chatSessionList })
     })
 }
+
+const onGenKeys = () => {
+    ipcMain.on("genKeys",async(e,{email})=>{
+        const edch = await generateAndSaveECDHKeyPair(email)
+        const email_pk= edch.getPublicKey('hex')
+        e.sender.send("genKeysPkCallback",{pk:email_pk})
+    })
+}
+
+const onLoadShareKey =()=>{
+    ipcMain.on("loadShareKey",async(e,{pk:pk,email1:email1,email2:email2})=>{
+        //通信方的pk
+        const edch = await loadECDHFromPrivateKey(email1)
+        const sharedSecret = await generateSharedSecret(edch,pk)
+        saveSharedSecretToFile(sharedSecret,email1,email2)
+        e.sender.send("loadShareKeyCallback",{sharedSecret:sharedSecret})
+    })
+}
+
+const onLoadAESKey =()=>{
+    ipcMain.on("loadAESKey",async(e,email1,email2)=>{
+        const AESKey = await deriveAESKey(email1,email2)
+        e.sender.send("loadAESKeyCallback",{AESKey:AESKey})
+    })
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -243,5 +273,8 @@ export {
     onSaveClipBoardFile,
     onLoadContactApply,
     onUpdateContactNoReadCount,
-    onReloadChatSession
+    onReloadChatSession,
+    onGenKeys,
+    onLoadShareKey,
+    onLoadAESKey
 }

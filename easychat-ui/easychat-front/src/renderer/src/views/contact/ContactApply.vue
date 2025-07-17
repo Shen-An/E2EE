@@ -49,7 +49,8 @@ import { useContactStateStore } from '@/stores/ContactStateStore'
 const contactStateStore = useContactStateStore()
 const router = useRouter()
 const route = useRoute()
-
+import { useUserInfoStore } from '@/stores/UserInfoStore'
+const userInfoStore = useUserInfoStore()
 let pageNo = 0
 let pageTotal = 1
 const applyList = ref([])
@@ -74,7 +75,7 @@ const loadApply = async () => {
 }
 loadApply()
 
-const dealWithApply = (applyId, contactType, status) => {
+const dealWithApply = async (applyId, contactType, status) => {
   contactStateStore.setContactReload(null)
   proxy.Confirm({
     message: '确定执行该操作吗？',
@@ -94,12 +95,50 @@ const dealWithApply = (applyId, contactType, status) => {
       loadApply()
       if (status == 1 && contactType == 0) {
         contactStateStore.setContactReload('USER')
-      }else if(status == 1 && contactType == 1){
+      } else if (status == 1 && contactType == 1) {
         contactStateStore.setContactReload('GROUP')
       }
     }
   })
+
+  //如果同意了，则计算共享密钥，已知对方的pk，自己的sk，计算共享密钥
+  if (status == 1) {
+    let resp1 = await proxy.Request({
+      url: proxy.Api.loadPkDataList,
+      params: {
+        //找对方的email
+        email: applyList.value.find((item) => item.applyId == applyId).email
+      }
+    })
+
+    // console.log('email:', userInfoStore.getInfo().email)
+    // console.log('pk:', resp1.data.list[0].ecdhPublicKey)
+    let pk = resp1.data.list[0].ecdhPublicKey
+    let shareKey = await sendGetShareKey(
+      pk,
+      userInfoStore.getInfo().email,
+      applyList.value.find((item) => item.applyId == applyId).email
+    )
+    //这里共享密钥只是发送请求，让主进程node环境保存共享密钥到本地，并不会其他地方使用，
+    //共享密钥用于主进程node生成AES密钥，用于加密通信
+    //在加好友与同意好友这两个情况，双方在本地生成共享密钥，无需发送
+  }
 }
+//发送获取ShareKeySk的请求
+const sendGetShareKey = async (pk, email1, email2) => {
+  //1是自己的，2是对方的
+  window.ipcRenderer.send('loadShareKey', { pk: pk, email2: email2, email1: email1 })
+  const sk = await getShareKey()
+  return sk
+}
+
+//获取ShareKeySk
+const getShareKey = () =>
+  new Promise((resolve) => {
+    window.ipcRenderer.on('loadShareKeyCallback', (e, data) => {
+      resolve(data.sharedSecret)
+    })
+  })
 //监听新朋友数量改变
 </script>
 

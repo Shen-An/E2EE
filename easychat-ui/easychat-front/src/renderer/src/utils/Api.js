@@ -28,6 +28,7 @@ const api = {
     getUserInfo: "/userInfo/getUserInfo",//获取用户信息
     updatePassword: "/userInfo/updatePassword",//修改密码
     logout: "/userInfo/logout",//退出登录
+    loadDataList:"/userInfo/loadDataList",//获取用户列表
     sendMessage: "/chat/sendMessage",//发送消息
     uploadFile: "/chat/uploadFile",//上传文件
     loadAminAccount: "/admin/loadUser",//从后台获取用户列表
@@ -45,5 +46,7 @@ const api = {
     saveBeautyAccount: "/admin/saveBeautyAccount",//保存靓号
     delBeautyAccount: "/admin/delBeautyAccount",//删除靓号
     checkVersion: "/update/checkVersion",//检查版本
+    loadPkDataList:'/ecdhPks/loadPkDataList',//获取ecdh公钥列表
+    addPk:'/ecdhPks/addPk',//添加ecdh公钥
 }
 export default api

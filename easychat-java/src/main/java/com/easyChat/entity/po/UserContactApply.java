@@ -22,6 +22,11 @@ public class UserContactApply implements Serializable {
 	 */
 	private String applyUserId;
 
+
+	/**
+	 * 申请人email
+	 */
+	private String email;
 	/**
 	 * 接收人ID
 	 */
@@ -59,6 +64,14 @@ public class UserContactApply implements Serializable {
 	 * 联系人名字
 	 */
 	private String contactName;
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
 	public String getContactName() {
 		return contactName;

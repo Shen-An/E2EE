@@ -108,9 +108,10 @@ import { useRouter, useRoute } from 'vue-router'
 import ContextMenu from '@imengyu/vue3-context-menu'
 
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
-
+import { useUserInfoStore } from '@/stores/UserInfoStore'
+const userInfoStore = useUserInfoStore()
 import { useMessageCountStore } from '@/stores/MessageCountStore'
-
+import { decryptMessage, ArrayToWordArray2Hex } from '@/utils/AES'
 const messageCountStore = useMessageCountStore()
 
 const router = useRouter()
@@ -244,9 +245,26 @@ const onLoadChatMessage = () => {
     if (pageNo == pageTotal) {
       messageCountInfo.noData = true
     }
+
+    //此处对message解密,bug处
+    dataList.forEach(async (item) => {
+      let resp = await proxy.Request({
+        url: proxy.Api.loadDataList,
+        params: {
+          userId: item.sendUserId
+        }
+      })
+      console.log("item.messageContent:",item.messageContent)
+      const [iv, encrypted] = item.messageContent.split(':')
+      const keyHex = await loadAESKey(resp.data.list[0].email)
+      console.log('resp.data.list[0].email:', resp.data.list[0].email)
+      console.log('email:', userInfoStore.getInfo().email)
+      item.messageContent = await decryptMessage(encrypted, ArrayToWordArray2Hex(keyHex), iv)
+    })
     dataList.sort((a, b) => {
       return a.messageId - b.messageId
     })
+    console.log('loadChatMessageCallback:', dataList)
     //记录最后一条消息，用于分页加载
     const lastMessage = messageList.value[0]
 
@@ -281,9 +299,24 @@ const onLoadSessionData = () => {
   })
 }
 const onReceiveMessage = () => {
-  window.ipcRenderer.on('receiveMessage', (e, message) => {
-    // console.log('receiveMessage:', message)
-
+  window.ipcRenderer.on('receiveMessage', async (e, message) => {
+    console.log('receiveMessage:', message)
+    //找对方用户信息
+    let resp1 = await proxy.Request({
+      url: proxy.Api.loadDataList,
+      params: {
+        userId: message.contactId //这里面的contactId是receiverId，即对方的
+      }
+    })
+    console.log('resp1:', resp1)
+    const [iv, encrypted] = message.messageContent.split(':')
+    const AESKey = await loadAESKey(resp1.data.list[0].email)
+    const keyHex = ArrayToWordArray2Hex(AESKey)
+    message.messageContent = decryptMessage(encrypted, keyHex, iv)
+    message.lastMessage = decryptMessage(encrypted, keyHex, iv)
+    message.extendData.lastMessage = decryptMessage(encrypted, keyHex, iv)
+    console.log('message:', message)
+    window.ipcRenderer.send('addLocalMessage', message) //添加消息到本地
     // console.log('message.messageType:', message.messageType)
     //查询好友申请信息
     if (message.messageType == 4) {
@@ -431,20 +464,20 @@ const onLoadContactApply = () => {
   })
 }
 
-const sendMessage=(contactId)=>{
+const sendMessage = (contactId) => {
   let curSession = chatSessionList.value.find((item) => {
     return item.contactId == contactId
   })
-  if(!curSession){
+  if (!curSession) {
     //会话记录被删除，重新加载会话
-    window.ipcRenderer.send('reloadChatSession',{contactId})
+    window.ipcRenderer.send('reloadChatSession', { contactId })
     return
-  }else{
+  } else {
     chatSessionClickHandler(curSession)
   }
 }
-const onReloadChatSession =()=>{
-  window.ipcRenderer.on("reloadChatSessionCallback",(e,{contactId,chatSessionList})=>{
+const onReloadChatSession = () => {
+  window.ipcRenderer.on('reloadChatSessionCallback', (e, { contactId, chatSessionList }) => {
     // console.log('reloadChatSessionCallback:',contactId,chatSessionList)
     sortChatSessionList(chatSessionList)
     chatSessionList.value = chatSessionList
@@ -461,6 +494,15 @@ watch(
   },
   { immediate: true, deep: true }
 )
+
+const loadAESKey = (email) => {
+  return new Promise((resolve, reject) => {
+    window.ipcRenderer.on('loadAESKeyCallback', (e, data) => {
+      resolve(data.AESKey)
+    })
+    window.ipcRenderer.send('loadAESKey', email, userInfoStore.getInfo().email) //发送是自己他人的email，收到就要反过来
+  })
+}
 onMounted(() => {
   onReceiveMessage()
   onLoadSessionData()
@@ -468,7 +510,6 @@ onMounted(() => {
   onLoadChatMessage()
   onAddLocalMessage()
   onLoadContactApply()
-
   onReloadChatSession()
   nextTick(() => {
     // const messagePanel = document.getElementById('message-panel')

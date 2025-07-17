@@ -75,6 +75,7 @@
     "@vitejs/plugin-vue": "^4.3.1",
     "@vue/eslint-config-prettier": "^8.0.0",
     "asarmor": "^2.0.0",
+    "crypto-js": "^4.2.0",
     "electron": "^25.6.0",
     "electron-builder": "^24.6.3",
     "electron-vite": "^1.0.27",

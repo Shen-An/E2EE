@@ -60,21 +60,62 @@ const submitApply = async () => {
       contactType
     }
   })
-    if (!resp) {
-        return
-    }
-    if (resp.data == 0) {
-        proxy.Message.success('添加成功')
-    } else {
-        proxy.Message.success('申请成功，等待对方同意')
-    }
-    dialogConfig.value.show = false
-    emit('reLoad')
+  if (!resp) {
+    return
+  }
+  if (resp.data == 0) {
+    proxy.Message.success('添加成功')
+  } else {
+    proxy.Message.success('申请成功，等待对方同意')
+  }
+  dialogConfig.value.show = false
+  emit('reLoad')
 
-    if(resp.data==0){
-        contactStateStore.setContactReload(contactType)
+  if (resp.data == 0) {
+    contactStateStore.setContactReload(contactType)
+  }
+  //计算通信共享密钥
+
+  //找对方用户信息
+  let resp1 = await proxy.Request({
+    url: proxy.Api.loadDataList,
+    params: {
+      userId: contactId //这里面的contactId是receiverId，即对方的
     }
+  })
+  //得到对方的pk
+  let resp2 = await proxy.Request({
+    url: proxy.Api.loadPkDataList,
+    params: {
+      //对方的email
+      email: resp1.data.list[0].email
+    }
+  })
+  // console.log('pk:', resp2.data.list[0].ecdhPublicKey)
+  let pk = resp2.data.list[0].ecdhPublicKey
+  console.log(userInfoStore.getInfo())
+  let shareKey = await sendGetShareKey(pk, userInfoStore.getInfo().email,resp1.data.list[0].email)//自己的email
+  // console.log('shareKey:', shareKey)
+  //这里共享密钥只是发送请求，让主进程node环境保存共享密钥到本地，并不会其他地方使用，
+  //共享密钥用于主进程node生成AES密钥，用于加密通信  
 }
+
+//发送获取ShareKeySk的请求
+const sendGetShareKey = async (pk, email1,email2) => {
+  //1是自己的email，2是对方的email
+  window.ipcRenderer.send('loadShareKey', { pk: pk, email1: email1, email2: email2 })
+  const sk = await getShareKey()
+  return sk
+}
+
+//获取ShareKeySk
+const getShareKey = () =>
+  new Promise((resolve) => {
+    window.ipcRenderer.on('loadShareKeyCallback', (e, data) => {
+      resolve(data.sharedSecret)
+    })
+  })
+
 const show = (data) => {
   dialogConfig.value.show = true
   nextTick(() => {

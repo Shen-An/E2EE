@@ -87,7 +87,7 @@
 
     <!--查询列表-->
     <select id="selectList" resultMap="base_result_map">
-        SELECT a.*
+        SELECT a.*,u.email email
         <if test="query.queryContactInfo">
             ,case
             when a.contact_type = 0 then u.nick_name

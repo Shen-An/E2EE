@@ -92,6 +92,9 @@ import { useUserInfoStore } from '@/stores/UserInfoStore'
 const userInfoStore = useUserInfoStore()
 import { getFileType } from '@/utils/Constants.js'
 import { useSysSettingStore } from '@/stores/SysSettingStore'
+import { useAESKeyStore } from '@/stores/AESKeyStore'
+const AESKeyStore = useAESKeyStore()
+import { ArrayToWordArray2Hex, encryptMessage, decryptMessage } from '@/utils/AES'
 const sysSettingStore = useSysSettingStore()
 
 const props = defineProps({
@@ -128,13 +131,36 @@ const hidePopover = () => {
   showSendMsgPopover.value = false
 }
 
+const AESKey = ref('')
 const msgContent = ref('')
-const sendMessage = (e) => {
+const sendMessage = async (e) => {
   if (e.shiftKey && e.keyCode === 13) {
     return
   }
   e.preventDefault()
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
+  //消息加密
+
+  //找对方用户信息
+  let resp1 = await proxy.Request({
+    url: proxy.Api.loadDataList,
+    params: {
+      userId: props.currentChatSession.contactId //这里面的contactId是receiverId，即对方的
+    }
+  })
+
+  AESKey.value = await loadAESKey(resp1.data.list[0].email)
+
+  const keyArray = AESKey.value
+  const keyHex = ArrayToWordArray2Hex(keyArray)
+
+  AESKeyStore.setAESKey(userInfoStore.getInfo().email, keyHex)
+  // console.log('AESKeyStore hex:', AESKeyStore.getAESKey(userInfoStore.getInfo().email))
+  let result = encryptMessage(messageContent, keyHex)
+  let { iv } = result
+
+  let { encrypted } = result
+
   // debugger
   if (messageContent == '') {
     showSendMsgPopover.value = true
@@ -142,7 +168,7 @@ const sendMessage = (e) => {
   }
   sendMessageDo(
     {
-      messageContent,
+      messageContent: `${iv}:${encrypted}`,
       messageType: 2
     },
     true
@@ -210,7 +236,20 @@ const sendMessageDo = async (
     msgContent.value = ''
   }
   Object.assign(messageObj, resp.data)
+  //解密,保存本地为明文
 
+  // const [iv, encrypted] = messageObj.messageContent.split(':')
+  // // console.log(AESKeyStore.getAESKey(userInfoStore.getInfo().email))
+  // messageObj.messageContent = decryptMessage(
+  //   encrypted,
+  //   AESKeyStore.getAESKey(userInfoStore.getInfo().email),
+  //   iv
+  // )
+  // messageObj.lastMessage = decryptMessage(
+  //   encrypted,
+  //   AESKeyStore.getAESKey(userInfoStore.getInfo().email),
+  //   iv
+  // )
   //更新列表
   emit('sendMessage4Local', messageObj)
   //保存消息到本地
@@ -259,8 +298,8 @@ const addContact = (contactId, code) => {
 const checkFileSize = (fileType, fileSize, fileName) => {
   const SIZE_MB = 1024 * 1024
   const settingArray = Object.values(sysSettingStore.getSetting())
-  console.log(settingArray)
-  console.log(fileType)
+  // console.log(settingArray)
+  // console.log(fileType)
   const fileSizeNumber = settingArray[fileType]
   if (fileSize > fileSizeNumber * SIZE_MB) {
     proxy.Confirm({
@@ -309,7 +348,7 @@ const dropHandler = (event) => {
 //复制、截图粘贴
 const pasteFile = async (event) => {
   let items = event.clipboardData && event.clipboardData.items
-  console.log(items)
+  // console.log(items)
   const fileData = {}
 
   for (const item of items) {
@@ -352,6 +391,15 @@ onMounted(() => {
     )
   })
 })
+//参数为email，他人的email
+const loadAESKey = (email) => {
+  return new Promise((resolve, reject) => {
+    window.ipcRenderer.on('loadAESKeyCallback', (e, data) => {
+      resolve(data.AESKey)
+    })
+    window.ipcRenderer.send('loadAESKey', userInfoStore.getInfo().email,email)//发送是自己他人的email，收到就要反过来
+  })
+}
 
 onUnmounted(() => {
   window.ipcRenderer.removeAllListeners('saveClipBoardFileCallback')

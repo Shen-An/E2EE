@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyChat.mappers.EcdhPksMapper">
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.easyChat.entity.po.EcdhPks">
+		<!-- 邮箱-->
+		<id column="email" property="email"/>
+		<!-- 对应的公钥-->
+		<result column="ecdh_publicKey" property="ecdhPublicKey"/>
+	</resultMap>
+
+	<!--通用查询列-->
+	<sql id="base_column_list">
+		email,ecdh_publicKey
+	</sql>
+
+	<!--基础查询条件-->
+	<sql id="base_query_condition">
+		<if test="query.email != null and query.email != ''">
+			and email = #{query.email}
+		</if>
+		<if test="query.ecdhPublicKey != null and query.ecdhPublicKey != ''">
+			and ecdh_publicKey = #{query.ecdhPublicKey}
+		</if>
+	</sql>
+
+	<!--扩展的查询条件-->
+	<sql id="base_query_condition_extend">
+		<if test="query.emailFuzzy != null and query.emailFuzzy !=''">
+			and email like concat('%', #{query.emailFuzzy}, '%')
+		</if>
+		<if test="query.ecdhPublicKeyFuzzy != null and query.ecdhPublicKeyFuzzy !=''">
+			and ecdh_publicKey like concat('%', #{query.ecdhPublicKeyFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!--扩展的查询条件-->
+	<sql id="query_condition">
+		<where>
+			<include refid = "base_query_condition"/>
+			<include refid = "base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!--查询列表-->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid = "base_column_list"/> FROM ecdh_pks <include refid="query_condition"/>
+		<if test="query.orderBy!=null"> order by ${query.orderBy} </if>
+		<if test="query.simplePage!=null">limit #{query.simplePage.start},#{query.simplePage.end} </if>
+	</select>
+	<!--查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT count(1) FROM ecdh_pks <include refid="query_condition"/>
+	</select>
+
+	<!--插入 (匹配有值都字段)-->
+	<insert id="insert" parameterType="com.easyChat.entity.po.EcdhPks">
+
+		INSERT INTO ecdh_pks
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.email != null">
+				email,
+			</if>
+			<if test="bean.ecdhPublicKey != null">
+				ecdh_publicKey,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.email != null">
+				#{bean.email},
+			</if>
+			<if test="bean.ecdhPublicKey != null">
+				#{bean.ecdhPublicKey},
+			</if>
+		</trim>
+	</insert>
+
+	<!--插入或者更新 (匹配有值都字段)-->
+	<insert id="insertOrUpdate" parameterType="com.easyChat.entity.po.EcdhPks">
+		INSERT INTO ecdh_pks
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.email != null">
+				email,
+			</if>
+			<if test="bean.ecdhPublicKey != null">
+				ecdh_publicKey,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.email != null">
+				#{bean.email},
+			</if>
+			<if test="bean.ecdhPublicKey != null">
+				#{bean.ecdhPublicKey},
+			</if>
+		</trim>
+		on DUPLICATE key update
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.ecdhPublicKey != null">
+				ecdh_publicKey =VALUES(ecdh_publicKey),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加 (批量插入)-->
+	<insert id="insertBatch" parameterType="com.easyChat.entity.po.EcdhPks">
+		INSERT INTO ecdh_pks(email,ecdh_publicKey)values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.email},#{item.ecdhPublicKey})
+		</foreach>
+	</insert>
+
+	<!-- 批量插入或更新 (批量插入)-->
+	<insert id="insertOrUpdateBatch" parameterType="com.easyChat.entity.po.EcdhPks">
+		INSERT INTO ecdh_pks(email,ecdh_publicKey)values
+		<foreach collection="list" item="item" separator="," >
+			(#{item.email},#{item.ecdhPublicKey})
+		</foreach>
+		on DUPLICATE KEY update email =VALUES(email),ecdh_publicKey =VALUES(ecdh_publicKey)
+	</insert>
+
+	<!-- 根据Email查询-->
+	<select id="selectByEmail" resultMap="base_result_map">
+		select <include refid="base_column_list"/> from ecdh_pks where email=#{email}
+	</select>
+
+	<!-- 根据Email更新-->
+	<update id="updateByEmail" parameterType="com.easyChat.entity.po.EcdhPks">
+		update ecdh_pks
+		<set>
+			<if test="bean.email!=null">
+				email=#{bean.email},
+			</if>
+			<if test="bean.ecdhPublicKey!=null">
+				ecdh_publicKey=#{bean.ecdhPublicKey},
+			</if>
+		</set>
+		where email=#{email}
+		</update>
+
+	<!-- 根据Email删除-->
+	<delete id="deleteByEmail">
+		delete from ecdh_pks where email=#{email}
+	</delete>
+
+</mapper>

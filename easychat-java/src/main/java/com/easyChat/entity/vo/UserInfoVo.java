@@ -19,7 +19,10 @@ public class UserInfoVo implements Serializable {
      * 微信号,用户ID
      */
     private String userId;
-
+    /**
+     * 邮箱
+     */
+    private String email;
     /**
      * 昵称
      */
@@ -58,6 +61,14 @@ public class UserInfoVo implements Serializable {
     private Boolean admin;
 
     private Integer contactStatus;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public String getUserId() {
         return userId;

@@ -13,7 +13,11 @@ import {
   onSaveClipBoardFile,
   onLoadContactApply,
   onUpdateContactNoReadCount,
-  onReloadChatSession
+  onReloadChatSession,
+  onGenKeys,
+  onLoadShareKey,
+  onLoadAESKey,
+
 } from './ipc'
 import { saveWidnow } from './windowProxy'
 
@@ -173,7 +177,9 @@ function createWindow() {
   onLoadContactApply()
   onUpdateContactNoReadCount()
   onReloadChatSession()
-
+  onGenKeys()
+  onLoadShareKey()
+  onLoadAESKey()
 }
 
 // This method will be called when Electron has finished

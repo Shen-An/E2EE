@@ -216,6 +216,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         } else {
             messageHandler.sendMessage(messageSendDto);
         }
+        System.out.println("messageSendDto = " + messageSendDto.getMessageContent());
         return messageSendDto;
     }
 
