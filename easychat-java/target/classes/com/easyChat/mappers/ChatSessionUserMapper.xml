@@ -22,16 +22,16 @@
 	<!--基础查询条件-->
 	<sql id="base_query_condition">
 		<if test="query.userId != null and query.userId != ''">
-			and user_id = #{query.userId}
+			and u.user_id = #{query.userId}
 		</if>
 		<if test="query.contactId != null and query.contactId != ''">
-			and contact_id = #{query.contactId}
+			and u.contact_id = #{query.contactId}
 		</if>
 		<if test="query.sessionId != null and query.sessionId != ''">
-			and session_id = #{query.sessionId}
+			and u.session_id = #{query.sessionId}
 		</if>
 		<if test="query.contactName != null and query.contactName != ''">
-			and contact_name = #{query.contactName}
+			and u.contact_name = #{query.contactName}
 		</if>
 	</sql>
 
@@ -77,7 +77,7 @@
 	</select>
 	<!--查询数量-->
 	<select id="selectCount" resultType="java.lang.Integer">
-		SELECT count(1) FROM chat_session_user <include refid="query_condition"/>
+		SELECT count(1) FROM chat_session_user u<include refid="query_condition"/>
 	</select>
 
 	<!--插入 (匹配有值都字段)-->

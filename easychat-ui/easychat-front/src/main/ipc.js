@@ -8,14 +8,15 @@ import { initWs } from './wsClient'
 import { addUserSetting, selectSettingInfo, updateContactNoReadCount } from './db/UserSettingModel'
 import {
     selectUserSessionList, delChatSession, topChatSession,
-    updateSessionInfo4Message, readAll, updateStatus
+    updateSessionInfo4Message, readAll, updateStatus, saveOrUpdateChatSessionBatch4Init, 
+    saveOrUpdate4Message,updateSessionInfo4MessageNoReadCount
 } from './db/ChatSessionUserModel'
 import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
 import { saveFile2Local, createCover, saveAs, saveClipBoardFile } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
 
-import{generateAndSaveECDHKeyPair,saveSharedSecretToFile,generateSharedSecret} from './GenKeys'
-import{loadECDHFromPrivateKey} from './ReadShareKey'
+import { generateAndSaveECDHKeyPair, saveSharedSecretToFile, generateSharedSecret } from './GenKeys'
+import { loadECDHFromPrivateKey } from './ReadShareKey'
 import { deriveAESKey } from './AES'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
@@ -96,9 +97,16 @@ const onSetSessionSelect = () => {
         }
     })
 }
+
+const onUpdateLastMessage = () => {
+    ipcMain.on("updateLastMessage", async (e, sessionInfo) => {
+        await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
+    })
+}
 const onAddLocalMessage = () => {
     ipcMain.on("addLocalMessage", async (e, data) => {
         await saveMessage(data)
+
         //保存文件
         if (data.messageType == 5) {
 
@@ -115,6 +123,16 @@ const onAddLocalMessage = () => {
         //TODO 更新会话
         updateSessionInfo4Message(store.getUserData("currentSessionId"), data)
         e.sender.send('addLocalCallback', { status: 1, messageId: data.messageId })
+    })
+}
+
+const onAddLocalMessage4NoReadCount = () => {
+    ipcMain.on("addLocalMessage4NoReadCount", async (e, data) => {
+        await saveMessage(data)
+        //更新session
+        data.lastReceiveTime = data.sendTime
+        //TODO 更新会话
+        updateSessionInfo4MessageNoReadCount(store.getUserData("currentSessionId"), data)
     })
 }
 const onCreateCover = () => {
@@ -231,27 +249,27 @@ const onReloadChatSession = () => {
 }
 
 const onGenKeys = () => {
-    ipcMain.on("genKeys",async(e,{email})=>{
+    ipcMain.on("genKeys", async (e, { email }) => {
         const edch = await generateAndSaveECDHKeyPair(email)
-        const email_pk= edch.getPublicKey('hex')
-        e.sender.send("genKeysPkCallback",{pk:email_pk})
+        const email_pk = edch.getPublicKey('hex')
+        e.sender.send("genKeysPkCallback", { pk: email_pk })
     })
 }
 
-const onLoadShareKey =()=>{
-    ipcMain.on("loadShareKey",async(e,{pk:pk,email1:email1,email2:email2})=>{
+const onLoadShareKey = () => {
+    ipcMain.on("loadShareKey", async (e, { pk: pk, email1: email1, email2: email2 }) => {
         //通信方的pk
         const edch = await loadECDHFromPrivateKey(email1)
-        const sharedSecret = await generateSharedSecret(edch,pk)
-        saveSharedSecretToFile(sharedSecret,email1,email2)
-        e.sender.send("loadShareKeyCallback",{sharedSecret:sharedSecret})
+        const sharedSecret = await generateSharedSecret(edch, pk)
+        saveSharedSecretToFile(sharedSecret, email1, email2)
+        e.sender.send("loadShareKeyCallback", { sharedSecret: sharedSecret })
     })
 }
 
-const onLoadAESKey =()=>{
-    ipcMain.on("loadAESKey",async(e,email1,email2)=>{
-        const AESKey = await deriveAESKey(email1,email2)
-        e.sender.send("loadAESKeyCallback",{AESKey:AESKey})
+const onLoadAESKey = () => {
+    ipcMain.on("loadAESKey", async (e, email1, email2) => {
+        const AESKey = await deriveAESKey(email1, email2)
+        e.sender.send("loadAESKeyCallback", { AESKey: AESKey })
     })
 }
 
@@ -276,5 +294,7 @@ export {
     onReloadChatSession,
     onGenKeys,
     onLoadShareKey,
-    onLoadAESKey
+    onLoadAESKey,
+    onUpdateLastMessage,
+    onAddLocalMessage4NoReadCount
 }

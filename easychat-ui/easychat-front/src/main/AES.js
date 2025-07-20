@@ -7,9 +7,10 @@ const saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"//保存密钥的目
 // 派生 AES 密钥
 const deriveAESKey = (email1,email2) => {
     return new Promise(async (resolve, reject) => {
-        const sharedSecretPath = path.join(saveDir, `${email1}_${email2}_sharedSecret.txt`);
+        let sharedSecretPath = path.join(saveDir, `${email1}_${email2}_sharedSecret.txt`);
         if (!fs.existsSync(sharedSecretPath)) {
-            throw new Error(`未找到 ${email1}_${email2}_ 的共享密钥文件`);
+            sharedSecretPath = path.join(saveDir, `${email2}_${email1}_sharedSecret.txt`);
+            throw new Error(`未找到 ${email1}和${email2}_ 的共享密钥文件`);
         }
         const sharedSecret = fs.readFileSync(sharedSecretPath, 'utf8');
         const hash = crypto.createHash('sha256'); // 使用 SHA-256 哈希函数

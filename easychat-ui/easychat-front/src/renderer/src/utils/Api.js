@@ -48,5 +48,6 @@ const api = {
     checkVersion: "/update/checkVersion",//检查版本
     loadPkDataList:'/ecdhPks/loadPkDataList',//获取ecdh公钥列表
     addPk:'/ecdhPks/addPk',//添加ecdh公钥
+    loadChatSessionUserDataList:'/chatSessionUser/loadDataList',//获取聊天会话用户列表
 }
 export default api

@@ -17,6 +17,8 @@ import {
   onGenKeys,
   onLoadShareKey,
   onLoadAESKey,
+  onUpdateLastMessage,
+  onAddLocalMessage4NoReadCount,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
@@ -180,6 +182,8 @@ function createWindow() {
   onGenKeys()
   onLoadShareKey()
   onLoadAESKey()
+  onUpdateLastMessage()
+  onAddLocalMessage4NoReadCount()
 }
 
 // This method will be called when Electron has finished

@@ -93,6 +93,7 @@ const createWs = () => {
                 if (messageType == 9 || messageType == 11 || messageType == 12) {
                     sessionInfo.memberCount = message.memberCount;
                 }
+                console.log("sessionInfo", sessionInfo);
                 await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
                 //写入本地消息
                 await saveMessage(message);

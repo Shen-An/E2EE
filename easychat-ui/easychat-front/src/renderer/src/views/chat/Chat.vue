@@ -239,49 +239,92 @@ const onContextMenu = (data, e) => {
     ]
   })
 }
-
+//判断是否是密文格式，是才解密
+const isCiphertext = (messageContent) => {
+  const parts = messageContent.split(':')
+  if (parts.length === 2) {
+    const hexRegex = /^[0-9a-fA-F]+$/
+    return hexRegex.test(parts[0]) && hexRegex.test(parts[1])
+  }
+  return false
+}
 const onLoadChatMessage = () => {
-  window.ipcRenderer.on('loadChatMessageCallback', (e, { dataList, pageTotal, pageNo }) => {
+  window.ipcRenderer.on('loadChatMessageCallback', async (e, { dataList, pageTotal, pageNo }) => {
     if (pageNo == pageTotal) {
       messageCountInfo.noData = true
     }
 
-    //此处对message解密,bug处
-    dataList.forEach(async (item) => {
-      let resp = await proxy.Request({
-        url: proxy.Api.loadDataList,
-        params: {
-          userId: item.sendUserId
-        }
-      })
-      console.log("item.messageContent:",item.messageContent)
-      const [iv, encrypted] = item.messageContent.split(':')
-      const keyHex = await loadAESKey(resp.data.list[0].email)
-      console.log('resp.data.list[0].email:', resp.data.list[0].email)
-      console.log('email:', userInfoStore.getInfo().email)
-      item.messageContent = await decryptMessage(encrypted, ArrayToWordArray2Hex(keyHex), iv)
+    //此处对message解密,根据sessionId加载sendUserId和userId，从而找到email
+    let resp = await proxy.Request({
+      url: proxy.Api.loadChatSessionUserDataList,
+      params: {
+        sessionId: currentChatSession.value.sessionId
+      }
     })
-    dataList.sort((a, b) => {
-      return a.messageId - b.messageId
+    console.log('resp:', resp)
+    if("Urobot"!=currentChatSession.value.contactId){
+      let resp1 = await proxy.Request({
+      url: proxy.Api.loadDataList,
+      params: {
+        userId:
+          resp.data.list[0].userId == userInfoStore.getInfo().userId
+            ? resp.data.list[1].userId
+            : resp.data.list[0].userId
+      }
     })
-    console.log('loadChatMessageCallback:', dataList)
-    //记录最后一条消息，用于分页加载
-    const lastMessage = messageList.value[0]
+    console.log('dataList:', dataList)
+    // //保证email2是对方的email
+    let email2 = resp1.data.list[0].email
+    const decryptPromises = dataList.map(async (item) => {
+      if (isCiphertext(item.messageContent)) {
+        const [iv, encrypted] = await item.messageContent.split(':')
+        const AESKey = await loadAESKey(email2)
+        const keyHex = await ArrayToWordArray2Hex(AESKey)
+        item.messageContent = await decryptMessage(encrypted, keyHex, iv)
+        window.ipcRenderer.send('addLocalMessage4NoReadCount', item) //添加消息到本地，不增加未读数
+        return item
+      }
+    })
+    Promise.all(decryptPromises)
+      .then(() => {
+        console.log('解密后的dataList:', dataList)
 
-    messageList.value = dataList.concat(messageList.value)
-    messageCountInfo.pageNo = pageNo
-    messageCountInfo.pageTotal = pageTotal
-    if (pageNo == 1) {
-      messageCountInfo.maxMessageId =
-        dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
-      //滚动条滚动到底部
-      gotoBottom()
-    } else {
-      //分页滚动调整滚动条位置
-      nextTick(() => {
-        document.querySelector('#message' + lastMessage.messageId).scrollIntoView()
+        nextTick(() => {
+          let sessionInfo = { ...dataList[dataList.length - 1] }
+          sessionInfo.lastMessage = dataList[dataList.length - 1].messageContent
+          sessionInfo.lastReceiveTime = dataList[dataList.length - 1].sendTime
+          sessionInfo.contactId = currentChatSession.contactId
+          window.ipcRenderer.send('updateLastMessage', sessionInfo)
+          dataList.sort((a, b) => {
+            return a.messageId - b.messageId
+          })
+          // console.log('loadChatMessageCallback:', dataList)
+          //记录最后一条消息，用于分页加载
+          const lastMessage = messageList.value[0]
+
+          messageList.value = dataList.concat(messageList.value)
+          // console.log('messageList:', messageList.value)
+          messageCountInfo.pageNo = pageNo
+          messageCountInfo.pageTotal = pageTotal
+          if (pageNo == 1) {
+            messageCountInfo.maxMessageId =
+              dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
+            //滚动条滚动到底部
+            gotoBottom()
+          } else {
+            //分页滚动调整滚动条位置
+            nextTick(() => {
+              document.querySelector('#message' + lastMessage.messageId).scrollIntoView()
+            })
+          }
+        })
+      })
+      .catch((error) => {
+        console.error('解密过程中出现错误:', error)
       })
     }
+    
+
     // console.log('loadChatMessageCallback:', messageList.value)
   })
 }
@@ -300,7 +343,7 @@ const onLoadSessionData = () => {
 }
 const onReceiveMessage = () => {
   window.ipcRenderer.on('receiveMessage', async (e, message) => {
-    console.log('receiveMessage:', message)
+    // console.log('receiveMessage:', message)
     //找对方用户信息
     let resp1 = await proxy.Request({
       url: proxy.Api.loadDataList,
@@ -308,15 +351,15 @@ const onReceiveMessage = () => {
         userId: message.contactId //这里面的contactId是receiverId，即对方的
       }
     })
-    console.log('resp1:', resp1)
+    // console.log('resp1:', resp1)
     const [iv, encrypted] = message.messageContent.split(':')
     const AESKey = await loadAESKey(resp1.data.list[0].email)
     const keyHex = ArrayToWordArray2Hex(AESKey)
     message.messageContent = decryptMessage(encrypted, keyHex, iv)
     message.lastMessage = decryptMessage(encrypted, keyHex, iv)
     message.extendData.lastMessage = decryptMessage(encrypted, keyHex, iv)
-    console.log('message:', message)
-    window.ipcRenderer.send('addLocalMessage', message) //添加消息到本地
+    // console.log('message:', message)
+    window.ipcRenderer.send('addLocalMessage4NoReadCount', message) //添加消息到本地,不增加未读数
     // console.log('message.messageType:', message.messageType)
     //查询好友申请信息
     if (message.messageType == 4) {

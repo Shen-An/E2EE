@@ -111,6 +111,31 @@ const updateSessionInfo4Message = async (currentSessionId, {
     params.push(contactId)
     return run(sql, params)
 }
+//保存解密后的消息，不处理未读数
+const updateSessionInfo4MessageNoReadCount = async (currentSessionId, {
+    sessionId,
+    contactName,
+    lastMessage,
+    lastReceiveTime,
+    contactId,
+    memberCount,
+}) => {
+    const params = [lastMessage, lastReceiveTime];
+    let sql = "update chat_session_user set last_message = ? ,last_receive_time = ? ,status =1";
+    if (contactName) {
+        sql += " ,contact_name = ?"
+        params.push(contactName)
+    }
+    //成员数量
+    if (memberCount != null) {
+        sql += " ,member_count = ?"
+        params.push(memberCount)
+    }
+    sql += " where user_id = ? and contact_id = ?"
+    params.push(store.getUserId())
+    params.push(contactId)
+    return run(sql, params)
+}
 
 const readAll = (contactId) => {
     let sql = "update chat_session_user set no_read_count = 0 where user_id = ? and contact_id = ? ";
@@ -166,5 +191,6 @@ export {
     saveOrUpdate4Message,
     selectUserSessionByContactId,
     updateGroupName,
-    updateStatus
+    updateStatus,
+    updateSessionInfo4MessageNoReadCount
 }
