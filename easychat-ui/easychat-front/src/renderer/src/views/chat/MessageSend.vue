@@ -140,8 +140,8 @@ const sendMessage = async (e) => {
   e.preventDefault()
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
   //消息加密
-
-  if (props.currentChatSession.contactId != 'Urobot') {
+  // console.log(!props.currentChatSession.contactId.includes('G'))
+  if (props.currentChatSession.contactId != 'Urobot' && !props.currentChatSession.contactId.includes('G')) {
     //找对方用户信息
     let resp1 = await proxy.Request({
       url: proxy.Api.loadDataList,
@@ -249,8 +249,9 @@ const sendMessageDo = async (
     msgContent.value = ''
   }
   Object.assign(messageObj, resp.data)
-  //解密,保存本地为明文
+  //解密,保存本地为明文,如果是密文
 
+ if(isCiphertext(messageObj.messageContent)){
   const [iv, encrypted] = messageObj.messageContent.split(':')
   // console.log(AESKeyStore.getAESKey(userInfoStore.getInfo().email))
   messageObj.messageContent = decryptMessage(
@@ -263,12 +264,21 @@ const sendMessageDo = async (
     AESKeyStore.getAESKey(userInfoStore.getInfo().email),
     iv
   )
+ }
   //更新列表
   emit('sendMessage4Local', messageObj)
   //保存消息到本地
   window.ipcRenderer.send('addLocalMessage', messageObj)
 }
-
+//判断是否是密文格式，是才解密
+const isCiphertext = (messageContent) => {
+  const parts = messageContent.split(':')
+  if (parts.length === 2) {
+    const hexRegex = /^[0-9a-fA-F]+$/
+    return hexRegex.test(parts[0]) && hexRegex.test(parts[1])
+  }
+  return false
+}
 const uploadRef = ref()
 
 const uploadFile = (file) => {

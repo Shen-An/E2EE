@@ -40,7 +40,7 @@ const createWs = () => {
         console.log("从服务器接收到信息", e.data);
         const message = JSON.parse(e.data);
         const messageType = message.messageType;
-        
+
         switch (messageType) {
             case 0://ws连接成功
                 //保存会话信息
@@ -97,9 +97,12 @@ const createWs = () => {
                 await saveOrUpdate4Message(store.getUserData("currentSessionId"), sessionInfo);
                 //写入本地消息
                 await saveMessage(message);
-                // TODO BUG
                 const dbSessionInfo = await selectUserSessionByContactId(message.contactId);
                 message.extendData = dbSessionInfo;
+                //退出群聊，当前用户不受到消息
+                if (messageType == 11 && message.sendUserId == store.getUserId()) {
+                    break;
+                }
                 sender.send("receiveMessage", message);
                 break;
             //文件上传完成，需要更新消息状态，如图片/视频 状态改为1，代表发送完成。
