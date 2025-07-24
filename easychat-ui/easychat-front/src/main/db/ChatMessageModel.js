@@ -15,6 +15,10 @@ const saveMessage = (data) => {
     data.userId = store.getUserId();
     return insertOrReplace("chat_message", data);
 }
+const saveMessage4User = (data)=>{
+    console.log("saveMessage4User",data)
+    return insertOrReplace("chat_message", data);
+}
 
 const saveMessageBatch = (chatMessageList) => {
     return new Promise(async (resolve, reject) => {
@@ -101,5 +105,6 @@ export {
     selectMessageList,
     saveMessage,
     updateMessage,
-    selectByMessageId
+    selectByMessageId,
+    saveMessage4User
 }

@@ -11,7 +11,7 @@ import {
     updateSessionInfo4Message, readAll, updateStatus, saveOrUpdateChatSessionBatch4Init, 
     saveOrUpdate4Message,updateSessionInfo4MessageNoReadCount
 } from './db/ChatSessionUserModel'
-import { selectMessageList, saveMessage, updateMessage } from './db/ChatMessageModel'
+import { selectMessageList, saveMessage, updateMessage, saveMessage4User } from './db/ChatMessageModel'
 import { saveFile2Local, createCover, saveAs, saveClipBoardFile } from './file'
 import { delWindow, getWindow, saveWidnow } from './windowProxy'
 
@@ -128,7 +128,7 @@ const onAddLocalMessage = () => {
 
 const onAddLocalMessage4NoReadCount = () => {
     ipcMain.on("addLocalMessage4NoReadCount", async (e, data) => {
-        await saveMessage(data)
+        await saveMessage4User(data)
         //更新session
         data.lastReceiveTime = data.sendTime
         //TODO 更新会话

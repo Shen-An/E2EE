@@ -249,6 +249,9 @@ const onContextMenu = (data, e) => {
 }
 //判断是否是密文格式，是才解密
 const isCiphertext = (messageContent) => {
+  if (!messageContent.includes(':')) {
+    return false
+  }
   const parts = messageContent.split(':')
   if (parts.length === 2) {
     const hexRegex = /^[0-9a-fA-F]+$/
@@ -293,7 +296,7 @@ const onLoadChatMessage = () => {
             const AESKey = await loadAESKey(email2)
             const keyHex = await ArrayToWordArray2Hex(AESKey)
             item.messageContent = await decryptMessage(encrypted, keyHex, iv)
-            window.ipcRenderer.send('addLocalMessage4NoReadCount', item) //添加消息到本地，不增加未读数
+            window.ipcRenderer.send('addLocalMessage4NoReadCount', { ...item, userId: item.userId }) //添加消息到本地，不增加未读数
             return item
           }
         })
@@ -303,8 +306,11 @@ const onLoadChatMessage = () => {
 
             nextTick(() => {
               let sessionInfo = { ...dataList[dataList.length - 1] }
-              sessionInfo.lastMessage = dataList[dataList.length - 1].messageContent
-              sessionInfo.lastReceiveTime = dataList[dataList.length - 1].sendTime
+              if (!dataList) {
+                sessionInfo.lastMessage = dataList[dataList.length - 1].messageContent
+                sessionInfo.lastReceiveTime = dataList[dataList.length - 1].sendTime
+              }
+
               sessionInfo.contactId = currentChatSession.contactId
               window.ipcRenderer.send('updateLastMessage', sessionInfo)
               dataList.sort((a, b) => {
@@ -335,28 +341,29 @@ const onLoadChatMessage = () => {
             console.error('解密过程中出现错误:', error)
           })
       }
-    }
-    dataList.sort((a, b) => {
-      return a.messageId - b.messageId
-    })
-    // console.log('loadChatMessageCallback:', dataList)
-    //记录最后一条消息，用于分页加载
-    const lastMessage = messageList.value[0]
-
-    messageList.value = dataList.concat(messageList.value)
-    // console.log('messageList:', messageList.value)
-    messageCountInfo.pageNo = pageNo
-    messageCountInfo.pageTotal = pageTotal
-    if (pageNo == 1) {
-      messageCountInfo.maxMessageId =
-        dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
-      //滚动条滚动到底部
-      gotoBottom()
     } else {
-      //分页滚动调整滚动条位置
-      nextTick(() => {
-        document.querySelector('#message' + lastMessage.messageId).scrollIntoView()
+      dataList.sort((a, b) => {
+        return a.messageId - b.messageId
       })
+      // console.log('loadChatMessageCallback:', dataList)
+      //记录最后一条消息，用于分页加载
+      const lastMessage = messageList.value[0]
+
+      messageList.value = dataList.concat(messageList.value)
+      // console.log('messageList:', messageList.value)
+      messageCountInfo.pageNo = pageNo
+      messageCountInfo.pageTotal = pageTotal
+      if (pageNo == 1) {
+        messageCountInfo.maxMessageId =
+          dataList.length > 0 ? dataList[dataList.length - 1].messageId : null
+        //滚动条滚动到底部
+        gotoBottom()
+      } else {
+        //分页滚动调整滚动条位置
+        nextTick(() => {
+          document.querySelector('#message' + lastMessage.messageId).scrollIntoView()
+        })
+      }
     }
 
     // console.log('loadChatMessageCallback:', messageList.value)
@@ -394,8 +401,13 @@ const onReceiveMessage = () => {
       message.messageContent = decryptMessage(encrypted, keyHex, iv)
       message.lastMessage = decryptMessage(encrypted, keyHex, iv)
       message.extendData.lastMessage = decryptMessage(encrypted, keyHex, iv)
-      // console.log('message:', message)
-      window.ipcRenderer.send('addLocalMessage4NoReadCount', message) //添加消息到本地,不增加未读数
+      console.log('message:', message)
+
+      console.log('message.extendData.userId:', message.extendData.userId)
+      window.ipcRenderer.send('addLocalMessage4NoReadCount', {
+        ...message,
+        userId: message.extendData.userId
+      }) //添加消息到本地,不增加未读数
     }
 
     // console.log('message.messageType:', message.messageType)

@@ -42,7 +42,8 @@ const updateChatSession = (sessionInfo) => {
 
 const addChatSession = (sessionInfo) => {
     sessionInfo.userId = store.getUserId();
-    insertOrIgnore("chat_session_user", sessionInfo);
+    console.log("addChatSession",sessionInfo)
+    insertOrReplace("chat_session_user", sessionInfo);
 }
 
 const selectUserSessionByContactId = (contactId) => {

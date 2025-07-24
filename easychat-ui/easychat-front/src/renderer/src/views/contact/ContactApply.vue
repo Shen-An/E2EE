@@ -92,6 +92,7 @@ const dealWithApply = async (applyId, contactType, status) => {
         return
       }
       pageNo = 0
+   
       loadApply()
       if (status == 1 && contactType == 0) {
         contactStateStore.setContactReload('USER')

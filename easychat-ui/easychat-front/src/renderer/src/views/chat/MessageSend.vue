@@ -141,7 +141,10 @@ const sendMessage = async (e) => {
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
   //消息加密
   // console.log(!props.currentChatSession.contactId.includes('G'))
-  if (props.currentChatSession.contactId != 'Urobot' && !props.currentChatSession.contactId.includes('G')) {
+  if (
+    props.currentChatSession.contactId != 'Urobot' &&
+    !props.currentChatSession.contactId.includes('G')
+  ) {
     //找对方用户信息
     let resp1 = await proxy.Request({
       url: proxy.Api.loadDataList,
@@ -251,20 +254,13 @@ const sendMessageDo = async (
   Object.assign(messageObj, resp.data)
   //解密,保存本地为明文,如果是密文
 
- if(isCiphertext(messageObj.messageContent)){
-  const [iv, encrypted] = messageObj.messageContent.split(':')
-  // console.log(AESKeyStore.getAESKey(userInfoStore.getInfo().email))
-  messageObj.messageContent = decryptMessage(
-    encrypted,
-    AESKeyStore.getAESKey(userInfoStore.getInfo().email),
-    iv
-  )
-  messageObj.lastMessage = decryptMessage(
-    encrypted,
-    AESKeyStore.getAESKey(userInfoStore.getInfo().email),
-    iv
-  )
- }
+  if (isCiphertext(messageObj.messageContent)) {
+    const [iv, encrypted] = messageObj.messageContent.split(':')
+    // console.log(AESKeyStore.getAESKey(userInfoStore.getInfo().email))
+    let m = decryptMessage(encrypted, AESKeyStore.getAESKey(userInfoStore.getInfo().email), iv)
+    messageObj.messageContent = m
+    messageObj.lastMessage = m
+  }
   //更新列表
   emit('sendMessage4Local', messageObj)
   //保存消息到本地
