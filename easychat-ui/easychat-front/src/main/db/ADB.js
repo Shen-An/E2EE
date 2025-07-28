@@ -62,24 +62,51 @@ const run = (sql, params) => {
     });
 }
 
+// const insert = (sqlPrefix, tableName, data) => {
+//     console.log(`columnsMap for ${tableName}:`, columnsMap);
+//     // console.log(data)
+//     const columnsMap = globalColumnsMap[tableName]
+//     // console.log(columnsMap)
+//     const dbColumns = []
+//     const params = []
+//     for (let item in data) {
+//         if (data[item] != undefined && columnsMap[item] != undefined) {
+//             dbColumns.push(columnsMap[item])
+//             params.push(data[item])
+//         }
+//     }
+//     const preper = "?".repeat(dbColumns.length).split("").join(",")
+//     // console.log(preper)
+//     const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`
+//     console.log(sql)
+//     return run(sql, params)
+// }
 const insert = (sqlPrefix, tableName, data) => {
-    // console.log(data)
-    const columnsMap = globalColumnsMap[tableName]
-    // console.log(columnsMap)
-    const dbColumns = []
-    const params = []
+    const columnsMap = globalColumnsMap[tableName];
+    if (!columnsMap) {
+        console.error(`Error: columnsMap not found for table ${tableName}`);
+        return;
+    }
+
+    const dbColumns = [];
+    const params = [];
     for (let item in data) {
-        if (data[item] != undefined && columnsMap[item] != undefined) {
-            dbColumns.push(columnsMap[item])
-            params.push(data[item])
+        if (data[item] !== undefined && columnsMap[item] !== undefined) {
+            dbColumns.push(columnsMap[item]);
+            params.push(data[item]);
         }
     }
-    const preper = "?".repeat(dbColumns.length).split("").join(",")
-    // console.log(preper)
-    const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`
-    console.log(sql)
-    return run(sql, params)
-}
+    if (dbColumns.length === 0) {
+        console.error(`Error: No valid columns found for table ${tableName}`);
+        return;
+    }
+
+    const preper = "?".repeat(dbColumns.length).split("").join(",");
+    const sql = `${sqlPrefix} ${tableName}(${dbColumns.join(",")}) values(${preper})`;
+    console.log("Final SQL:", sql);
+    console.log("Params:", params);
+    return run(sql, params);
+};
 
 const insertOrReplace = (tableName, data) => {
     return insert("insert or replace into", tableName, data)
@@ -156,7 +183,7 @@ const initTableColumnsMap = async () => {
         globalColumnsMap[tables[i].name] = columnMapItem
     }
 
-    // console.log(globalColumnsMap)
+    console.log("globalColumnsMap:",globalColumnsMap)
 }
 const convertDbObj2BizObj = (data) => {
     if (!data) {

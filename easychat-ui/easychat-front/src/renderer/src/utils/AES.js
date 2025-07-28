@@ -45,8 +45,25 @@ const ArrayToWordArray2Hex = (keyArray) => {
   return CryptoJS.enc.Hex.stringify(keyWordArray); // 转换为 16 进制字符串
 }
 
+//判断是否是密文格式，是才解密
+const isCiphertext = (messageContent) => {
+  if (messageContent === null || messageContent === undefined) {
+        return false;
+    }
+  if (!messageContent.includes(':')) {
+    return false
+  }
+  const parts = messageContent.split(':')
+  if (parts.length === 2) {
+    const hexRegex = /^[0-9a-fA-F]+$/
+    return hexRegex.test(parts[0]) && hexRegex.test(parts[1])
+  }
+  return false
+}
+
 export {
   encryptMessage,
   decryptMessage,
-  ArrayToWordArray2Hex
+  ArrayToWordArray2Hex,
+  isCiphertext
 }
