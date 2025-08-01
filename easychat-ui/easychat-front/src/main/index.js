@@ -19,9 +19,13 @@ import {
   onLoadAESKey,
   onUpdateLastMessage,
   onAddLocalMessage4NoReadCount,
+  onGenUserKey,
+  onComputeHash,
+  dataForPython,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
+
 
 const login_width = 300
 const login_height = 362
@@ -184,6 +188,9 @@ function createWindow() {
   onLoadAESKey()
   onUpdateLastMessage()
   onAddLocalMessage4NoReadCount()
+  onGenUserKey()
+  onComputeHash()
+  dataForPython()
 }
 
 // This method will be called when Electron has finished

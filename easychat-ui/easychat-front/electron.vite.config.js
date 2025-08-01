@@ -26,7 +26,7 @@ export default defineConfig({
           pathRewrite:{
             '^/api':'/api'
           }
-        }
+        },
       }
     }
   }

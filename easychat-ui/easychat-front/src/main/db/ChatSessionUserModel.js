@@ -41,10 +41,15 @@ const updateChatSession = (sessionInfo) => {
 }
 
 const addChatSession = (sessionInfo) => {
+    if (!sessionInfo.contactId) {
+        console.error("Error: Missing contactId in sessionInfo!", sessionInfo);
+        return;
+    }
     sessionInfo.userId = store.getUserId();
-    console.log("addChatSession",sessionInfo)
+    console.log("addChatSession", sessionInfo);
     insertOrReplace("chat_session_user", sessionInfo);
-}
+};
+
 
 const selectUserSessionByContactId = (contactId) => {
     let sql = "select * from chat_session_user where user_id = ? and contact_id= ? ";

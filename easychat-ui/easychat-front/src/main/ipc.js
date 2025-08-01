@@ -8,8 +8,8 @@ import { initWs } from './wsClient'
 import { addUserSetting, selectSettingInfo, updateContactNoReadCount } from './db/UserSettingModel'
 import {
     selectUserSessionList, delChatSession, topChatSession,
-    updateSessionInfo4Message, readAll, updateStatus, saveOrUpdateChatSessionBatch4Init, 
-    saveOrUpdate4Message,updateSessionInfo4MessageNoReadCount
+    updateSessionInfo4Message, readAll, updateStatus, saveOrUpdateChatSessionBatch4Init,
+    saveOrUpdate4Message, updateSessionInfo4MessageNoReadCount
 } from './db/ChatSessionUserModel'
 import { selectMessageList, saveMessage, updateMessage, saveMessage4User } from './db/ChatMessageModel'
 import { saveFile2Local, createCover, saveAs, saveClipBoardFile } from './file'
@@ -18,6 +18,9 @@ import { delWindow, getWindow, saveWidnow } from './windowProxy'
 import { generateAndSaveECDHKeyPair, saveSharedSecretToFile, generateSharedSecret } from './GenKeys'
 import { loadECDHFromPrivateKey } from './ReadShareKey'
 import { deriveAESKey } from './AES'
+import { execute, readDataFromFile } from './SPCGSwTT/UserKey'
+import { computeHash } from './SPCGSwTT/computeHash'
+import { executeScript } from './SPCGSwTT/execPythonScript'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -273,6 +276,35 @@ const onLoadAESKey = () => {
     })
 }
 
+const onGenUserKey = () => {
+    ipcMain.on("genUserKey", async (e, data) => {
+        // console.log(readDataFromFile())
+        if (!readDataFromFile()) {
+            //如果是空的，就创建
+            execute()
+        }
+        e.sender.send("genUserKeyCallback", readDataFromFile())//返回数据
+    })
+}
+const onComputeHash = () => {
+    ipcMain.on("computeHash", async (e, word) => {
+        const hash = await computeHash(word)
+        e.sender.send("computeHashCallback", hash)
+    })
+}
+
+const dataForPython = () => {
+    ipcMain.on("dataForPython", async (e, dataFromVue) => {
+        console.log(`接收到的数据: ${dataFromVue}`);
+        try {
+            const result = await executeScript(JSON.parse(dataFromVue));
+            console.log(`脚本输出: ${result}`);
+            e.sender.send("dataForPythonCallback", result);
+        } catch (error) {
+            console.error(error);
+        }
+    });
+}
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -296,5 +328,8 @@ export {
     onLoadShareKey,
     onLoadAESKey,
     onUpdateLastMessage,
-    onAddLocalMessage4NoReadCount
+    onAddLocalMessage4NoReadCount,
+    onGenUserKey,
+    onComputeHash,
+    dataForPython
 }

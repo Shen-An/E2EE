@@ -58,4 +58,6 @@ public class Constants {
 
     public static final Integer ZERO = 0;//移除
     public static final Integer ONE = 1;//增加联系人
+
+    public static final String FILEPATH = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\out.txt"; // 你可以根据需要修改文件路径
 }

@@ -94,7 +94,7 @@ import { getFileType } from '@/utils/Constants.js'
 import { useSysSettingStore } from '@/stores/SysSettingStore'
 import { useAESKeyStore } from '@/stores/AESKeyStore'
 const AESKeyStore = useAESKeyStore()
-import { ArrayToWordArray2Hex, encryptMessage, decryptMessage } from '@/utils/AES'
+import { ArrayToWordArray2Hex, encryptMessage, decryptMessage, isCiphertext } from '@/utils/AES'
 const sysSettingStore = useSysSettingStore()
 
 const props = defineProps({
@@ -261,19 +261,146 @@ const sendMessageDo = async (
     messageObj.messageContent = m
     messageObj.lastMessage = m
   }
+
   //更新列表
   emit('sendMessage4Local', messageObj)
   //保存消息到本地
   window.ipcRenderer.send('addLocalMessage', messageObj)
+  //添加消息过滤
+  addMessageFilter(messageObj.messageContent)
 }
-//判断是否是密文格式，是才解密
-const isCiphertext = (messageContent) => {
-  const parts = messageContent.split(':')
-  if (parts.length === 2) {
-    const hexRegex = /^[0-9a-fA-F]+$/
-    return hexRegex.test(parts[0]) && hexRegex.test(parts[1])
+const addMessageFilter = async (messageContent) => {
+  const words = splitText('zh', messageContent)
+  console.log(words)
+
+  const hashCodeStr = []
+  //定义一个Tuple，发送给服务器
+  const test_message_tuple = []
+  for (let str of words) {
+    hashCodeStr.push(await computeHash(str))
   }
-  return false
+  let resp = await proxy.Request({
+    url: proxy.Api.filter,
+    params: {
+      hashCodeStr: hashCodeStr
+    }
+  })
+  // console.log(resp)
+  for (let i = 0; i < words.length; i++) {
+    //判断是否包含hash值，包含添加True，不包含添加False
+    if (resp.data[i] == 'True') {
+      test_message_tuple.push([words[i], true])
+    } else {
+      test_message_tuple.push([words[i], false])
+    }
+  }
+  //获取SPCE公钥
+  fetchFileContentasync(messageContent)
+  console.log(test_message_tuple)
+}
+
+const fetchFileContentasync = async (messageContent) => {
+  let content = null
+
+  try {
+    let response = await proxy.Request({
+      url: proxy.Api.SPCEGetpk
+    })
+    content = response
+    console.log('文件内容已存储到变量：', content)
+    // 处理文件内容
+    processFileContent(content, messageContent)
+  } catch (error) {
+    console.error('获取文件内容失败:', error)
+  }
+}
+const processFileContent = (content, messageContent) => {
+  // 确保 content.data.body 存在
+  if (content.data && content.data.body) {
+    const body = content.data.body
+    // 提取 Serialized A 的内容
+    let aMatch = body.match(/Serialized A: (.*)/)
+    let serializedA = null
+    if (aMatch) {
+      try {
+        serializedA = JSON.parse(aMatch[1])
+      } catch (error) {
+        console.error('解析 Serialized A 失败:', error)
+      }
+    }
+
+    // 提取 Serialized T 的内容
+    let tMatch = body.match(/Serialized T: (.*)/)
+    let serializedT = null
+    if (tMatch) {
+      try {
+        serializedT = JSON.parse(tMatch[1])
+      } catch (error) {
+        console.error('解析 Serialized T 失败:', error)
+      }
+    }
+
+    // 提取 Serialized GroupManager 的内容
+    let groupManagerMatch = body.match(/Serialized GroupManager: (.*)/)
+    let serializedGroupManager = null
+    if (groupManagerMatch) {
+      try {
+        serializedGroupManager = JSON.parse(groupManagerMatch[1])
+      } catch (error) {
+        console.error('解析 Serialized GroupManager 失败:', error)
+      }
+    }
+
+    // 打印解析结果，你可以根据需求进一步处理这些数据
+    console.log('Serialized A:', serializedA)
+    console.log('Serialized T:', serializedT)
+    console.log('Serialized GroupManager:', serializedGroupManager)
+
+    // 假设你要将这些数据传递给 Python 进行处理
+    let dataForPython = {
+      A: serializedA,
+      T: serializedT,
+      // GroupManager: serializedGroupManager//如果不需要GroupManager，可以不传递
+      messageContent: messageContent
+    }
+    console.log('准备传递给主进程的数据:', dataForPython)
+    window.ipcRenderer.send('dataForPython', JSON.stringify(dataForPython))
+    window.ipcRenderer.on('dataForPythonCallback', async (e, data) => {
+      console.log('返回密文：', data)
+      let resp = await proxy.Request({
+        url: proxy.Api.SPCESendCt,
+        params: {
+          ct: data
+        } ,  // 直接传递对象，让 Request 方法根据 dataType 处理
+        dataType: 'json',   // 明确设置数据类型为 json
+      })
+      if (!resp) {
+        console.log('发送密文失败')
+      }
+      
+    })
+  } else {
+    console.error('响应数据中缺少 body 字段')
+  }
+}
+const splitText = (locales, text) => {
+  const segments = Array.from(new Intl.Segmenter(locales, { granularity: 'word' }).segment(text))
+
+  // 提取词语并过滤非词语内容
+  const words = segments.filter((seg) => seg.isWordLike).map((seg) => seg.segment)
+
+  return words
+  // console.log(words);
+}
+
+const computeHash = (word) => {
+  window.ipcRenderer.send('computeHash', word)
+  return new Promise((resolve, reject) => {
+    window.ipcRenderer.on('computeHashCallback', (e, hash) => {
+      console.log(hash)
+      resolve(hash)
+    })
+  })
 }
 const uploadRef = ref()
 
@@ -394,7 +521,7 @@ const pasteFile = async (event) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.ipcRenderer.on('saveClipBoardFileCallback', (e, file) => {
     const fileType = 0
     sendMessageDo(

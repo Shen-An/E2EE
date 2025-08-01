@@ -102,8 +102,8 @@ import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 import { md5 } from 'js-md5'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 import { useRouter } from 'vue-router'
-
-
+import {useSPCEKeyGenStore} from '@/stores/SPCEKeyGenStore'
+const  SPCEKeyGenStore = useSPCEKeyGenStore()
 const router = useRouter()
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
@@ -209,10 +209,14 @@ const submit = async () => {
       value: proxy.Api.devWsDomain
     })
     window.ipcRenderer.send('getLocalStore', 'devWsDomain')
+
+    //创建SPCE_UserKey,如果是空的，就创建
+    window.ipcRenderer.send('genUserKey')
+    ongenUserKeyCallback()
   } else {
-       //注册成功后，创建edch keys，用于E2EE加密
+    //注册成功后，创建edch keys，用于E2EE加密
     let pk = await generateKeys()
-  
+
     let resp = await proxy.Request({
       url: proxy.Api.addPk,
       params: {
@@ -223,12 +227,24 @@ const submit = async () => {
     if (!resp) {
       return
     }
+
     // 注册
     proxy.Message.success('注册成功')
     changeOpType()
   }
 }
-
+//监听生成用户key的回调
+const ongenUserKeyCallback = ()=>{
+  window.ipcRenderer.on('genUserKeyCallback', (e, data) => {
+    console.log('genUserKeyCallback:', data)
+    //存入store
+    SPCEKeyGenStore.setSPCEKeyGen("user",data.user)
+    SPCEKeyGenStore.setSPCEKeyGen("tag",data.tag)
+    //验证
+    // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("user"))
+    // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("tag"))
+  })
+}
 const generateKeys = async () => {
   window.ipcRenderer.send('genKeys', { email: formData.value.email })
   const pk = await getPK() // 等待 Promise 完成
@@ -236,11 +252,12 @@ const generateKeys = async () => {
   return pk
 }
 
-const getPK = () => new Promise((resolve) => {
-  window.ipcRenderer.on('genKeysPkCallback', (e, data) => {
-    resolve(data.pk)
+const getPK = () =>
+  new Promise((resolve) => {
+    window.ipcRenderer.on('genKeysPkCallback', (e, data) => {
+      resolve(data.pk)
+    })
   })
-});
 const init = () => {
   window.ipcRenderer.send('setLocalStore', { key: 'prodDomain', value: proxy.Api.prodDomain })
   window.ipcRenderer.send('setLocalStore', { key: 'devDomain', value: proxy.Api.devDomain })

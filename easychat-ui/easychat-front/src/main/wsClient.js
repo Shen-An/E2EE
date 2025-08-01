@@ -53,7 +53,7 @@ const createWs = () => {
                 sender.send("receiveMessage", { messageType: message.messageType });
                 break;
             case 4: //好友申请
-
+                
                 await updateContactNoReadCount({ userId: store.getUserId(), noReadCount: 1 });
                 sender.send("receiveMessage", { messageType: message.messageType });
                 break;
@@ -71,7 +71,6 @@ const createWs = () => {
             case 2://文字
             case 5://图片视频
             case 8://解散群组
-            case 9://好友加入群组
             case 11://好友退出群组
             case 12://好友被踢出群组
             case 13:
@@ -90,16 +89,7 @@ const createWs = () => {
                     }
                     sessionInfo.lastReceiveTime = message.sendTime;
                 }
-                // // 获取好友的聊天会话信息
-                // if(messageType ==1){
-                //     let newSession = {
-                //         contactId: message.extendData.contactId,
-                //         userId: store.getUserId(),
-                //         status: 1
-                //     };
-                //     await addChatSession(newSession); // 确保会话被插入
-                // }
-
+    
                 //加入、退出、踢出群组消息，需要更新群组人数 
                 if (messageType == 9 || messageType == 11 || messageType == 12) {
                     sessionInfo.memberCount = message.memberCount;
@@ -109,6 +99,7 @@ const createWs = () => {
                 //写入本地消息
                 await saveMessage(message);
                 const dbSessionInfo = await selectUserSessionByContactId(message.contactId);
+                console.log("dbSessionInfo", dbSessionInfo);
                 message.extendData = dbSessionInfo;
                 //退出群聊，当前用户不受到消息
                 if (messageType == 11 && message.sendUserId == store.getUserId()) {

@@ -103,7 +103,7 @@ import { useRouter, useRoute } from 'vue-router'
 
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { useMessageCountStore } from '@/stores/MessageCountStore'
-import { decryptMessage, ArrayToWordArray2Hex } from '@/utils/AES'
+import { decryptMessage, ArrayToWordArray2Hex,isCiphertext } from '@/utils/AES'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 import ChatGroupDetail from './ChatGroupDetail.vue'
@@ -247,18 +247,7 @@ const onContextMenu = (data, e) => {
     ]
   })
 }
-//判断是否是密文格式，是才解密
-const isCiphertext = (messageContent) => {
-  if (!messageContent.includes(':')) {
-    return false
-  }
-  const parts = messageContent.split(':')
-  if (parts.length === 2) {
-    const hexRegex = /^[0-9a-fA-F]+$/
-    return hexRegex.test(parts[0]) && hexRegex.test(parts[1])
-  }
-  return false
-}
+
 const onLoadChatMessage = () => {
   window.ipcRenderer.on('loadChatMessageCallback', async (e, { dataList, pageTotal, pageNo }) => {
     if (pageNo == pageTotal) {
