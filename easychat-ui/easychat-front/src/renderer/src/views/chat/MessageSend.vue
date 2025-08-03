@@ -267,15 +267,19 @@ const sendMessageDo = async (
   //保存消息到本地
   window.ipcRenderer.send('addLocalMessage', messageObj)
   //添加消息过滤
-  addMessageFilter(messageObj.messageContent)
+  // addMessageFilter(messageObj.messageContent)
+  //获取SPCE公钥
+  fetchFileContentasync(messageObj.messageContent)
 }
+
+//定义一个数组，与密文一起发送给服务器，判断是否在布谷鸟过滤器中，顺序一一对应
+const boolArr = []
+//添加消息过滤
 const addMessageFilter = async (messageContent) => {
   const words = splitText('zh', messageContent)
   console.log(words)
 
   const hashCodeStr = []
-  //定义一个Tuple，发送给服务器
-  const test_message_tuple = []
   for (let str of words) {
     hashCodeStr.push(await computeHash(str))
   }
@@ -289,14 +293,13 @@ const addMessageFilter = async (messageContent) => {
   for (let i = 0; i < words.length; i++) {
     //判断是否包含hash值，包含添加True，不包含添加False
     if (resp.data[i] == 'True') {
-      test_message_tuple.push([words[i], true])
+      boolArr.push('True')
     } else {
-      test_message_tuple.push([words[i], false])
+      boolArr.push('False')
     }
   }
-  //获取SPCE公钥
-  fetchFileContentasync(messageContent)
-  console.log(test_message_tuple)
+
+  // console.log(boolArr)
 }
 
 const fetchFileContentasync = async (messageContent) => {
@@ -314,7 +317,7 @@ const fetchFileContentasync = async (messageContent) => {
     console.error('获取文件内容失败:', error)
   }
 }
-const processFileContent = (content, messageContent) => {
+const processFileContent = async (content, messageContent) => {
   // 确保 content.data.body 存在
   if (content.data && content.data.body) {
     const body = content.data.body
@@ -355,30 +358,19 @@ const processFileContent = (content, messageContent) => {
     console.log('Serialized A:', serializedA)
     console.log('Serialized T:', serializedT)
     console.log('Serialized GroupManager:', serializedGroupManager)
-
+    const words = splitText('zh', messageContent)
+    await addMessageFilter(messageContent)
+    // console.log("dataForPython",boolArr)
     // 假设你要将这些数据传递给 Python 进行处理
     let dataForPython = {
       A: serializedA,
       T: serializedT,
       // GroupManager: serializedGroupManager//如果不需要GroupManager，可以不传递
-      messageContent: messageContent
+      words: words,
+      boolArr: boolArr
     }
     console.log('准备传递给主进程的数据:', dataForPython)
     window.ipcRenderer.send('dataForPython', JSON.stringify(dataForPython))
-    window.ipcRenderer.on('dataForPythonCallback', async (e, data) => {
-      console.log('返回密文：', data)
-      let resp = await proxy.Request({
-        url: proxy.Api.SPCESendCt,
-        params: {
-          ct: data
-        } ,  // 直接传递对象，让 Request 方法根据 dataType 处理
-        dataType: 'json',   // 明确设置数据类型为 json
-      })
-      if (!resp) {
-        console.log('发送密文失败')
-      }
-      
-    })
   } else {
     console.error('响应数据中缺少 body 字段')
   }
@@ -398,6 +390,7 @@ const computeHash = (word) => {
   return new Promise((resolve, reject) => {
     window.ipcRenderer.on('computeHashCallback', (e, hash) => {
       console.log(hash)
+      window.ipcRenderer.removeAllListeners('computeHashCallback')
       resolve(hash)
     })
   })
@@ -520,8 +513,65 @@ const pasteFile = async (event) => {
     }
   }
 }
-
+const tag = ref('')
+const ct = ref('')
+const userPk = ref('')
 onMounted(async () => {
+  window.ipcRenderer.send('getUserPk')
+  window.ipcRenderer.on('dataForPythonCallback', async (e, data) => {
+    console.log('返回tag和密文：', data)
+    // 找到第一个 { 的索引
+    const index = data.indexOf('{')
+    if (index === -1) {
+      console.error('未找到有效的JSON数据起始位置')
+      return
+    }
+    // 提取tag
+    tag.value= data.slice(0, index)
+    console.log('boolArr:', boolArr)
+    // 提取ct的JSON字符串
+    ct.value = data.slice(index)
+    let resp = await proxy.Request({
+      url: proxy.Api.SPCESendCt,
+      params: {
+        tag: tag.value,
+        ct: ct.value,
+        boolArr: boolArr
+      }, // 直接传递对象，让 Request 方法根据 dataType 处理
+      dataType: 'json' // 明确设置数据类型为 json
+    })
+    if (!resp) {
+      console.log('发送密文失败')
+    }
+  
+    console.log('返回结果：', resp.data)
+    window.ipcRenderer.send('computeCommit', resp.data)
+  })
+
+  window.ipcRenderer.on('computeCommitCallback', (e, data) => {
+    
+    console.log('返回结果：', data)
+    // console.log('tag:', tag.value)
+    let resp = proxy.Request({
+      url: proxy.Api.SPCESendCommit,
+      params: { 
+        tag: tag.value,
+        ct: ct.value,
+        data :data,
+        boolArr: boolArr,
+        userPk: userPk.value
+      },
+      dataType: 'json'
+    })
+    boolArr.length = 0
+    if (!resp) {
+      console.log('传送承诺失败')
+    }
+  })
+  window.ipcRenderer.on('getUserPkCallback',(e,data)=>{
+    // console.log('返回结果：', data)
+    userPk.value = data
+  })
   window.ipcRenderer.on('saveClipBoardFileCallback', (e, file) => {
     const fileType = 0
     sendMessageDo(
@@ -541,6 +591,7 @@ onMounted(async () => {
 const loadAESKey = (email) => {
   return new Promise((resolve, reject) => {
     window.ipcRenderer.on('loadAESKeyCallback', (e, data) => {
+      window.ipcRenderer.removeAllListeners('loadAESKeyCallback')
       resolve(data.AESKey)
     })
     window.ipcRenderer.send('loadAESKey', userInfoStore.getInfo().email, email) //发送是自己他人的email，收到就要反过来

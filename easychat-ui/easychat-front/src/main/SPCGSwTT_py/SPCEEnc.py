@@ -257,8 +257,9 @@ if __name__ == "__main__":
     params = SPCEParams(n=2, epsilon=0.1, t=2)
     # 解析传入的 JSON 字符串
     A_restored, T_restored = deserialize_data(sys.argv[1], sys.argv[2])
-    messageContent = json.loads(sys.argv[3])
+    words = json.loads(sys.argv[3])
     user_id = json.loads(sys.argv[4])
+    # print(sys.argv[5])
     userDir = 'D:'
     saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"  # 保存密钥的目录
     with open(saveDir + user_id + '_SPCE.json', 'r') as file:
@@ -272,17 +273,22 @@ if __name__ == "__main__":
     user.h = user_dict["h"]
     user.coeffs = user_dict["coeffs"]
 
+    tag = sha256(str(user.pk).encode()).hexdigest()  # 用户标识
+    print(tag)
+
     
     # ✅ 检查恢复的数据
     assert isinstance(A_restored, tuple) and len(A_restored) == 2
     assert isinstance(T_restored, dict)
 
     # ✅ 加密内容
-    ct = spce_encrypt((A_restored, T_restored), user, messageContent)
-    # print("Ciphertext:", ct)
-    ct_json = serialize_ct(ct)
-    print(ct_json)
-
+    for word in words:
+        ct = spce_encrypt((A_restored, T_restored), user, word)
+        # print("Ciphertext:", ct)
+        ct_json = serialize_ct(ct)
+        print(ct_json)
+    
+  
     # # 反序列化密文
     # ct_decoded = deserialize_ct(ct_json)
     # print("Deserialized Ciphertext:", ct_decoded)

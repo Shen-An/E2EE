@@ -1,21 +1,9 @@
 import store from '../store';
-
 const { spawn } = require('child_process');
 
-const pythonPath = 'D:\\Anaconda\\python.exe';
-const pythonScriptPath = 'D:/java code/Chat/easychat-ui/easychat-front/src/main/SPCGSwTT_py/SPCEEnc.py';
-
-const executeScript = (data) => {
-    const { A, T, messageContent } = data;
-
-    // 准备传递给 Python 脚本的参数
-    const args = [
-        pythonScriptPath,
-        JSON.stringify(A),
-        JSON.stringify(T),
-        JSON.stringify(messageContent),
-        JSON.stringify(store.getUserId())
-    ];
+const executePythonScript = (pythonScriptPath, scriptArgs) => {
+    const pythonPath = 'D:\\Anaconda\\python.exe';
+    const args = [pythonScriptPath,...scriptArgs.map(arg => JSON.stringify(arg))];
 
     return new Promise((resolve, reject) => {
         const pythonProcess = spawn(pythonPath, args);
@@ -45,7 +33,33 @@ const executeScript = (data) => {
     });
 };
 
+// 示例调用 1，对应之前第一个 executeScript 的逻辑
+const exeEncScript = (data) => {
+    const { A, T, words, boolArr } = data;
+    const scriptArgs = [A, T, words, store.getUserId(), boolArr];
+    const pythonScriptPath = 'D:/java code/Chat/easychat-ui/easychat-front/src/main/SPCGSwTT_py/SPCEEnc.py';
+    return executePythonScript(pythonScriptPath, scriptArgs);
+};
 
-export{
-    executeScript
-}
+// 示例调用 2，对应之前第二个 executeScript 的逻辑
+const exeComputeCommitScript = (data) => {
+    const scriptArgs = [data, store.getUserId()];
+    const pythonScriptPath = 'D:/java code/Chat/easychat-ui/easychat-front/src/main/SPCGSwTT_py/SPCEComputeCommit.py';
+    return executePythonScript(pythonScriptPath, scriptArgs);
+};
+
+// // 测试示例 2
+// const dataFromVue = [4.8202020398290094e+75, 6.6314599382010465e+75];
+// (async () => {
+//     try {
+//         const result = await executeScript2(dataFromVue);
+//         console.log(`脚本输出: ${result}`);
+//     } catch (error) {
+//         console.error(error);
+//     }
+// })();
+
+export {
+    exeEncScript,
+    exeComputeCommitScript,
+};

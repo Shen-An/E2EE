@@ -1,15 +1,13 @@
 import jieba
 import json
-import sys
-import io
-
-# 设置标准输出的编码为 UTF-8
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from cuckoofilter import CuckooFilter
 from py_ecc.bn128 import bn128_curve, multiply, add, G1, G2, FQ
 from hashlib import sha256
 import random
-
+import sys
+import io
+# 设置标准输出的编码为 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 class SPCEParams:
     def __init__(self, n, epsilon, t):
@@ -58,7 +56,7 @@ def spce_encrypt(pk, user, content):
         S_pair[1][1].n.to_bytes(32, 'big')
     ).digest()
 
-    # 修改部分：将content编码为UTF-8字节再进行异或
+    # 修改部分：将 content 编码为 UTF - 8 字节再进行异或
     content_bytes = content.encode('utf-8')
     ct = bytes([content_byte ^ key[i % len(key)] for i, content_byte in enumerate(content_bytes)])
     return (u_i, Q_pair, ct)
@@ -141,7 +139,7 @@ class GroupManager:
     def __init__(self, params, D):
         self.params = params
         self.D = set(D)
-        self.records = {}  # 记录用户tag及其非法消息次数和点集
+        self.records = {}  # 记录用户 tag 及其非法消息次数和点集
 
     def check_illegal(self, content):
         # 检查内容是否包含非法字符
@@ -222,24 +220,10 @@ def spce_decrypt(sk, ct):
         S1[0].n.to_bytes(32, 'big') +
         S1[1].n.to_bytes(32, 'big')
     ).digest()
-    # 修改部分：异或后解码为UTF-8字符串
+    # 修改部分：异或后解码为 UTF - 8 字符串
     decrypted_bytes = bytes([ct_byte ^ key[i % len(key)] for i, ct_byte in enumerate(ct_enc)])
     decrypted = decrypted_bytes.decode('utf-8', errors='ignore')
     return u_i, decrypted
-
-
-# 序列化密文
-def serialize_ct(ct):
-    u_i, Q_pair, ct_enc = ct
-    Q0_dict = point_to_dict(Q_pair[0])
-    Q1_dict = point_to_dict(Q_pair[1])
-    ct_enc_hex = ct_enc.hex()
-    return json.dumps({
-        "u_i": u_i,
-        "Q0": Q0_dict,
-        "Q1": Q1_dict,
-        "ct_enc": ct_enc_hex
-    })
 
 
 # 反序列化密文
@@ -252,36 +236,62 @@ def deserialize_ct(ct_json):
     return (u_i, (Q0, Q1), ct_enc)
 
 
+# 从文件读取 alpha
+def load_alpha(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+# 从文件读取 A, T, gm
+def load_data_from_file(file_path):
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+
+    A_json = None
+    T_json = None
+    gm_json = None
+
+    for line in lines:
+        if line.startswith("Serialized A:"):
+            A_json = line.split("Serialized A: ")[1].strip()
+        elif line.startswith("Serialized T:"):
+            T_json = line.split("Serialized T: ")[1].strip()
+        elif line.startswith("Serialized GroupManager:"):
+            gm_json = line.split("Serialized GroupManager: ")[1].strip()
+
+    A, T = deserialize_data(A_json, T_json)
+    gm = deserialize_gm(gm_json)
+
+    return A, T, gm
+
+
 # 🎯 主程序
 if __name__ == "__main__":
+    ui = sys.argv[1]
+    
+    ui = json.loads(ui)
+    user_id = sys.argv[2]
+    user_id = json.loads(user_id)
+    # print(user_id)
     params = SPCEParams(n=2, epsilon=0.1, t=2)
-    # 解析传入的 JSON 字符串
-    A_restored, T_restored = deserialize_data(sys.argv[1], sys.argv[2])
-    messageContent = json.loads(sys.argv[3])
-    user_id = json.loads(sys.argv[4])
+
+
     userDir = 'D:'
-    saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"  # 保存密钥的目录
-    with open(saveDir + user_id + '_SPCE.json', 'r') as file:
+    saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"
+    with open(saveDir + "U84319281252" + '_SPCE.json', 'r') as file:
         data = json.load(file)
-    # 提取 user 字段
     user_dict = data["user"]
     user = UserKey(params)
     user.t = user_dict["t"]
     user.sk = user_dict["sk"]
-    user.pk = multiply(G1, user.sk)  # 重新计算 pk
+    user.pk = multiply(G1, user.sk)
     user.h = user_dict["h"]
-    user.coeffs = user_dict["coeffs"]
-    # ✅ 检查恢复的数据
-    assert isinstance(A_restored, tuple) and len(A_restored) == 2
-    assert isinstance(T_restored, dict)
+    user.coeffs = [int(coeff) for coeff in user_dict["coeffs"]]
 
-    # ✅ 加密内容
-    ct = spce_encrypt((A_restored, T_restored), user, messageContent)
-    print("Ciphertext:", ct)
-    ct_json = serialize_ct(ct)
-    print("Serialized Ciphertext:", ct_json)
-
-    # 反序列化密文
-    ct_decoded = deserialize_ct(ct_json)
-    print("Deserialized Ciphertext:", ct_decoded)
-    
+    vi = []
+    for u_i in ui:
+        v_i = user.evaluate(u_i)    
+        vi.append(v_i)
+    print(vi)
+      
+       

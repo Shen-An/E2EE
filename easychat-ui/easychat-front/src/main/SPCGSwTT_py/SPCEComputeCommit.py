@@ -1,9 +1,13 @@
 import jieba
 import json
+from cuckoofilter import CuckooFilter
 from py_ecc.bn128 import bn128_curve, multiply, add, G1, G2, FQ
 from hashlib import sha256
 import random
-import os
+import sys
+import io
+# 设置标准输出的编码为 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 class SPCEParams:
     def __init__(self, n, epsilon, t):
@@ -52,7 +56,7 @@ def spce_encrypt(pk, user, content):
         S_pair[1][1].n.to_bytes(32, 'big')
     ).digest()
 
-    # 修改部分：将content编码为UTF-8字节再进行异或
+    # 修改部分：将 content 编码为 UTF - 8 字节再进行异或
     content_bytes = content.encode('utf-8')
     ct = bytes([content_byte ^ key[i % len(key)] for i, content_byte in enumerate(content_bytes)])
     return (u_i, Q_pair, ct)
@@ -72,7 +76,16 @@ class UserKey:
         for coeff in self.coeffs:
             result = (result + coeff * x_power) % bn128_curve.curve_order
             x_power = (x_power * x) % bn128_curve.curve_order
-        return result
+        return int(result)
+
+    def to_dict(self):
+        return {
+            "t": self.t,
+            "sk": self.sk,
+            "pk": str(self.pk),
+            "h": self.h,
+            "coeffs": [int(coeff) for coeff in self.coeffs]  # 将系数转换为整数
+        }
 
 
 def spce_gen(params, D):
@@ -109,14 +122,16 @@ def serialize_data(A, T):
     return A_json, T_json
 
 
-# ✅ 反序列化 A 和 T
 def deserialize_data(A_json, T_json):
     """将 JSON 恢复为 A 和 T"""
     A_loaded = json.loads(A_json)
     A_restored = dict_to_point(A_loaded)
 
     T_loaded = json.loads(T_json)
-    T_restored = {eval(k): dict_to_point(v) for k, v in T_loaded.items()}
+    T_restored = {
+        tuple(map(int, k.strip("()").split(", "))): dict_to_point(v)
+        for k, v in T_loaded.items()
+    }
     return A_restored, T_restored
 
 
@@ -124,7 +139,7 @@ class GroupManager:
     def __init__(self, params, D):
         self.params = params
         self.D = set(D)
-        self.records = {}  # 记录用户tag及其非法消息次数和点集
+        self.records = {}  # 记录用户 tag 及其非法消息次数和点集
 
     def check_illegal(self, content):
         # 检查内容是否包含非法字符
@@ -194,53 +209,91 @@ def deserialize_gm(gm_json):
     return gm
 
 
-# 保存 alpha 到文件
-def save_alpha(alpha, file_path):
-    with open(file_path, 'w') as f:
-        json.dump(alpha, f)
+def spce_decrypt(sk, ct):
+    alpha = sk
+    u_i, (Q0, Q1), ct_enc = ct
+    S0 = multiply(Q0, alpha)
+    S1 = multiply(Q1, alpha)
+    key = sha256(
+        S0[0].n.to_bytes(32, 'big') +
+        S0[1].n.to_bytes(32, 'big') +
+        S1[0].n.to_bytes(32, 'big') +
+        S1[1].n.to_bytes(32, 'big')
+    ).digest()
+    # 修改部分：异或后解码为 UTF - 8 字符串
+    decrypted_bytes = bytes([ct_byte ^ key[i % len(key)] for i, ct_byte in enumerate(ct_enc)])
+    decrypted = decrypted_bytes.decode('utf-8', errors='ignore')
+    return u_i, decrypted
+
+
+# 反序列化密文
+def deserialize_ct(ct_json):
+    ct_data = json.loads(ct_json)
+    u_i = ct_data["u_i"]
+    Q0 = dict_to_point(ct_data["Q0"])
+    Q1 = dict_to_point(ct_data["Q1"])
+    ct_enc = bytes.fromhex(ct_data["ct_enc"])
+    return (u_i, (Q0, Q1), ct_enc)
 
 
 # 从文件读取 alpha
 def load_alpha(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            return json.load(f)
-    return None
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+# 从文件读取 A, T, gm
+def load_data_from_file(file_path):
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+
+    A_json = None
+    T_json = None
+    gm_json = None
+
+    for line in lines:
+        if line.startswith("Serialized A:"):
+            A_json = line.split("Serialized A: ")[1].strip()
+        elif line.startswith("Serialized T:"):
+            T_json = line.split("Serialized T: ")[1].strip()
+        elif line.startswith("Serialized GroupManager:"):
+            gm_json = line.split("Serialized GroupManager: ")[1].strip()
+
+    A, T = deserialize_data(A_json, T_json)
+    gm = deserialize_gm(gm_json)
+
+    return A, T, gm
 
 
 # 🎯 主程序
 if __name__ == "__main__":
+    ui = sys.argv[1]
+    ui = json.loads(ui)
+    # print(ui)
+    ui = [int(num) for num in ui]    
+
+    user_id = sys.argv[2]
+    user_id = json.loads(user_id)
+    # print(user_id)
     params = SPCEParams(n=2, epsilon=0.1, t=2)
-    D = ['sss']
 
-    # 生成主公钥 pk 和私钥 alpha
-    (A, T), alpha = spce_gen(params, D)
-    gm = GroupManager(params, D)
 
-    # ✅ 序列化 A 和 T
-    A_json, T_json = serialize_data(A, T)
-    print("Serialized A:", A_json)
-    print("Serialized T:", T_json)
+    userDir = 'D:'
+    saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"
+    with open(saveDir + user_id + '_SPCE.json', 'r') as file:
+        data = json.load(file)
+    user_dict = data["user"]
+    user = UserKey(params)
+    user.t = user_dict["t"]
+    user.sk = user_dict["sk"]
+    user.pk = multiply(G1, user.sk)
+    user.h = user_dict["h"]
+    user.coeffs = [int(coeff) for coeff in user_dict["coeffs"]]
 
-    # ✅ 反序列化 A 和 T
-    A_restored, T_restored = deserialize_data(A_json, T_json)
-
-    # ✅ 检查恢复的数据
-    assert isinstance(A_restored, tuple) and len(A_restored) == 2
-    assert isinstance(T_restored, dict)
-
-    # ✅ 序列化 GroupManager
-    gm_json = serialize_gm(gm)
-    print("Serialized GroupManager:", gm_json)
-
-    # 保存 alpha 到文件
-    alpha_file_path = './easychat-java/src/main/java/com/easychat/SPCE/alpha.json'
-    save_alpha(alpha, alpha_file_path)
-
-#
-#     # 后续读取 alpha
-#     loaded_alpha = load_alpha(alpha_file_path)
-#     if loaded_alpha is not None:
-#         print(f"从文件中读取到的 Alpha: {loaded_alpha}")
-#     else:
-#         print("未能从文件中读取到 Alpha")
+    vi = []
+    for u_i in ui:
+        v_i = user.evaluate(u_i)    
+        vi.append(v_i)
+    print(vi)
+      
+       

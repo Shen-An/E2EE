@@ -22,6 +22,8 @@ import {
   onGenUserKey,
   onComputeHash,
   dataForPython,
+  computeCommit,
+  getUserPk,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
@@ -191,6 +193,8 @@ function createWindow() {
   onGenUserKey()
   onComputeHash()
   dataForPython()
+  computeCommit()
+  getUserPk()
 }
 
 // This method will be called when Electron has finished

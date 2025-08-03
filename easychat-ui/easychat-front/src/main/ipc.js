@@ -20,7 +20,7 @@ import { loadECDHFromPrivateKey } from './ReadShareKey'
 import { deriveAESKey } from './AES'
 import { execute, readDataFromFile } from './SPCGSwTT/UserKey'
 import { computeHash } from './SPCGSwTT/computeHash'
-import { executeScript } from './SPCGSwTT/execPythonScript'
+import { exeComputeCommitScript, exeEncScript } from './SPCGSwTT/execPythonScript'
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -297,7 +297,7 @@ const dataForPython = () => {
     ipcMain.on("dataForPython", async (e, dataFromVue) => {
         console.log(`接收到的数据: ${dataFromVue}`);
         try {
-            const result = await executeScript(JSON.parse(dataFromVue));
+            const result = await exeEncScript(JSON.parse(dataFromVue));
             console.log(`脚本输出: ${result}`);
             e.sender.send("dataForPythonCallback", result);
         } catch (error) {
@@ -305,6 +305,27 @@ const dataForPython = () => {
         }
     });
 }
+
+const computeCommit = () => {
+    ipcMain.on("computeCommit", async (e, data) => {
+        try {
+            console.log("接收到的数据1: ", data);
+            const result = await exeComputeCommitScript(data);
+            console.log(`脚本输出: ${result}`);
+            e.sender.send("computeCommitCallback", result);
+        } catch (error) {
+            console.error(error);
+        }
+    });
+}
+const getUserPk = () => {
+    ipcMain.on("getUserPk", async (e, data) => {
+        const userKey = readDataFromFile()
+        console.log("getUserPk", userKey.user.h)
+        e.sender.send("getUserPkCallback", userKey.user.h)
+    })
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -331,5 +352,7 @@ export {
     onAddLocalMessage4NoReadCount,
     onGenUserKey,
     onComputeHash,
-    dataForPython
+    dataForPython,
+    computeCommit,
+    getUserPk
 }

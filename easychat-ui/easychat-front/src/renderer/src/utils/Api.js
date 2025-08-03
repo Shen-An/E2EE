@@ -52,5 +52,6 @@ const api = {
     filter:'/CuckooFilter/filter',//过滤敏感词
     SPCEGetpk:'/SPCE/getPk',//获取SPCE公钥,
     SPCESendCt:'/SPCE/sendCt',//发送SPCE密文
+    SPCESendCommit:'/SPCE/sendCommit',//发送SPCE承诺
 }
 export default api
