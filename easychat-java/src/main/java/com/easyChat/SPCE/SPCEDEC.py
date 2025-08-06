@@ -155,7 +155,7 @@ class GroupManager:
         if tag not in self.records:
             return None
         if self.records[tag]['count'] < self.params.t:
-            print(f"用户{tag[:8]}... 非法次数不足{self.params.t}次，当前次数：{self.records[tag]['count']}")
+            print(f"用户{tag[:8]}... 剩余次数不足{self.params.t}次，当前非法次数：{self.records[tag]['count']}")
             return None
         points = self.records[tag]['points'][:self.params.t]  # 取前 t 个点
         h_recovered = lagrange_interpolation(points)
@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
 #     print(ct_decoded)
 # #
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
 
     alpha_file_path = './easychat-java/src/main/java/com/easychat/SPCE/alpha.json'
     alpha = load_alpha(alpha_file_path)
@@ -355,6 +355,7 @@ if __name__ == "__main__":
         if h_recovered:
             assert h_recovered == int(float(user_pk))
             print(f"\n追踪成功！用户公钥哈希：{h_recovered}\n")
+            break
 
 
 # #     print(ui)

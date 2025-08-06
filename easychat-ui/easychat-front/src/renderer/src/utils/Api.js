@@ -53,5 +53,6 @@ const api = {
     SPCEGetpk:'/SPCE/getPk',//获取SPCE公钥,
     SPCESendCt:'/SPCE/sendCt',//发送SPCE密文
     SPCESendCommit:'/SPCE/sendCommit',//发送SPCE承诺
+    addIllegalTrace:'/SPCE/addIllegalTrace',//添加非法信息
 }
 export default api

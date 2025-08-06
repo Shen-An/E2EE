@@ -140,7 +140,7 @@ class GroupManager:
         if tag not in self.records:
             return None
         if self.records[tag]['count'] < self.params.t:
-            print(f"用户{tag[:8]}... 非法次数不足{self.params.t}次，当前次数：{self.records[tag]['count']}")
+            print(f"用户{tag[:8]}... 非法次数不足{self.params.t}次，当前已违规次数：{self.records[tag]['count']}")
             return None
         points = self.records[tag]['points'][:self.params.t]  # 取前 t 个点
         h_recovered = lagrange_interpolation(points)
@@ -210,7 +210,7 @@ def load_alpha(file_path):
 
 # 🎯 主程序
 if __name__ == "__main__":
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
     D = ['sss']
 
     # 生成主公钥 pk 和私钥 alpha

@@ -35,7 +35,7 @@ class UserKey:
         }
 
 if __name__ == "__main__":
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
     user = UserKey(params)
     tag = sha256(str(user.pk).encode()).hexdigest()  # 用户标识
 

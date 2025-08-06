@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
 #     print(ct_decoded)
 
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
 
     alpha_file_path = './easychat-java/src/main/java/com/easychat/SPCE/alpha.json'
     alpha = load_alpha(alpha_file_path)

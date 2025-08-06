@@ -102,8 +102,8 @@ import { ref, reactive, getCurrentInstance, nextTick, onMounted } from 'vue'
 import { md5 } from 'js-md5'
 import { useUserInfoStore } from '@/stores/UserInfoStore'
 import { useRouter } from 'vue-router'
-import {useSPCEKeyGenStore} from '@/stores/SPCEKeyGenStore'
-const  SPCEKeyGenStore = useSPCEKeyGenStore()
+import { useSPCEKeyGenStore } from '@/stores/SPCEKeyGenStore'
+const SPCEKeyGenStore = useSPCEKeyGenStore()
 const router = useRouter()
 const userInfoStore = useUserInfoStore()
 const { proxy } = getCurrentInstance()
@@ -234,15 +234,29 @@ const submit = async () => {
   }
 }
 //监听生成用户key的回调
-const ongenUserKeyCallback = ()=>{
-  window.ipcRenderer.on('genUserKeyCallback', (e, data) => {
+const ongenUserKeyCallback = () => {
+  window.ipcRenderer.on('genUserKeyCallback', async (e, data) => {
     console.log('genUserKeyCallback:', data)
     //存入store
-    SPCEKeyGenStore.setSPCEKeyGen("user",data.user)
-    SPCEKeyGenStore.setSPCEKeyGen("tag",data.tag)
+    SPCEKeyGenStore.setSPCEKeyGen('user', data.user)
+    SPCEKeyGenStore.setSPCEKeyGen('tag', data.tag)
     //验证
     // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("user"))
     // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("tag"))
+
+    //把user_hash_pk发送给服务器
+    // console.log('验证:', SPCEKeyGenStore.getSPCEKeyGen('user'))
+    let resp1 = await proxy.Request({
+      url: proxy.Api.addIllegalTrace,
+      params: {
+        userId: userInfoStore.getInfo().userId,
+        userPk: data.user.pk,
+      }
+    })
+    if (!resp1) {
+      return
+    }
+    console.log('addIllegalTrace:', resp1)
   })
 }
 const generateKeys = async () => {

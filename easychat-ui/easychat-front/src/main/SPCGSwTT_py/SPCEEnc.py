@@ -254,7 +254,7 @@ def deserialize_ct(ct_json):
 
 # 🎯 主程序
 if __name__ == "__main__":
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
     # 解析传入的 JSON 字符串
     A_restored, T_restored = deserialize_data(sys.argv[1], sys.argv[2])
     words = json.loads(sys.argv[3])

@@ -1,5 +1,6 @@
 package com.easyChat.controller;
 
+import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.entity.po.EcdhPks;
 import com.easyChat.entity.query.EcdhPksQuery;
 import com.easyChat.entity.vo.ResponseVo;
@@ -22,7 +23,7 @@ public class EcdhPksController extends ABaseController {
 
 	@Resource
 	private EcdhPksService ecdhPksService;
-
+	@GlobalInterceptor
 	@RequestMapping("loadPkDataList")
 	public ResponseVo loadPkDataList(EcdhPksQuery query) {
 		return getSuccessResponseVo(ecdhPksService.findListByPage(query));
@@ -30,7 +31,7 @@ public class EcdhPksController extends ABaseController {
 	/**
 	 * 新增
 	 */
-
+	@GlobalInterceptor
 	@RequestMapping("addPk")
 	public ResponseVo addPk(EcdhPks bean) {
 		this.ecdhPksService.add(bean);
@@ -40,7 +41,7 @@ public class EcdhPksController extends ABaseController {
 	/**
 	 * 批量新增
 	 */
-
+	@GlobalInterceptor
 	@RequestMapping("addBatch")
 	public ResponseVo addBatch(@RequestBody List<EcdhPks> listBean) {
 		this.ecdhPksService.addBatch(listBean);
@@ -50,7 +51,7 @@ public class EcdhPksController extends ABaseController {
 	/**
 	 * 批量新增或修改
 	 */
-
+	@GlobalInterceptor
 	@RequestMapping("addOrUpdateBatch")
 	public ResponseVo addOrUpdateBatch(@RequestBody List<EcdhPks> listBean) {
 		this.ecdhPksService.addOrUpdateBatch(listBean);

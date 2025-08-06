@@ -1,8 +1,13 @@
 package com.easyChat.controller;
 
+import com.easyChat.anotation.GlobalInterceptor;
 import com.easyChat.constants.Constants;
+import com.easyChat.entity.dto.TokenUserInfoDto;
+import com.easyChat.entity.po.SpceIllegalTrace;
+import com.easyChat.entity.query.SpceIllegalTraceQuery;
 import com.easyChat.entity.vo.ResponseVo;
 import com.easyChat.enums.ResponseCodeEnum;
+import com.easyChat.service.SpceIllegalTraceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,10 +33,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/SPCE")
 public class SPCEController extends ABaseController {
+    @Resource
+    private SpceIllegalTraceService spceIllegalTraceService;
+
     private static final String FILE_PATH = Constants.FILEPATH;
     private String pythonPath = "D:\\Anaconda\\python.exe";
     String PYTHON_SCRIPT_PATH = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\";
 
+    @GlobalInterceptor
     @RequestMapping("/getPk")
     public ResponseVo downloadPythonOutput() {
         try {
@@ -46,6 +57,7 @@ public class SPCEController extends ABaseController {
         }
     }
 
+    @GlobalInterceptor
     @RequestMapping("/sendCt")
     public ResponseVo receiveJsonData(@RequestBody Map<String, Object> data) {
         try {
@@ -104,6 +116,7 @@ public class SPCEController extends ABaseController {
             return getBusinessErrorResponseVo(null, "数据处理失败");
         }
     }
+
     //处理精度丢失，转化为字符串列表
     private static List<String> parsePythonOutput1(String output) {
         List<String> resultList = new ArrayList<>();
@@ -116,8 +129,9 @@ public class SPCEController extends ABaseController {
         return resultList;
     }
 
+    @GlobalInterceptor
     @RequestMapping("/sendCommit")
-    public ResponseVo receiveData(@RequestBody Map<String, Object> data) {
+    public ResponseVo receiveData(HttpServletRequest request, @RequestBody Map<String, Object> data) {
         try {
 
             System.out.println("接收到的数据: " + data);
@@ -128,7 +142,7 @@ public class SPCEController extends ABaseController {
             String ct = null;
             String boolArr = null;
             String userPk = null;
-            if(data.containsKey("data")){
+            if (data.containsKey("data")) {
                 dataArr = data.get("data").toString();
                 dataArr = dataArr.replace("[", "");
                 dataArr = dataArr.replace("]", "");
@@ -148,13 +162,13 @@ public class SPCEController extends ABaseController {
                 boolArr = data.get("boolArr").toString();
                 System.out.println("boolArr: " + boolArr);
             }
-            if(data.containsKey("userPk")){
+            if (data.containsKey("userPk")) {
                 userPk = data.get("userPk").toString();
             }
             String PYTHON_SCRIPT_PATH_DECPy = PYTHON_SCRIPT_PATH + "SPCEDEC.py";
             // 调用 Python 脚本并传递参数
             if (data != null) {
-                ProcessBuilder pb = new ProcessBuilder(pythonPath, PYTHON_SCRIPT_PATH_DECPy, tag, ct, boolArr,dataArr,userPk);
+                ProcessBuilder pb = new ProcessBuilder(pythonPath, PYTHON_SCRIPT_PATH_DECPy, tag, ct, boolArr, dataArr, userPk);
                 Process process = pb.start();
 
                 // 获取脚本的输出
@@ -171,8 +185,33 @@ public class SPCEController extends ABaseController {
                     System.out.println("Python 脚本执行成功，输出如下:");
                     System.out.println(output.toString());
 
-                    // 解析 Python 脚本输出
-                    Object result = parsePythonOutput(output.toString());
+
+
+                    TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+                    Integer illegalCount = spceIllegalTraceService.getSpceIllegalTraceByUserId(tokenUserInfoDto.getUserId()).getIllegalCount();
+                    Integer temp = illegalCount;
+
+                    if (illegalCount > 0) {
+                        if (output.toString().contains("追踪成功！用户公钥哈希：")) {
+                            illegalCount = 0;
+                        } else if (output.toString().contains("当前非法次数：2")) {
+                            illegalCount = illegalCount - 2;
+                        } else if (output.toString().contains("当前非法次数：1")) {
+                            illegalCount = illegalCount - 1;
+                        }
+                    }
+
+                    if (illegalCount < 0) {
+                        illegalCount = 0;
+                    }
+                    //只有非法次数改变才会更新
+                    if (temp != illegalCount) {
+                        SpceIllegalTrace spceIllegalTrace = new SpceIllegalTrace();
+                        spceIllegalTrace.setUserId(tokenUserInfoDto.getUserId());
+                        spceIllegalTrace.setIllegalCount(illegalCount);
+                        spceIllegalTraceService.updateSpceIllegalTraceByUserId(spceIllegalTrace, tokenUserInfoDto.getUserId());
+                    }
+
 //                    System.out.println(result);
                     return getSuccessResponseVo(null);
                 } else {
@@ -186,6 +225,27 @@ public class SPCEController extends ABaseController {
             // 处理异常情况
             return getServerErrorResponseVo(null);
         }
+    }
+
+//    @GlobalInterceptor
+//    @RequestMapping("loadDataList")
+//    public ResponseVo loadDataList(SpceIllegalTraceQuery query) {
+//        return getSuccessResponseVo(spceIllegalTraceService.findListByPage(query));
+//    }
+
+    /**
+     * 新增
+     */
+    @GlobalInterceptor
+    @RequestMapping("addIllegalTrace")
+    public ResponseVo add(HttpServletRequest request, SpceIllegalTrace bean) {
+        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+        SpceIllegalTraceQuery spceIllegalTraceQuery = new SpceIllegalTraceQuery();
+        spceIllegalTraceQuery.setUserId(tokenUserInfoDto.getUserId());
+        if (spceIllegalTraceService.findCountByParam(spceIllegalTraceQuery) != 1) {
+            this.spceIllegalTraceService.add(bean);
+        }
+        return getSuccessResponseVo(null);
     }
 
     private List<BigInteger> parsePythonOutput(String output) {
@@ -205,4 +265,53 @@ public class SPCEController extends ABaseController {
         }
         return resultList;
     }
+//    /**
+//     * 批量新增
+//     */
+//
+//    @RequestMapping("addBatch")
+//    public ResponseVo addBatch(@RequestBody List<SpceIllegalTrace> listBean) {
+//        this.spceIllegalTraceService.addBatch(listBean);
+//        return getSuccessResponseVo(null);
+//    }
+//
+//    /**
+//     * 批量新增或修改
+//     */
+//
+//    @RequestMapping("addOrUpdateBatch")
+//    public ResponseVo addOrUpdateBatch(@RequestBody List<SpceIllegalTrace> listBean) {
+//        this.spceIllegalTraceService.addOrUpdateBatch(listBean);
+//        return getSuccessResponseVo(null);
+//    }
+//
+//    /**
+//     * 根据UserId查询
+//     */
+//
+//    @RequestMapping("getSpceIllegalTraceByUserId")
+//    public ResponseVo getSpceIllegalTraceByUserId(String userId) {
+//        return getSuccessResponseVo(this.spceIllegalTraceService.getSpceIllegalTraceByUserId(userId));
+//    }
+//
+//    /**
+//     * 根据UserId更新
+//     */
+//
+//    @RequestMapping("updateSpceIllegalTraceByUserId")
+//    public ResponseVo updateSpceIllegalTraceByUserId(SpceIllegalTrace bean, String userId) {
+//        this.spceIllegalTraceService.updateSpceIllegalTraceByUserId(bean,userId);
+//        return getSuccessResponseVo(null);
+//    }
+//
+//    /**
+//     * 根据UserId删除
+//     */
+//
+//    @RequestMapping("deleteSpceIllegalTraceByUserId")
+//    public ResponseVo deleteSpceIllegalTraceByUserId(String userId) {
+//        this.spceIllegalTraceService.deleteSpceIllegalTraceByUserId(userId);
+//        return getSuccessResponseVo(null);
+//    }
+
 }

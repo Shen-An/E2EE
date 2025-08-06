@@ -275,7 +275,7 @@ if __name__ == "__main__":
     user_id = sys.argv[2]
     user_id = json.loads(user_id)
     # print(user_id)
-    params = SPCEParams(n=2, epsilon=0.1, t=2)
+    params = SPCEParams(n=2, epsilon=0.1, t=3)
 
 
     userDir = 'D:'
