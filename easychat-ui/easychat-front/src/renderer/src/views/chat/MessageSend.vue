@@ -95,6 +95,8 @@ import { useSysSettingStore } from '@/stores/SysSettingStore'
 import { useAESKeyStore } from '@/stores/AESKeyStore'
 const AESKeyStore = useAESKeyStore()
 import { ArrayToWordArray2Hex, encryptMessage, decryptMessage, isCiphertext } from '@/utils/AES'
+
+
 const sysSettingStore = useSysSettingStore()
 
 const props = defineProps({
@@ -274,11 +276,24 @@ const sendMessageDo = async (
 
 //定义一个数组，与密文一起发送给服务器，判断是否在布谷鸟过滤器中，顺序一一对应
 const boolArr = []
+
+
+const segmentation=(word)=>{
+  window.ipcRenderer.send('segmentation',word)
+  return new Promise((resolve, reject) => {
+    window.ipcRenderer.on('segmentationCallback', (e, data) => {
+      console.log('分词结果:', data)
+      window.ipcRenderer.removeAllListeners('segmentationCallback')
+      resolve(data)
+    })
+  })
+}
+
 //添加消息过滤
 const addMessageFilter = async (messageContent) => {
-  const words = splitText('zh', messageContent)
-  console.log(words)
 
+  const words = await segmentation(messageContent)
+  
   const hashCodeStr = []
   for (let str of words) {
     hashCodeStr.push(await computeHash(str))
@@ -358,7 +373,7 @@ const processFileContent = async (content, messageContent) => {
     console.log('Serialized A:', serializedA)
     console.log('Serialized T:', serializedT)
     console.log('Serialized GroupManager:', serializedGroupManager)
-    const words = splitText('zh', messageContent)
+    const words = await segmentation(messageContent)
     await addMessageFilter(messageContent)
     // console.log("dataForPython",boolArr)
     // 假设你要将这些数据传递给 Python 进行处理
@@ -375,15 +390,16 @@ const processFileContent = async (content, messageContent) => {
     console.error('响应数据中缺少 body 字段')
   }
 }
-const splitText = (locales, text) => {
-  const segments = Array.from(new Intl.Segmenter(locales, { granularity: 'word' }).segment(text))
+// 另一种分词技术
+// const splitText = (locales, text) => {
+//   const segments = Array.from(new Intl.Segmenter(locales, { granularity: 'word' }).segment(text))
 
-  // 提取词语并过滤非词语内容
-  const words = segments.filter((seg) => seg.isWordLike).map((seg) => seg.segment)
+//   // 提取词语并过滤非词语内容
+//   const words = segments.filter((seg) => seg.isWordLike).map((seg) => seg.segment)
 
-  return words
-  // console.log(words);
-}
+//   return words
+//   // console.log(words);
+// }
 
 const computeHash = (word) => {
   window.ipcRenderer.send('computeHash', word)

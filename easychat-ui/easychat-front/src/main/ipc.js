@@ -21,6 +21,10 @@ import { deriveAESKey } from './AES'
 import { execute, readDataFromFile } from './SPCGSwTT/UserKey'
 import { computeHash } from './SPCGSwTT/computeHash'
 import { exeComputeCommitScript, exeEncScript } from './SPCGSwTT/execPythonScript'
+
+const { load, cut } = require('@node-rs/jieba');
+
+load();
 //注册一个回调函数，当登录或注册时调用，传递一个布尔值参数，表示是登录还是注册
 const onLoginOrRegister = (callback) => {
     ipcMain.on('loginOrRegister', (event, isLogin) => {
@@ -326,6 +330,18 @@ const getUserPk = () => {
     })
 }
 
+const segmentation = ()=>{
+    ipcMain.on("segmentation", async (e, data) => {
+        let res = cut(data, false);
+
+        // 过滤掉标点符号
+        const punctuationRegex = /[^\p{L}\p{N}]+/u;
+        let filteredRes = res.filter(word => !punctuationRegex.test(word));
+        e.sender.send("segmentationCallback", filteredRes);
+    })
+
+}
+
 export {
     onLoginOrRegister,
     onLoginSuccess,
@@ -354,5 +370,6 @@ export {
     onComputeHash,
     dataForPython,
     computeCommit,
-    getUserPk
+    getUserPk,
+    segmentation
 }

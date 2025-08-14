@@ -24,6 +24,7 @@ import {
   dataForPython,
   computeCommit,
   getUserPk,
+  segmentation,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
@@ -195,6 +196,7 @@ function createWindow() {
   dataForPython()
   computeCommit()
   getUserPk()
+  segmentation()
 }
 
 // This method will be called when Electron has finished

@@ -212,7 +212,7 @@ const submit = async () => {
 
     //创建SPCE_UserKey,如果是空的，就创建
     window.ipcRenderer.send('genUserKey')
-    ongenUserKeyCallback()
+  
   } else {
     //注册成功后，创建edch keys，用于E2EE加密
     let pk = await generateKeys()
@@ -234,30 +234,81 @@ const submit = async () => {
   }
 }
 //监听生成用户key的回调
-const ongenUserKeyCallback = () => {
-  window.ipcRenderer.on('genUserKeyCallback', async (e, data) => {
-    console.log('genUserKeyCallback:', data)
-    //存入store
-    SPCEKeyGenStore.setSPCEKeyGen('user', data.user)
-    SPCEKeyGenStore.setSPCEKeyGen('tag', data.tag)
-    //验证
-    // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("user"))
-    // console.log('验证:',SPCEKeyGenStore.getSPCEKeyGen("tag"))
+// 渲染进程代码（前端）
+const MAX_RETRY = 3
+let retryTimer = null
+let retryCount = 0
 
-    //把user_hash_pk发送给服务器
-    // console.log('验证:', SPCEKeyGenStore.getSPCEKeyGen('user'))
-    let resp1 = await proxy.Request({
-      url: proxy.Api.addIllegalTrace,
-      params: {
-        userId: userInfoStore.getInfo().userId,
-        userPk: data.user.pk,
-      }
-    })
-    if (!resp1) {
-      return
+const onGenUserKeyCallback = () => {
+  window.ipcRenderer.on('genUserKeyCallback', async (e, data) => {
+    console.log('[IPC] 收到密钥回调:', data)
+    
+    // 清除之前的重试定时器
+    if (retryTimer) {
+      clearTimeout(retryTimer)
+      retryTimer = null
     }
-    console.log('addIllegalTrace:', resp1)
+
+    // 错误数据处理器
+    const handleInvalidData = async () => {
+      if (retryCount >= MAX_RETRY) {
+        console.error(`[重试终止] 已达最大重试次数 ${MAX_RETRY}`)
+        showErrorDialog('密钥生成失败: 服务器响应超时')
+        return
+      }
+      
+      retryCount++
+      console.log(`[重试 ${retryCount}/${MAX_RETRY}] 1秒后重新请求...`)
+      
+      // 使用渐近式延迟：1s → 2s → 4s
+      const delay = 1000 * Math.pow(2, retryCount - 1)
+      retryTimer = setTimeout(() => {
+        window.ipcRenderer.send('genUserKey')
+      }, delay)
+    }
+
+    try {
+      // 情况1: 收到明确错误
+      if (data?.error) {
+        console.error('[主进程报错]', data.error)
+        return await handleInvalidData()
+      }
+
+      // 情况2: 数据为空或结构不完整
+      if (!data?.user?.pk || !data?.tag) {
+        console.warn('[数据异常] 收到无效数据结构')
+        return await handleInvalidData()
+      }
+
+      // 成功情况处理
+      console.log('[成功] 收到有效密钥数据')
+      retryCount = 0 // 重置计数器
+
+      // 存储数据
+      SPCEKeyGenStore.setSPCEKeyGen('user', data.user)
+      SPCEKeyGenStore.setSPCEKeyGen('tag', data.tag)
+
+      // 发送到服务端
+      const resp = await proxy.Request({
+        url: proxy.Api.addIllegalTrace,
+        params: {
+          userId: userInfoStore.getInfo().userId,
+          userPk: data.user.pk,
+        }
+      })
+      console.log('服务端响应:', resp)
+      
+    } catch (err) {
+      console.error('[处理异常]', err)
+      await handleInvalidData()
+    }
   })
+}
+
+// 错误弹窗示例
+const showErrorDialog = (msg) => {
+  // 这里调用你的UI框架弹窗方法
+  console.error('最终错误:', msg)
 }
 const generateKeys = async () => {
   window.ipcRenderer.send('genKeys', { email: formData.value.email })
@@ -273,6 +324,7 @@ const getPK = () =>
     })
   })
 const init = () => {
+  onGenUserKeyCallback()
   window.ipcRenderer.send('setLocalStore', { key: 'prodDomain', value: proxy.Api.prodDomain })
   window.ipcRenderer.send('setLocalStore', { key: 'devDomain', value: proxy.Api.devDomain })
   window.ipcRenderer.send('setLocalStore', { key: 'prodWsDomain', value: proxy.Api.prodWsDomain })

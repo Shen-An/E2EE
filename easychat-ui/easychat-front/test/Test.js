@@ -1,15 +1,12 @@
-const { exec } = require('child_process');
+const { load, cut } = require('@node-rs/jieba');
 
-// 替换为你的Python解释器的完整路径
-const pythonPath = 'D:\\Anaconda\\python.exe';
-const readDataFromFile = () => {
-    const userDataPath = path.join(__dirname, store.getUserId()+'SPCE.json');
-    try {
-        const fileContent = fs.readFileSync(userDataPath, 'utf8');
-        return JSON.parse(fileContent);
-    } catch (error) {
-        console.error('从文件读取数据时出错:', error);
-        return null;
-    }
-};
-readDataFromFile
+load();
+
+let text = '你好,世界';
+let res = cut(text, false);
+
+// 过滤掉标点符号
+const punctuationRegex = /[^\p{L}\p{N}]+/u;
+let filteredRes = res.filter(word => !punctuationRegex.test(word));
+
+console.log(filteredRes);
