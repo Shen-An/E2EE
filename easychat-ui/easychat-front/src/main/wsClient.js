@@ -73,7 +73,7 @@ const createWs = () => {
             case 8://解散群组
             case 11://好友退出群组
             case 12://好友被踢出群组
-            case 13:
+          
                 //如果是自己发送的消息且是群聊，不处理
                 if (message.sendUserId == store.getUserId() && message.contactType == 1) {
                     break;

@@ -8,13 +8,14 @@
         <div class="user-name">{{ data.contactName }}</div>
         <div class="message-time">{{ proxy.Utils.formatDate(data.lastReceiveTime) }}</div>
       </div>
-      <div class="last-message" v-html="data.lastMessage"></div>
+      <div class="last-message" v-html="checkAndShowMessage(data.lastMessage)"></div>
     </div>
     <div class="chat-top iconfont icon-top" v-if="data.topType == 1"></div>
   </div>
 </template>
 
 <script setup>
+import { isCiphertext } from '@/utils/AES.js'
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
@@ -31,6 +32,13 @@ const props = defineProps({
     default: false
   }
 })
+
+const checkAndShowMessage = (lastMessage) => {
+ if(isCiphertext(lastMessage)) {
+    return '***************************'
+  }
+  return lastMessage
+}
 </script>
 
 <style lang="scss" scoped>

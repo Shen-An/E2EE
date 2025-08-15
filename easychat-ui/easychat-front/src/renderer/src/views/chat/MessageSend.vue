@@ -553,8 +553,10 @@ onMounted(async () => {
         tag: tag.value,
         ct: ct.value,
         boolArr: boolArr
+        
       }, // 直接传递对象，让 Request 方法根据 dataType 处理
-      dataType: 'json' // 明确设置数据类型为 json
+      dataType: 'json', // 明确设置数据类型为 json
+      showLoading: false,
     })
     if (!resp) {
       console.log('发送密文失败')
@@ -575,9 +577,10 @@ onMounted(async () => {
         ct: ct.value,
         data :data,
         boolArr: boolArr,
-        userPk: userPk.value
+        userPk: userPk.value,
       },
-      dataType: 'json'
+      dataType: 'json',
+      showLoading: false,
     })
     boolArr.length = 0
     if (!resp) {

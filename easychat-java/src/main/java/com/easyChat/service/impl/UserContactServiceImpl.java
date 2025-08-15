@@ -311,7 +311,7 @@ public class UserContactServiceImpl implements UserContactService {
             chatMessageMapper.insert(chatMessage);
 
 
-            MessageSendDto messageSendDto = CopyUtils.copy(userContact, MessageSendDto.class);
+            MessageSendDto messageSendDto = CopyUtils.copy(chatMessage, MessageSendDto.class);
             //发送给接受好友申请的人
             messageHandler.sendMessage(messageSendDto);
 

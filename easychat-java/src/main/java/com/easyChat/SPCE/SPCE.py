@@ -211,7 +211,7 @@ def load_alpha(file_path):
 # 🎯 主程序
 if __name__ == "__main__":
     params = SPCEParams(n=2, epsilon=0.1, t=3)
-    D = ['sss']
+    D = ["毒品", "钻石", "粉"]
 
     # 生成主公钥 pk 和私钥 alpha
     (A, T), alpha = spce_gen(params, D)
