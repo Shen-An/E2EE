@@ -290,7 +290,7 @@ const downLoadFile = (fileId, showCover, savePath, partType) => {
             // console.log(getResourcesPath() + "/assets/user.png");
             let resourcesPath = getResourcesPath();
             if (partType == "avatar") {
-                fs.createReadStream(resourcesPath + "/assets/user.png").pipe(stream);
+                fs.createReadStream(resourcesPath + "/assets/wx.png").pipe(stream);
             } else {
                 fs.createReadStream(resourcesPath + "/assets/404.png").pipe(stream);
             }

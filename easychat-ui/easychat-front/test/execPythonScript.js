@@ -44,7 +44,7 @@ const exeEncScript = (data) => {
 // 示例调用 2，对应之前第二个 executeScript 的逻辑
 const executeScript2 = (data) => {
     const scriptArgs = [data,'U84319281252'];
-    const pythonScriptPath = 'D:/java code/Chat/easychat-ui/easychat-front/test/2.py';
+    const pythonScriptPath = 'D:/java code/Chat/easychat-ui/easychat-front/com.easyChat.test/2.py';
     return executePythonScript(pythonScriptPath, scriptArgs);
 };
 
