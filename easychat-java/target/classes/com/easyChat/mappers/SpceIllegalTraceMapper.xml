@@ -6,15 +6,17 @@
 	<resultMap id="base_result_map" type="com.easyChat.entity.po.SpceIllegalTrace">
 		<!-- 用户id-->
 		<id column="user_id" property="userId"/>
-		<!-- 用户公钥hash-->
+		<!-- 用户公钥-->
 		<result column="user_pk" property="userPk"/>
 		<!-- 非法次数-->
 		<result column="illegal_count" property="illegalCount"/>
+		<!-- 违规时间-->
+		<result column="illegal_time" property="illegalTime"/>
 	</resultMap>
 
 	<!--通用查询列-->
 	<sql id="base_column_list">
-		user_id,user_pk,illegal_count
+		user_id,user_pk,illegal_count,illegal_time
 	</sql>
 
 	<!--基础查询条件-->
@@ -23,10 +25,13 @@
 			and user_id = #{query.userId}
 		</if>
 		<if test="query.userPk != null and query.userPk != ''">
-			and user_pk = #{query.userhPk}
+			and user_pk = #{query.userPk}
 		</if>
 		<if test="query.illegalCount != null">
 			and illegal_count = #{query.illegalCount}
+		</if>
+		<if test="query.illegalTime != null">
+			and illegal_time = #{query.illegalTime}
 		</if>
 	</sql>
 
@@ -73,6 +78,9 @@
 			<if test="bean.illegalCount != null">
 				illegal_count,
 			</if>
+			<if test="bean.illegalTime != null">
+				illegal_time,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="bean.userId != null">
@@ -83,6 +91,9 @@
 			</if>
 			<if test="bean.illegalCount != null">
 				#{bean.illegalCount},
+			</if>
+			<if test="bean.illegalTime != null">
+				#{bean.illegalTime},
 			</if>
 		</trim>
 	</insert>
@@ -100,6 +111,9 @@
 			<if test="bean.illegalCount != null">
 				illegal_count,
 			</if>
+			<if test="bean.illegalTime != null">
+				illegal_time,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="bean.userId != null">
@@ -111,6 +125,9 @@
 			<if test="bean.illegalCount != null">
 				#{bean.illegalCount},
 			</if>
+			<if test="bean.illegalTime != null">
+				#{bean.illegalTime},
+			</if>
 		</trim>
 		on DUPLICATE key update
 		<trim prefix="" suffix="" suffixOverrides=",">
@@ -120,24 +137,27 @@
 			<if test="bean.illegalCount != null">
 				illegal_count =VALUES(illegal_count),
 			</if>
+			<if test="bean.illegalTime != null">
+				illegal_time =VALUES(illegal_time),
+			</if>
 		</trim>
 	</insert>
 
 	<!-- 添加 (批量插入)-->
 	<insert id="insertBatch" parameterType="com.easyChat.entity.po.SpceIllegalTrace">
-		INSERT INTO spce_illegal_trace(user_id,user_pk,illegal_count)values
+		INSERT INTO spce_illegal_trace(user_id,user_pk,illegal_count,illegal_time)values
 		<foreach collection="list" item="item" separator=",">
-			(#{item.userId},#{item.userPk},#{item.illegalCount})
+			(#{item.userId},#{item.userPk},#{item.illegalCount},#{item.illegalTime})
 		</foreach>
 	</insert>
 
 	<!-- 批量插入或更新 (批量插入)-->
 	<insert id="insertOrUpdateBatch" parameterType="com.easyChat.entity.po.SpceIllegalTrace">
-		INSERT INTO spce_illegal_trace(user_id,user_pk,illegal_count)values
+		INSERT INTO spce_illegal_trace(user_id,user_pk,illegal_count,illegal_time)values
 		<foreach collection="list" item="item" separator="," >
-			(#{item.userId},#{item.userPk},#{item.illegalCount})
+			(#{item.userId},#{item.userPk},#{item.illegalCount},#{item.illegalTime})
 		</foreach>
-		on DUPLICATE KEY update user_id =VALUES(user_id),user_pk =VALUES(user_pk),illegal_count =VALUES(illegal_count)
+		on DUPLICATE KEY update user_id =VALUES(user_id),user_pk =VALUES(user_pk),illegal_count =VALUES(illegal_count),illegal_time =VALUES(illegal_time)
 	</insert>
 
 	<!-- 根据UserId查询-->
@@ -158,6 +178,9 @@
 			<if test="bean.illegalCount!=null">
 				illegal_count=#{bean.illegalCount},
 			</if>
+			<if test="bean.illegalTime!=null">
+				illegal_time=#{bean.illegalTime},
+			</if>
 		</set>
 		where user_id=#{userId}
 		</update>
@@ -166,6 +189,7 @@
 	<delete id="deleteByUserId">
 		delete from spce_illegal_trace where user_id=#{userId}
 	</delete>
+
 
 
 

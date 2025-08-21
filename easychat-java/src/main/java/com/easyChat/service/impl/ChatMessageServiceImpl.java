@@ -212,8 +212,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             robotChatMessage.setContactId(sendUserId);
             try{
                 //这里对接AI，实现聊天
-                String output = AIExec.execute(messageContent);
-                robotChatMessage.setMessageContent(output);
+//                String output = AIExec.execute(messageContent);
+                robotChatMessage.setMessageContent("我只是ai");
                 robotChatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
             }catch (Exception e){
                 logger.error(e.getMessage());

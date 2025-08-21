@@ -291,9 +291,11 @@ const segmentation = (word) => {
     })
   })
 }
-
+//定义一个全局的msg
+const msg = ref('')
 //添加消息过滤
 const addMessageFilter = async (messageContent) => {
+  msg.value = messageContent
   const words = await segmentation(messageContent)
 
   const hashCodeStr = []
@@ -567,22 +569,38 @@ onMounted(async () => {
     window.ipcRenderer.send('computeCommit', resp.data)
   })
 
-  window.ipcRenderer.on('computeCommitCallback', (e, data) => {
+  window.ipcRenderer.on('computeCommitCallback', async(e, data) => {
     console.log('返回结果：', data)
     // console.log('tag:', tag.value)
-    let resp = proxy.Request({
+    let resp = await proxy.Request({
       url: proxy.Api.SPCESendCommit,
       params: {
         tag: tag.value,
         ct: ct.value,
         data: data,
         boolArr: boolArr,
-        userPk: userPk.value
+        userPk: userPk.value,
       },
       dataType: 'json',
       showLoading: false
     })
     boolArr.length = 0
+    // console.log('resp:', resp)
+    if(resp.data == 0){
+      // console.log('发送违规信息，此人已被标记')
+      // console.log('发送违规信息，此人已被标记',msg.value)
+      let resp1 = await proxy.Request({
+        url: proxy.Api.addIllegalMessage,
+        params: {
+          messageContent: msg.value,
+          contactId: props.currentChatSession.contactId,
+        },
+        showLoading:false
+      })
+      if(!resp1){
+        console.log('添加违规信息失败')
+      }
+    }
     if (!resp) {
       console.log('传送承诺失败')
     }

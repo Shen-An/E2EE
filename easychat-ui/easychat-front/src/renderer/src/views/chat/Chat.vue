@@ -264,7 +264,7 @@ const onLoadChatMessage = () => {
           sessionId: currentChatSession.value.sessionId
         }
       })
-      console.log('resp:', resp)
+      // console.log('resp:', resp)
       if ('Urobot' != currentChatSession.value.contactId) {
         let resp1 = await proxy.Request({
           url: proxy.Api.loadDataList,
