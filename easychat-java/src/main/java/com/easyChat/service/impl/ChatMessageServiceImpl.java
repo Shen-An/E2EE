@@ -1,5 +1,6 @@
 package com.easyChat.service.impl;
 
+import com.easyChat.AI.AIExec;
 import com.easyChat.constants.Constants;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.MessageSendDto;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @Description:聊天信息表Service
@@ -208,10 +210,15 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             robot.setNickName(sysSettingDto.getRobotNickName());
             ChatMessage robotChatMessage = new ChatMessage();
             robotChatMessage.setContactId(sendUserId);
+            try{
+                //这里对接AI，实现聊天
+                String output = AIExec.execute(messageContent);
+                robotChatMessage.setMessageContent(output);
+                robotChatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
+            }catch (Exception e){
+                logger.error(e.getMessage());
+            }
 
-            //TODO这里对接AI，实现聊天
-            robotChatMessage.setMessageContent("我只是一个机器人无法识别您的消息");
-            robotChatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
             saveMessage(robotChatMessage, robot);
         } else {
             messageHandler.sendMessage(messageSendDto);

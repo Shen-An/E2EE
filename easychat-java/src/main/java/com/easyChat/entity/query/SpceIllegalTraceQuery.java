@@ -6,7 +6,7 @@ package com.easyChat.entity.query;
 /**
  * @Description:查询对象
  * @author:Shen-An
- * @date:2025/04/06
+ * @date:2025/04/14
  */
 public class SpceIllegalTraceQuery extends BaseQuery {
 	/**
@@ -27,6 +27,11 @@ public class SpceIllegalTraceQuery extends BaseQuery {
 	 * 非法次数
 	 */
 	private Integer illegalCount;
+
+	/**
+	 * 违规时间
+	 */
+	private Long illegalTime;
 
 	public void setUserId(String userId) {
 		this.userId = userId;
@@ -50,6 +55,14 @@ public class SpceIllegalTraceQuery extends BaseQuery {
 
 	public Integer getIllegalCount() {
 		return this.illegalCount;
+	}
+
+	public void setIllegalTime(Long illegalTime) {
+		this.illegalTime = illegalTime;
+	}
+
+	public Long getIllegalTime() {
+		return this.illegalTime;
 	}
 
 	public void setUserIdFuzzy(String userIdFuzzy) {

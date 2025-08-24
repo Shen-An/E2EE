@@ -1,0 +1,688 @@
+[33mcommit 5396f273122511dbce74b6719f2d22852c0b9db8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev03[m[33m, [m[1;31morigin/dev03[m[33m)[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Apr 14 17:05:04 2025 +0800
+
+    添加了用户被追踪到，发送信息的问题。但是收不到信息。
+
+[33mcommit bed0fd027f053d28750cca0148b11b5640381dad[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Apr 13 23:41:14 2025 +0800
+
+    添加了AI功能
+
+[33mcommit dce2dde01b3657337fbc9dd73fe60fccaa986683[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Apr 13 16:20:35 2025 +0800
+
+    修复了添加好友无显示的错误，美化了登录时显示的密文情况。
+
+[33mcommit e5129808a3063e12594a90daf3569cf6e5ac80ed[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Apr 13 15:14:19 2025 +0800
+
+    解决了初次注册后，登录时的SCPE公钥读取错误的问题。
+
+[33mcommit d112ec599c64cd3ce844a1cf9301a2a438b1eab9[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Apr 8 16:41:49 2025 +0800
+
+    可以追踪到公钥hash,数据库以及存储pk
+
+[33mcommit 66f2f1cfec6d990e20cdf8028935e56dced76b07[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Apr 6 20:46:46 2025 +0800
+
+    可以追踪到公钥hash,数据库以及存储pk
+
+[33mcommit eb9fbf1fd7de951c8658a85f5b1e71be7770725e[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Apr 4 21:22:40 2025 +0800
+
+    以及可以追踪到公钥，似乎前端SPCEKey生成有问题。
+
+[33mcommit 97b64dd838c324ab6ef7a7b89cde16dd04205238[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Apr 4 21:21:24 2025 +0800
+
+    以及可以追踪到公钥，似乎前端SPCEKey生成有问题。
+
+[33mcommit 11c17bec266ca3fc1d1da83bd1345ec1dedb7d7e[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 30 14:06:27 2025 +0800
+
+    SPCE：ct已经发送给后端
+
+[33mcommit 1946416e9e48be41196ccfebef5325bdb28e6da7[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 30 14:06:19 2025 +0800
+
+    SPCE：ct已经发送给后端
+
+[33mcommit 52b7beb3df78c66e25f836929ce98522e1437bf8[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 30 14:06:04 2025 +0800
+
+    SPCE：ct已经发送给后端
+
+[33mcommit c9692e61fd432387074015354a77082977f71489[m[33m ([m[1;32mdev02[m[33m)[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Mar 20 20:35:22 2025 +0800
+
+    解决两次加载消息导致消息“发送”两次的bug
+
+[33mcommit 2c9de280a9d7115cc0d290a48a997e2f543f42b9[m[33m ([m[1;31morigin/dev02[m[33m)[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Mar 19 23:41:30 2025 +0800
+
+    解决群聊和机器人发送消息bug，解决切换处chat页面无法收到message的bug
+
+[33mcommit b0126bff0c17d2c2249f646482c154d4a6ce5ad7[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Mar 18 17:25:36 2025 +0800
+
+    E2EE基本完成，还有一些bug显示密文
+
+[33mcommit fbe35e713064df41d234aa569f84b1816cfc98c9[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 17 23:51:32 2025 +0800
+
+    E2EE半成品，bug
+
+[33mcommit 97dfd2774d449616ba1f5b0762049fb1208d31cf[m[33m ([m[1;31morigin/dev01[m[33m, [m[1;32mdev01[m[33m)[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Mar 6 16:21:14 2025 +0800
+
+    完成未读消息数，向好友发送消息
+
+[33mcommit 0b4fa71a644b0c6e2385351c310ee178ce6a04de[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 21:55:32 2025 +0800
+
+    群详情，退出/解散群聊
+
+[33mcommit 914bc07b0bf675583f802a8d2ab7855b963e7026[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 21:55:10 2025 +0800
+
+    修正了updateParam的错误
+
+[33mcommit d9a63538068185da645fee94a704707073eeb077[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 21:54:46 2025 +0800
+
+    添加了8//解散群组
+
+[33mcommit 126a895ef98c5639bfe3c871cb63f6a9163d4236[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 21:54:15 2025 +0800
+
+    添加发送消息时，检测是否在群聊中（是否为好友并未测试）,做出了修正，根据不同的Id返回不同的CODE
+
+[33mcommit 4713f7cf9b58bce13edf02acf37b4d9ddddb77fb[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 16:28:39 2025 +0800
+
+    去掉TODO
+
+[33mcommit bce2404c5cacbf03ec9155833dcdf99534da4177[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 16:20:08 2025 +0800
+
+    我的好友列表缓存中删除好友，从好友列表缓存删除我，解决todo
+
+[33mcommit c8e42d3b85907c48de49d443f242a3423a835932[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 16:19:39 2025 +0800
+
+    无
+
+[33mcommit 39dbfd4f3932a672e89e2d3cb2e2d3813874d070[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 16:18:42 2025 +0800
+
+    修改了api错误
+
+[33mcommit 22f46afca39c0adbe97cf0c956bb0832f14500f5[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 13:09:40 2025 +0800
+
+    修改了166行sessionId写为sendUserId错误
+
+[33mcommit 9ac612e32be789e0bc269361d9d5f9f222c41b9a[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 13:08:57 2025 +0800
+
+    修改了328行 this.chatSessionUserMapper.insertOrUpdate(chatSessionUser);用来为insert的错误（无法二次拉人）
+
+[33mcommit 3471f67e040cd6639d88791561b1d1be210e0240[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 13:08:21 2025 +0800
+
+    添加了dissolutionGroup，leaveGroup
+
+[33mcommit 4f134f725592577a5e5ac522b75d925aa5918e1b[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Mar 3 12:42:55 2025 +0800
+
+    添加了addOrRemoveGroupUser
+
+[33mcommit c04f5c9d10681f2e6950bc5ce5a89e9b4b6e59c5[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:05:12 2025 +0800
+
+    群详情
+
+[33mcommit d4f1a00eb96861ee45ed0c7d94674812d2cc8ec8[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:04:54 2025 +0800
+
+    用户选择（用于群详情拉人）
+
+[33mcommit 22cc0b14ea1663007a02b6c2c033036730dd02af[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:04:23 2025 +0800
+
+    新增提示时间
+
+[33mcommit d1a31b716acb6c794652aae7e3fb713c9be9c4c5[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:04:04 2025 +0800
+
+    新增系统提示消息
+
+[33mcommit 490b377f4c48cbd4d87b89bbdb00904ede4bcc23[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:03:31 2025 +0800
+
+    新增dissolutionGroup方法
+
+[33mcommit c4daac56149b402fbc2665c775e5c6639fd3bda5[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:03:09 2025 +0800
+
+    群聊详情
+
+[33mcommit 55b1847775344ba5a5b74a92b11d2be5d20ff217[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:02:34 2025 +0800
+
+    新增测试sql
+
+[33mcommit 78869dcfe83041617502b6b2783efae2408544c9[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:02:14 2025 +0800
+
+    新增时间显示
+
+[33mcommit 8f53d1d65233b49fa5f06f2719c7f906f8a38c01[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:01:47 2025 +0800
+
+    新增updateByParam
+
+[33mcommit 70d090abb16b4f561f702ee83902c7ea88106b16[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:01:20 2025 +0800
+
+    RedisUtils新增remove方法
+
+[33mcommit 1397ed8e0c111ef782227e343dcc9412385d582d[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 23:01:00 2025 +0800
+
+    RedisComponent新增removeUserContact方法
+
+[33mcommit 9c49c35399a5ed9182446f3451c31028326fc146[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:59:58 2025 +0800
+
+    新增了dissolutionGroup方法
+
+[33mcommit 4045ace0e6389373ce39fc1a5627c10b002eb4f8[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:59:33 2025 +0800
+
+    处理了  case 9://好友加入群组
+                   case 11://好友退出群组
+                   case 12://好友被踢出群组三种情况
+
+[33mcommit d1738e1ad78a0c5a3f6c22e4e90e207ac7ebaf47[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:58:45 2025 +0800
+
+    新增了dissolutionGroup方法
+
+[33mcommit ee8966f60bde3d992c69da36a435f9b736926db4[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:56:49 2025 +0800
+
+    解决TODO：关闭WS连接 退出登录
+
+[33mcommit 6dbea629893b2a20d999dc3b947f02587edc6800[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:55:42 2025 +0800
+
+    修复了closeContext中if判断错误
+
+[33mcommit ebd1e51c7a67f9bcda597ff6e042a70d8bb92fc3[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:54:51 2025 +0800
+
+    RedisComponent新增了removeUserContact
+
+[33mcommit e721d29ce7c7a2c05f27ca6c8fcb38fd22b75e96[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:54:31 2025 +0800
+
+    RedisUtils新增了remove
+
+[33mcommit f6ae28b7484728ede125bfdc1462069f725827de[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:53:55 2025 +0800
+
+    新增了updateParam
+
+[33mcommit bf27364fa3ea1e4fb7e4933af1b352ab37ba3bdc[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 22:53:12 2025 +0800
+
+    解决了未import { useUserInfoStore } from '@/stores/UserInfoStore'的问题
+
+[33mcommit 676ef56c14fe83d5850cc5f07c8307c55c62aaa7[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Mar 2 21:12:18 2025 +0800
+
+    修复了closeContext中if判断错误
+
+[33mcommit b133e875da49691a45f0e958088261f91bdf83ff[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Mar 1 18:16:53 2025 +0800
+
+    修复了base_query_condition中的status为 ambiguous的歧义问题,对上一次的补充
+
+[33mcommit cd4ee5c3d3d06baacbf69f1b189d1615c73a3c35[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Mar 1 18:04:14 2025 +0800
+
+    修复了base_query_condition中的status为 ambiguous的歧义问题
+
+[33mcommit 8e5538634b331953c6855e7444da02d7df444428[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 27 23:06:57 2025 +0800
+
+    完成了截图上传
+
+[33mcommit 74f7b9374c0c11364088fc179fb778d730dba603[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 27 21:46:31 2025 +0800
+
+    完成了拖拽上传
+
+[33mcommit 704ad89e73c8c1a637b027bad0ea95eab0bf6045[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 27 21:46:12 2025 +0800
+
+    完成了拖拽上传
+
+[33mcommit ca7de14f7658d6393515c8ebc961dbb9fbdbb56a[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 27 21:45:25 2025 +0800
+
+    新增了一个接口getSysSetting1，用于处理根据文件类型返回响应参数，用于前端校验是否超出文件大小。
+
+[33mcommit c5caf77bebff63a76ef215c4e2964e908729dc24[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Feb 25 23:01:48 2025 +0800
+
+    完成了ui发送媒体消息，查看媒体消息02，03部分
+
+[33mcommit cd5e2a8dcafb500586c4a7b40d8382d5c1986f18[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Feb 24 23:36:52 2025 +0800
+
+    完成了ui发送媒体消息，查看媒体消息01
+
+[33mcommit 9aff3260e14eb6b900232237c371a1ada6635e70[m
+Merge: d5a4354 2ef5408
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 22 15:59:22 2025 +0800
+
+    Merge remote-tracking branch 'origin/dev01' into dev01
+
+[33mcommit d5a435482b4c9fdfb2d325f149a1ce67ebd94342[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 22 15:57:11 2025 +0800
+
+    完成了发送聊天消息03，04 并修复了app配置类AppConfig的bug--    @Value("${project.folder}")private String projectFolder;
+    以及ChatMessageMapper的updateByParam--bug
+
+[33mcommit 2ef5408ac0b29b49244bdfd933d5529d4110443d[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 22 15:57:11 2025 +0800
+
+    用于封面处理的exe文件和图标
+
+[33mcommit fe208b08fcddff1a90d413cc9981f670d008d506[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 22 15:56:29 2025 +0800
+
+    完成了前端发送媒体消息，可以保存到本地服务器目录--
+
+[33mcommit c1696481a49fac14d8059e78f89edc201cc13f39[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 22 15:55:20 2025 +0800
+
+    完成了发送媒体消息03，04 并修复了app配置类AppConfig的bug--    @Value("${project.folder}")private String projectFolder;
+    以及ChatMessageMapper的updateByParam--bug
+
+[33mcommit 8bcc7c2d3fb25873dc97fa76f11331548e9d268c[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 20 22:57:24 2025 +0800
+
+    完成了发送媒体消息02
+
+[33mcommit d18fceb2c1ddbb1ba0163a53a96e96d4aba573ba[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 20 22:57:04 2025 +0800
+
+    完成了发送媒体消息02
+
+[33mcommit 65688310f500b363039f311b024adf30274f3008[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Feb 20 13:35:45 2025 +0800
+
+    完成了发送聊天消息样式添加
+
+[33mcommit 692021318ba742765fd601ed09717f8b5f80f37e[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Feb 17 16:58:11 2025 +0800
+
+    完成了发送聊天消息02---可以发送文字消息了
+
+[33mcommit dcb9226c484a3d7e326fc4e4f9f8d08075686301[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Feb 17 12:57:36 2025 +0800
+
+    完成了发送聊天消息01
+
+[33mcommit b0a3716cbc3ebf5639291b6a65b05c6fd1d33af1[m[33m ([m[1;32mmaster[m[33m)[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 16 12:31:14 2025 +0800
+
+    完成修改昵称、群昵称
+
+[33mcommit c4749cdc08cc229e28148089106294306fc52d63[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 15 13:43:03 2025 +0800
+
+    完成了发送好友申请（netty，无需刷新）
+
+[33mcommit 0298d533f415d4621355e5588c9ad2c66acf5eae[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 15 12:39:34 2025 +0800
+
+    完成了集群环境发送消息
+
+[33mcommit 62879ee3fb766d39cf8002b2e35d8fbe0c12887d[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Feb 14 21:43:52 2025 +0800
+
+    完成了发送信息02,未测试，等待后端接口完善。
+
+[33mcommit b407f186b810f3d69b4114b85e678559b85675d0[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Feb 12 20:27:06 2025 +0800
+
+    完成了发送信息01
+
+[33mcommit 8e083d9454502bb59c0bc7a4993491b7aa4e3686[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Feb 11 22:35:20 2025 +0800
+
+    完成了会话列表
+
+[33mcommit 231f7b97e0f4ddac840c7280d92f2e9c74232bb8[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Feb 10 21:25:22 2025 +0800
+
+    去掉了console.log
+
+[33mcommit 1bc8ca12169a07a8949ad984fbd4d630e140d052[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Feb 10 20:37:47 2025 +0800
+
+    完成了 ui-将会话消息保存到本地数据库
+
+[33mcommit ba306a408fc98fb7e5c9d0c9ad5e91a59dff1035[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 9 22:02:33 2025 +0800
+
+    完成了 ws sqllite3前端
+
+[33mcommit a5bc1e617fd1f2900e6936ca88d1ebf796ecfc0e[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 8 21:40:05 2025 +0800
+
+    完成了 ws
+
+[33mcommit 6a3dc5d3d89e8bac9e02ce4b2b8da50bf37bebc9[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Feb 7 17:16:38 2025 +0800
+
+    完成了netty初始化 ws01
+
+[33mcommit 00e85f01da620bf7d987ee686482dbb48f7cf721[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Feb 5 22:56:39 2025 +0800
+
+    完成了进程间交互
+
+[33mcommit 3a22f4733b2f76b025dd2050b1e0d56895a0153b[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Feb 5 15:59:13 2025 +0800
+
+    完成了ui个人信息02
+
+[33mcommit e70a20bb68197c43a7c7214aacc35ad687f75971[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Feb 4 22:04:45 2025 +0800
+
+    完成了ui个人信息01
+
+[33mcommit 9b44eb1fb5d2e9d5dddca865b6010425de928129[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 2 23:11:46 2025 +0800
+
+    完成了接口saveUserInfo，updatePassword，logout
+
+[33mcommit 203dfdf690ca010f136cfff0ea16002d7593acdb[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 2 13:40:04 2025 +0800
+
+    完成了新的朋友
+
+[33mcommit c6c55b8890bf4e2be61c6025bfafef5cbb2088a3[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 2 13:39:33 2025 +0800
+
+    添加了一个属性contactName
+
+[33mcommit 158e5151fdf5c643ff0821e1ed4d7c82c8b4e73c[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Feb 2 13:38:38 2025 +0800
+
+    修改了批量插入错误。
+
+[33mcommit 6c100be2d06904a8008a1a1ffe174dfab03047e1[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Feb 1 21:43:16 2025 +0800
+
+    完成了联系人详情，修改了xml
+
+[33mcommit d917394e10962fa3c6e81538b0f1c2481bb623f9[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 30 20:45:33 2025 +0800
+
+    完成了getUserInfo接口
+
+[33mcommit 8277cd9c75cccdba41a10c5480e380ac43c806ad[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 29 18:22:46 2025 +0800
+
+    完成了接口getContactInfo、getContactUserInfo、delContact、addContact2Blacklist
+
+[33mcommit 01b267360dd92590507bc2970038aa4e6cb8f2b8[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 29 12:14:40 2025 +0800
+
+    完成了加载好友、群聊/02 前端getUserInfo接口后端没做...
+
+[33mcommit fe4d69bee777ad1baca78841d54915c0e005c5b6[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Jan 26 15:49:29 2025 +0800
+
+    完成了加载好友、群聊/01
+
+[33mcommit a22ddbbd7895acc43195743e57c6caa736d60470[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Jan 26 15:48:25 2025 +0800
+
+    修改了Mapper错误
+
+[33mcommit 8a9c8c08ff73120a2b12ce57ffb23432be2faff3[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Jan 26 14:43:52 2025 +0800
+
+    完成了接口loadContact/未检测
+
+[33mcommit d11c174dcc4e94790aa69c6495076dac6e0eec09[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Jan 25 21:07:13 2025 +0800
+
+    完成了接口dealWithApply/存在TODO
+
+[33mcommit 7fd70007d5e0bc1d4710fdd7f438e9981f86b96b[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Jan 24 21:09:28 2025 +0800
+
+    完成了接口loadApply
+
+[33mcommit 96a48ae83770c32a23a333edac03f02d9c51882c[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Jan 24 17:34:35 2025 +0800
+
+    完成了发送好友申请/仅发送
+
+[33mcommit b1ca0352fb40b1d9c9c652a20089ed3915cf1ad6[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 23 22:51:36 2025 +0800
+
+    修改了search接口使用CopyUtil工具类的错误
+
+[33mcommit 95a0071f3003b45117aebdbb6625a11833905809[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 23 22:50:26 2025 +0800
+
+    完成了搜索好友/群组-头像、Id、地区（如有）
+
+[33mcommit 8e1ef472491ba0c9966bbf9931dcaa5bdd5c1803[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 23 14:45:43 2025 +0800
+
+    搜索好友前后端接口联调完毕
+
+[33mcommit 3ec46c616be016b5a76a0c701a31b0777df10ea0[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 23 12:44:33 2025 +0800
+
+    增加空白页Chat图标
+
+[33mcommit f3b69fa3cf19b0a6168d351250b5846c55b6f21f[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Thu Jan 23 11:21:05 2025 +0800
+
+    添加后台托盘成功
+
+[33mcommit a7f034eb2dee5164167a742f365ad09481f85d2a[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 22 23:18:25 2025 +0800
+
+    添加置顶、最小化、最大化、关闭状态栏
+
+[33mcommit 7c1ce4438f6d698381b4920bceae25d5374a4e6a[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 22 17:00:35 2025 +0800
+
+    完成联系人管理-框架页
+
+[33mcommit c09ebc9426050acb88d36a4a327bfcdda2737a63[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 22 13:13:47 2025 +0800
+
+    修改了api.js引入store错误，修改了Login.vue中未使用async 和await错误，完成了主界面框架
+
+[33mcommit 5a2a10d79fca67760185f6934f30f72e8dad484c[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Jan 21 16:31:26 2025 +0800
+
+    no cmmmit
+
+[33mcommit 010d6a3999f9349777ffceb75617abe5ba9d021c[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Jan 21 16:29:21 2025 +0800
+
+    完成了登录注册前端06
+
+[33mcommit 76c4c11235e7ebeca1140b1a672fecb45088e3c6[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Tue Jan 21 16:28:06 2025 +0800
+
+    解决了登录和注册接口的一些问题
+
+[33mcommit 23291a0d71ab83d7eddba845231cb232abdf5a0b[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Mon Jan 20 21:52:47 2025 +0800
+
+    新增了ui，前端完成登录注册03
+
+[33mcommit e66539900de00432baa611f03d1a455d61b8aeb2[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sun Jan 19 17:26:13 2025 +0800
+
+    saveGroup,loadMyGroup,getGroupInfo接口已经添加
+
+[33mcommit 089abd69a1b3203f0e3157d3729b8791185b28bf[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Jan 18 23:08:29 2025 +0800
+
+    新增了一个saveGroup接口
+
+[33mcommit 31cc5b94baaa4ff841ea4d4b14ace87ab696eb9a[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Sat Jan 18 16:56:38 2025 +0800
+
+    完成了login及getSysSetting接口
+
+[33mcommit 4831bb6de9b4f3c2470b45f5feab867ecdff0bfc[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Jan 17 23:03:49 2025 +0800
+
+    登录注册接口完成一部分
+
+[33mcommit 3e0b5405bb918f785e14f6ff77850f04319a71eb[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Jan 17 17:26:48 2025 +0800
+
+    add some enums
+
+[33mcommit 539eadd972b28ef24830d0e12c76dd1cedde0955[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Fri Jan 17 14:41:12 2025 +0800
+
+    完成了第一个controller的验证码接口
+
+[33mcommit c3c3bbeaec77bd8de34158842167ea9030bc6526[m
+Author: Shen -An <11777303+shen--an@user.noreply.gitee.com>
+Date:   Wed Jan 1 16:54:26 2025 +0800
+
+    first commit

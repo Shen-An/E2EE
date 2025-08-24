@@ -132,6 +132,18 @@ public class SPCEController extends ABaseController {
     @GlobalInterceptor
     @RequestMapping("/sendCommit")
     public ResponseVo receiveData(HttpServletRequest request, @RequestBody Map<String, Object> data) {
+        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+        Integer illegalCount = spceIllegalTraceService.getSpceIllegalTraceByUserId(tokenUserInfoDto.getUserId()).getIllegalCount();
+        Long currentTime = System.currentTimeMillis();
+        //当前时间-违规时间>7天，则恢复次数
+        SpceIllegalTrace spceIllegalTrace = spceIllegalTraceService.getSpceIllegalTraceByUserId(tokenUserInfoDto.getUserId());
+        if(spceIllegalTrace.getIllegalTime() != null){
+            if(currentTime-spceIllegalTrace.getIllegalTime() >Constants.MILLS_SECONDS_3DAYS_AGO/3*7){
+                spceIllegalTrace.setIllegalCount(3);
+                spceIllegalTraceService.updateSpceIllegalTraceByUserId(spceIllegalTrace, tokenUserInfoDto.getUserId());
+            }
+        }
+
         try {
 
             System.out.println("接收到的数据: " + data);
@@ -144,9 +156,15 @@ public class SPCEController extends ABaseController {
             String userPk = null;
             if (data.containsKey("data")) {
                 dataArr = data.get("data").toString();
+
+                dataArr = dataArr.replace("\r\n", "");
                 dataArr = dataArr.replace("[", "");
                 dataArr = dataArr.replace("]", "");
                 System.out.println("dataArr: " + dataArr);
+                if (dataArr.length() == 0) {
+                    //如果dataArr不存在，即vi不存在，那么没有非法的，退出即可
+                    return getSuccessResponseVo(illegalCount);
+                }
             }
             if (data.containsKey("tag")) {
                 tag = data.get("tag").toString();
@@ -186,9 +204,6 @@ public class SPCEController extends ABaseController {
                     System.out.println(output.toString());
 
 
-
-                    TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-                    Integer illegalCount = spceIllegalTraceService.getSpceIllegalTraceByUserId(tokenUserInfoDto.getUserId()).getIllegalCount();
                     Integer temp = illegalCount;
 
                     if (illegalCount > 0) {
@@ -200,20 +215,26 @@ public class SPCEController extends ABaseController {
                             illegalCount = illegalCount - 1;
                         }
                     }
-
+                    //一句话不包含三个非法字符，则恢复
+                    if (illegalCount < 3 && illegalCount > 0) {
+                        illegalCount = 3;
+                    }
                     if (illegalCount < 0) {
                         illegalCount = 0;
                     }
-                    //只有非法次数改变才会更新
-                    if (temp != illegalCount) {
-                        SpceIllegalTrace spceIllegalTrace = new SpceIllegalTrace();
+
+                    //只有非法次数改变，或者用户违规才会更新
+                    if (temp != illegalCount ||output.toString().contains("追踪成功！用户公钥哈希：")) {
+                        spceIllegalTrace = new SpceIllegalTrace();
                         spceIllegalTrace.setUserId(tokenUserInfoDto.getUserId());
                         spceIllegalTrace.setIllegalCount(illegalCount);
+                        spceIllegalTrace.setIllegalTime(currentTime);
                         spceIllegalTraceService.updateSpceIllegalTraceByUserId(spceIllegalTrace, tokenUserInfoDto.getUserId());
                     }
 
+
 //                    System.out.println(result);
-                    return getSuccessResponseVo(null);
+                    return getSuccessResponseVo(illegalCount);
                 } else {
                     System.err.println("Python 脚本执行失败，退出码: " + exitCode);
                 }

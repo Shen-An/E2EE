@@ -96,7 +96,6 @@ import { useAESKeyStore } from '@/stores/AESKeyStore'
 const AESKeyStore = useAESKeyStore()
 import { ArrayToWordArray2Hex, encryptMessage, decryptMessage, isCiphertext } from '@/utils/AES'
 
-
 const sysSettingStore = useSysSettingStore()
 
 const props = defineProps({
@@ -226,7 +225,7 @@ const sendMessageDo = async (
   // console.log("99"+props.currentChatSession.contactId)
   let resp = await proxy.Request({
     url: proxy.Api.sendMessage,
-    showLoading: false,
+    showLoading: props.currentChatSession.contactId != 'Urobot' ? false : true,
     params: {
       messageContent: messageObj.messageContent,
       contactId: props.currentChatSession.contactId,
@@ -271,15 +270,19 @@ const sendMessageDo = async (
   //添加消息过滤
   // addMessageFilter(messageObj.messageContent)
   //获取SPCE公钥
-  fetchFileContentasync(messageObj.messageContent)
+  if (
+    props.currentChatSession.contactId != 'Urobot' &&
+    !props.currentChatSession.contactId.includes('G')
+  ) {
+    fetchFileContentasync(messageObj.messageContent)
+  }
 }
 
 //定义一个数组，与密文一起发送给服务器，判断是否在布谷鸟过滤器中，顺序一一对应
 const boolArr = []
 
-
-const segmentation=(word)=>{
-  window.ipcRenderer.send('segmentation',word)
+const segmentation = (word) => {
+  window.ipcRenderer.send('segmentation', word)
   return new Promise((resolve, reject) => {
     window.ipcRenderer.on('segmentationCallback', (e, data) => {
       console.log('分词结果:', data)
@@ -288,12 +291,13 @@ const segmentation=(word)=>{
     })
   })
 }
-
+//定义一个全局的msg
+const msg = ref('')
 //添加消息过滤
 const addMessageFilter = async (messageContent) => {
-
+  msg.value = messageContent
   const words = await segmentation(messageContent)
-  
+
   const hashCodeStr = []
   for (let str of words) {
     hashCodeStr.push(await computeHash(str))
@@ -543,7 +547,7 @@ onMounted(async () => {
       return
     }
     // 提取tag
-    tag.value= data.slice(0, index)
+    tag.value = data.slice(0, index)
     console.log('boolArr:', boolArr)
     // 提取ct的JSON字符串
     ct.value = data.slice(index)
@@ -553,41 +557,55 @@ onMounted(async () => {
         tag: tag.value,
         ct: ct.value,
         boolArr: boolArr
-        
       }, // 直接传递对象，让 Request 方法根据 dataType 处理
       dataType: 'json', // 明确设置数据类型为 json
-      showLoading: false,
+      showLoading: false
     })
     if (!resp) {
       console.log('发送密文失败')
     }
-  
+
     console.log('返回结果：', resp.data)
     window.ipcRenderer.send('computeCommit', resp.data)
   })
 
-  window.ipcRenderer.on('computeCommitCallback', (e, data) => {
-    
+  window.ipcRenderer.on('computeCommitCallback', async(e, data) => {
     console.log('返回结果：', data)
     // console.log('tag:', tag.value)
-    let resp = proxy.Request({
+    let resp = await proxy.Request({
       url: proxy.Api.SPCESendCommit,
-      params: { 
+      params: {
         tag: tag.value,
         ct: ct.value,
-        data :data,
+        data: data,
         boolArr: boolArr,
         userPk: userPk.value,
       },
       dataType: 'json',
-      showLoading: false,
+      showLoading: false
     })
     boolArr.length = 0
+    // console.log('resp:', resp)
+    if(resp.data == 0){
+      // console.log('发送违规信息，此人已被标记')
+      // console.log('发送违规信息，此人已被标记',msg.value)
+      let resp1 = await proxy.Request({
+        url: proxy.Api.addIllegalMessage,
+        params: {
+          messageContent: msg.value,
+          contactId: props.currentChatSession.contactId,
+        },
+        showLoading:false
+      })
+      if(!resp1){
+        console.log('添加违规信息失败')
+      }
+    }
     if (!resp) {
       console.log('传送承诺失败')
     }
   })
-  window.ipcRenderer.on('getUserPkCallback',(e,data)=>{
+  window.ipcRenderer.on('getUserPkCallback', (e, data) => {
     // console.log('返回结果：', data)
     userPk.value = data
   })

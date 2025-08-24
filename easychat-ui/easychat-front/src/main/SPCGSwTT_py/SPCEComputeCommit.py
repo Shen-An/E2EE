@@ -269,6 +269,7 @@ def load_data_from_file(file_path):
 if __name__ == "__main__":
     ui = sys.argv[1]
     ui = json.loads(ui)
+    ui = [num for num in ui if num]# 去除空字符串
     # print(ui)
     ui = [int(num) for num in ui]    
 

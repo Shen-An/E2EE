@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * @Description:Mapper
  * @author:Shen-An
- * @date:2025/04/06
+ * @date:2025/04/14
  */
 public interface SpceIllegalTraceMapper<T, P> extends BaseMapper {
 	/**
@@ -22,6 +22,7 @@ public interface SpceIllegalTraceMapper<T, P> extends BaseMapper {
 	 * 根据UserId删除
 	 */
 	Integer deleteByUserId(@Param("userId") String userId);
+
 
 
 }
