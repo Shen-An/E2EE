@@ -38,8 +38,8 @@ public class InitRun implements ApplicationRunner {
             String pythonPath = "D:\\Anaconda\\python.exe";
             String scriptPath = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\SPCE.py";
             String result = SPCEGEN.executePythonScript(pythonPath, scriptPath);
-            System.out.println("Python输出：");
-            System.out.println(result);
+//            System.out.println("Python输出：");
+//            System.out.println(result);
 
             // 将 Python 输出写入文件
             String filePath = Constants.FILEPATH;

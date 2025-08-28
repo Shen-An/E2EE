@@ -2,6 +2,7 @@ package com.easyChat.service.impl;
 
 import com.easyChat.AI.AIExec;
 import com.easyChat.constants.Constants;
+import com.easyChat.controller.CuckooFilterController;
 import com.easyChat.entity.config.AppConfig;
 import com.easyChat.entity.dto.MessageSendDto;
 import com.easyChat.entity.dto.SysSettingDto;
@@ -25,6 +26,7 @@ import com.easyChat.utils.CopyUtils;
 import com.easyChat.utils.DateUtils;
 import com.easyChat.utils.StringTools;
 import com.easyChat.websocket.MessageHandler;
+import com.huaban.analysis.jieba.JiebaSegmenter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +61,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Resource
     private AppConfig appConfig;
     @Resource
-    private UserContactMapper<UserContact,UserContactQuery> userContactMapper;
+    private UserContactMapper<UserContact, UserContactQuery> userContactMapper;
+    @Resource
+    private CuckooFilterController cuckooFilterController;
 
     /**
      * 聊天信息表根据条件查询列表
@@ -210,12 +214,44 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             robot.setNickName(sysSettingDto.getRobotNickName());
             ChatMessage robotChatMessage = new ChatMessage();
             robotChatMessage.setContactId(sendUserId);
-            try{
-                //这里对接AI，实现聊天
-                String output = AIExec.execute(messageContent);
-                robotChatMessage.setMessageContent(output);
+            try {
+                JiebaSegmenter js = new JiebaSegmenter();
+                List<String> segement = js.sentenceProcess(messageContent);
+                System.out.println(segement.toString());
+                Boolean flag = false;
+                for (Boolean bool : cuckooFilterController.isIllegal(segement)) {
+                    if (bool != null && bool) {
+                        flag = true;
+                    }
+                }
+
+                if (flag == false) {
+                    //这里对接AI，实现聊天
+                    String output = AIExec.execute(messageContent);
+                    segement = js.sentenceProcess(output);
+                    flag = false;
+                    for (Boolean bool : cuckooFilterController.isIllegal(segement)) {
+                        if (bool != null && bool) {
+                            flag = true;
+                        }
+
+
+                    }
+                    if (flag==false) {
+                        robotChatMessage.setMessageContent(output);
+                    } else {
+                        robotChatMessage.setMessageContent("很抱歉，服务器回答有误。");
+                    }
+
+
+                } else {
+                    robotChatMessage.setMessageContent("很抱歉，您的问题我无法回答。");
+                }
+//                String output = AIExec.execute(messageContent);
+//                robotChatMessage.setMessageContent(output);
                 robotChatMessage.setMessageType(MessageTypeEnum.CHAT.getType());
-            }catch (Exception e){
+
+            } catch (Exception e) {
                 logger.error(e.getMessage());
             }
 
@@ -262,24 +298,24 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         String fileName = file.getOriginalFilename();
         String fileExtName = StringTools.getFileSuffix(fileName);
         String fileRealName = messageId + fileExtName;
-        String month = DateUtils.format(new Date(chatMessage.getSendTime()),DateTimePatternEnum.YYYYMM.getPattern());
-        File folder = new File(appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE+month);
+        String month = DateUtils.format(new Date(chatMessage.getSendTime()), DateTimePatternEnum.YYYYMM.getPattern());
+        File folder = new File(appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + month);
 
 
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        File uploadFile = new File(folder.getPath()+"/"+fileRealName);
+        File uploadFile = new File(folder.getPath() + "/" + fileRealName);
 
         try {
             file.transferTo(uploadFile);
-            cover.transferTo(new File(uploadFile.getPath()+Constants.COVER_IMAGE_SUFFIX));
+            cover.transferTo(new File(uploadFile.getPath() + Constants.COVER_IMAGE_SUFFIX));
 
-        }catch (IOException e) {
-            logger.error("上传文件失败",e);
+        } catch (IOException e) {
+            logger.error("上传文件失败", e);
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
-        ChatMessage uploadInfo  = new ChatMessage();
+        ChatMessage uploadInfo = new ChatMessage();
         uploadInfo.setStatus(MessageStatusEnum.SENDED.getStatus());
         ChatMessageQuery messageQuery = new ChatMessageQuery();
         messageQuery.setMessageId(messageId);
@@ -300,10 +336,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         UserContactTypeEnum contactTypeEnum = UserContactTypeEnum.getByPrefix(contactId);
 
         //接收者contactId不同
-        if(UserContactTypeEnum.USER == contactTypeEnum && !tokenUserInfoDto.getUserId().equals(contactId)) {
+        if (UserContactTypeEnum.USER == contactTypeEnum && !tokenUserInfoDto.getUserId().equals(contactId)) {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
-        if(UserContactTypeEnum.GROUP == contactTypeEnum) {
+        if (UserContactTypeEnum.GROUP == contactTypeEnum) {
             //不在群聊中
             UserContactQuery userContactQuery = new UserContactQuery();
             userContactQuery.setUserId(tokenUserInfoDto.getUserId());
@@ -311,26 +347,26 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             userContactQuery.setContactId(contactId);
             userContactQuery.setStatus(UserContactStatusEnum.FRIEND.getStatus());
             Integer contactCount = userContactMapper.selectCount(userContactQuery);
-            if(contactCount == 0 ){
+            if (contactCount == 0) {
                 throw new BusinessException(ResponseCodeEnum.CODE_600);
             }
         }
-        String month = DateUtils.format(new Date(chatMessage.getSendTime()),DateTimePatternEnum.YYYYMM.getPattern());
-        File folder = new File(appConfig.getProjectFolder()+Constants.FILE_FOLDER_FILE+month);
-        if(!folder.exists()) {
+        String month = DateUtils.format(new Date(chatMessage.getSendTime()), DateTimePatternEnum.YYYYMM.getPattern());
+        File folder = new File(appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + month);
+        if (!folder.exists()) {
             folder.mkdirs();
         }
         String fileName = chatMessage.getFileName();
         String fileExtName = StringTools.getFileSuffix(fileName);
         String fileRealName = messageId + fileExtName;
 
-        if(showCover !=null && showCover){
-            fileRealName = fileRealName+Constants.COVER_IMAGE_SUFFIX;
+        if (showCover != null && showCover) {
+            fileRealName = fileRealName + Constants.COVER_IMAGE_SUFFIX;
         }
-        File file = new File(folder.getPath()+"/"+fileRealName);
-        if(!file.exists()) {
+        File file = new File(folder.getPath() + "/" + fileRealName);
+        if (!file.exists()) {
 //            file.mkdirs();
-            logger.info("文件不存在{}",messageId);
+            logger.info("文件不存在{}", messageId);
             throw new BusinessException(ResponseCodeEnum.CODE_602);
         }
 

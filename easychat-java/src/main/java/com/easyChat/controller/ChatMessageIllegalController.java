@@ -34,13 +34,13 @@ public class ChatMessageIllegalController extends ABaseController {
 //	/**
 //	 * 新增
 //	 */
-    @GlobalInterceptor
-    @RequestMapping("addIllegalMessage")
-    public ResponseVo add(ChatMessageIllegal bean, HttpServletRequest request) {
-        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
-        this.chatMessageIllegalService.add(bean,tokenUserInfoDto);
-        return getSuccessResponseVo(null);
-    }
+//    @GlobalInterceptor
+//    @RequestMapping("addIllegalMessage")
+//    public ResponseVo add(ChatMessageIllegal bean, HttpServletRequest request) {
+//        TokenUserInfoDto tokenUserInfoDto = getTokenUserInfo(request);
+//        this.chatMessageIllegalService.add(bean,tokenUserInfoDto);
+//        return getSuccessResponseVo(null);
+//    }
 
 //	/**
 //	 * 批量新增

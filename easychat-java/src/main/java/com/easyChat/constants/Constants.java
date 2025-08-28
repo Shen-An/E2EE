@@ -60,4 +60,6 @@ public class Constants {
     public static final Integer ONE = 1;//增加联系人
 
     public static final String FILEPATH = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\out.txt"; // 你可以根据需要修改文件路径
+
+    public static String[] D= {"钻石","毒品","粉",};
 }

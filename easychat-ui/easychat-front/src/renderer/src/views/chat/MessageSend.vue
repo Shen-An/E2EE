@@ -95,6 +95,15 @@ import { useSysSettingStore } from '@/stores/SysSettingStore'
 import { useAESKeyStore } from '@/stores/AESKeyStore'
 const AESKeyStore = useAESKeyStore()
 import { ArrayToWordArray2Hex, encryptMessage, decryptMessage, isCiphertext } from '@/utils/AES'
+import {
+    H,
+    cuckooHash,
+    randomSelfReduction,
+    symmetricEncrypt,
+    symmetricDecrypt,
+    SPCEnc
+} from '@/utils/SPCE.js';
+import { dataType } from 'element-plus/es/components/table-v2/src/common'
 
 const sysSettingStore = useSysSettingStore()
 
@@ -140,6 +149,8 @@ const sendMessage = async (e) => {
   }
   e.preventDefault()
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
+  console.log('发送消息:', messageContent)
+  SPCEncMsg(messageContent)
   //消息加密
   // console.log(!props.currentChatSession.contactId.includes('G'))
   if (
@@ -207,6 +218,7 @@ const sendMessageDo = async (
   },
   cleanMsgContent
 ) => {
+ 
   //判断文件大小
   if (!checkFileSize(messageObj.fileType, messageObj.fileSize, messageObj.fileName)) {
     return
@@ -277,10 +289,6 @@ const sendMessageDo = async (
     fetchFileContentasync(messageObj.messageContent)
   }
 }
-
-//定义一个数组，与密文一起发送给服务器，判断是否在布谷鸟过滤器中，顺序一一对应
-const boolArr = []
-
 const segmentation = (word) => {
   window.ipcRenderer.send('segmentation', word)
   return new Promise((resolve, reject) => {
@@ -291,6 +299,39 @@ const segmentation = (word) => {
     })
   })
 }
+const SPCEncMsg = async (msg) => {
+    // const msg = "你买毒品了吗";
+    console.log("原始消息:", msg);
+    let words = await segmentation(msg)
+
+    let resp1= await proxy.Request({
+      url: proxy.Api.params,
+
+    })
+    // console.log("参数:", resp1.data)
+
+    const result = await SPCEnc(msg,words, resp1.data.B, resp1.data.g, resp1.data.A);
+    let resp = await proxy.Request({
+      url: proxy.Api.receiveSpceCt,
+      params: {
+        QS0: result.QS0,
+        QS1: result.QS1,
+        encryptedMessages0: result.encryptedMessages0,
+        encryptedMessages1: result.encryptedMessages1,
+        iv0Array: result.iv0Array,
+        iv1Array: result.iv1Array,
+      },
+      dataType: 'json',
+    })
+    
+
+    console.log("加密结果:", result);
+};
+
+//定义一个数组，与密文一起发送给服务器，判断是否在布谷鸟过滤器中，顺序一一对应
+const boolArr = []
+
+
 //定义一个全局的msg
 const msg = ref('')
 //添加消息过滤
@@ -586,21 +627,21 @@ onMounted(async () => {
     })
     boolArr.length = 0
     // console.log('resp:', resp)
-    if(resp.data == 0){
-      // console.log('发送违规信息，此人已被标记')
-      // console.log('发送违规信息，此人已被标记',msg.value)
-      let resp1 = await proxy.Request({
-        url: proxy.Api.addIllegalMessage,
-        params: {
-          messageContent: msg.value,
-          contactId: props.currentChatSession.contactId,
-        },
-        showLoading:false
-      })
-      if(!resp1){
-        console.log('添加违规信息失败')
-      }
-    }
+    // if(resp.data == 0){
+    //   // console.log('发送违规信息，此人已被标记')
+    //   // console.log('发送违规信息，此人已被标记',msg.value)
+    //   let resp1 = await proxy.Request({
+    //     url: proxy.Api.addIllegalMessage,
+    //     params: {
+    //       messageContent: msg.value,
+    //       contactId: props.currentChatSession.contactId,
+    //     },
+    //     showLoading:false
+    //   })
+    //   if(!resp1){
+    //     console.log('添加违规信息失败')
+    //   }
+    // }
     if (!resp) {
       console.log('传送承诺失败')
     }

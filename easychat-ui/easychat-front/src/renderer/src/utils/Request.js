@@ -9,7 +9,7 @@ let loading = null
 const instance = axios.create({
     withCredentials: true,//跨域请求时发送cookie
     baseURL: (import.meta.env.PROD ? Api.prodDomain : "") + "/api",
-    timeout: 10*1000,//10*1000ms
+    timeout: 30*1000,//10*1000ms
 })
 //请求前拦截器
 instance.interceptors.request.use(
@@ -22,7 +22,7 @@ instance.interceptors.request.use(
             })
         }
         return config
-        
+
     },
     (error) => {
         if (config.showLoading && loading) {

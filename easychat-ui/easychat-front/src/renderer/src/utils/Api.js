@@ -54,6 +54,8 @@ const api = {
     SPCESendCt:'/SPCE/sendCt',//发送SPCE密文
     SPCESendCommit:'/SPCE/sendCommit',//发送SPCE承诺
     addIllegalTrace:'/SPCE/addIllegalTrace',//添加非法信息
-    addIllegalMessage:'/chatMessageIllegal/addIllegalMessage'
+    // addIllegalMessage:'/chatMessageIllegal/addIllegalMessage',//废弃
+    receiveSpceCt:'/SPCE/receiveSpceCt',//接收SPCE密文,最后使用版本
+    params:'/SPCE/params',//获取SPCE参数
 }
 export default api

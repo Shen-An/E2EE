@@ -293,7 +293,7 @@ const onGenUserKeyCallback = () => {
         url: proxy.Api.addIllegalTrace,
         params: {
           userId: userInfoStore.getInfo().userId,
-          userPk: data.user.pk,
+          userPk: data.user.h,
         }
       })
       console.log('服务端响应:', resp)

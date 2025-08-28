@@ -57,7 +57,7 @@ public class HandlerWebSocket extends SimpleChannelInboundHandler<TextWebSocketF
         Channel channel = ctx.channel();
         Attribute<String> attribute = channel.attr(AttributeKey.valueOf(channel.id().toString()));
         String userId = attribute.get();
-        logger.info("收到消息userId{}的信息{}",userId, textWebSocketFrame.text());
+//        logger.info("收到消息userId{}的信息{}",userId, textWebSocketFrame.text());
         redisComponent.saveHeartBeat(userId);
 //        channelContextUtils.send2Group(textWebSocketFrame.text());
     }

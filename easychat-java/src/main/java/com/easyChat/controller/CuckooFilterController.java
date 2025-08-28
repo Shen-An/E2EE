@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Vector;
 
 @RestController
@@ -26,7 +27,7 @@ public class CuckooFilterController extends ABaseController {
         String[] D = {"毒品", "钻石", "粉"};
         for (int i = 0; i < D.length; i++) {
             long itemHash = computeHash(D[i]);
-            System.out.println(itemHash);
+//            System.out.println(itemHash);
             filter.put(itemHash);
         }
     }
@@ -44,6 +45,22 @@ public class CuckooFilterController extends ABaseController {
             }
         }
         return getSuccessResponseVo(bool);
+    }
+
+    public Boolean[] isIllegal(List<String>strs){
+        Boolean[] isIllegal = new Boolean[strs.size()];
+        int i = 0;
+        for (String str : strs) {
+
+            Long hash = computeHash(str.toString());
+            if (filter.mightContain(hash)) {
+                isIllegal[i] = true;
+            }else {
+                isIllegal[i] = false;
+            }
+            i++;
+        }
+        return isIllegal;
     }
 
     private static long computeHash(String word) {

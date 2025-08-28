@@ -1,13 +1,15 @@
 import jieba
 import json
+import mysql.connector
 from cuckoofilter import CuckooFilter
 from py_ecc.bn128 import bn128_curve, multiply, add, G1, G2, FQ
 from hashlib import sha256
 import random
 import sys
 import io
-# 设置标准输出的编码为 UTF-8
+# 设置标准输出的编码为 UTF - 8
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 class SPCEParams:
     def __init__(self, n, epsilon, t):
@@ -140,26 +142,67 @@ class GroupManager:
         self.params = params
         self.D = set(D)
         self.records = {}  # 记录用户 tag 及其非法消息次数和点集
+        self.conn = mysql.connector.connect(
+            host='localhost',
+            port=3306,
+            user='root',
+            password='1234',
+            database='easychat',
+            charset='utf8mb4',  # 修改为 utf8mb4
+            collation='utf8mb4_unicode_ci'
+        )
+        self.create_table()
+
+    def create_table(self):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS violation_records (
+                tag VARCHAR(64),
+                u_i VARCHAR(90),
+                v_i VARCHAR(90),
+                count INT,
+                PRIMARY KEY (tag, u_i)
+            )
+        ''')
+        self.conn.commit()
 
     def check_illegal(self, content):
         # 检查内容是否包含非法字符
         return any(char in self.D for char in content)
 
     def record_illegal(self, tag, u_i, v_i):
-        if tag not in self.records:
-            self.records[tag] = {'count': 0, 'points': []}
-        self.records[tag]['count'] += 1
-        self.records[tag]['points'].append((u_i, v_i))
+        cursor = self.conn.cursor()
+#         print(f"插入的数据 - tag: {tag}, u_i: {u_i}, v_i: {v_i}")
+        cursor.execute('SELECT count FROM violation_records WHERE tag = %s AND u_i = %s', (tag, str(u_i)))
+        result = cursor.fetchone()
+        if result:
+            count = result[0] + 1
+            cursor.execute('UPDATE violation_records SET count = %s, v_i = %s WHERE tag = %s AND u_i = %s',
+                           (count, str(v_i), tag, str(u_i)))
+        else:
+            count = 1
+            cursor.execute('INSERT INTO violation_records (tag, u_i, v_i, count) VALUES (%s, %s, %s, %s)',
+                           (tag, str(u_i), str(v_i), count))
+        self.conn.commit()
 
     def try_trace(self, tag):
-        if tag not in self.records:
+        tag = tag.strip()
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT u_i, v_i, count FROM violation_records WHERE tag = %s', (tag,))
+        points = cursor.fetchall()
+
+        if not points:
             return None
-        if self.records[tag]['count'] < self.params.t:
-            print(f"用户{tag[:8]}... 剩余次数不足{self.params.t}次，当前非法次数：{self.records[tag]['count']}")
+        total_count = sum([point[2] for point in points])
+        if total_count < self.params.t:
+            print(f"用户{tag[:8]}... 非法次数不足{self.params.t}次，当前次数：{total_count}")
             return None
-        points = self.records[tag]['points'][:self.params.t]  # 取前 t 个点
-        h_recovered = lagrange_interpolation(points)
+        relevant_points = points[:self.params.t]
+        h_recovered = lagrange_interpolation([(int(point[0]), int(point[1])) for point in relevant_points])
         return h_recovered
+
+    def close_connection(self):
+        self.conn.close()
 
 
 def lagrange_interpolation(points, x=0):
@@ -268,22 +311,19 @@ def load_data_from_file(file_path):
 # 🎯 主程序
 if __name__ == "__main__":
 
-#     print(sys.argv[2])
     tag = sys.argv[1]
     ct_text = sys.argv[2]
     boolArr = sys.argv[3]
     boolArr = boolArr.split(",")
     dataArr = sys.argv[4]
     dataArr = dataArr.split(",")
-    print("原始输入:", dataArr)  # 调试输出
+#     print("原始输入:", dataArr)  # 调试输出
     new_array = [int(s.strip()) for s in dataArr]
-    print(new_array)
+#     print(new_array)
 
     user_pk = sys.argv[5]
-    print(user_pk)
+#     print(user_pk)
 
-
-# # #     print(boolArr)
     ct = []
     start_index = 0
 
@@ -308,54 +348,40 @@ if __name__ == "__main__":
             json_str = ct_text[start:end + 1]
             ct.append(json_str)
         start_index = end + 1
-    ct_decoded =[]
+    ct_decoded = []
     # 打印分割后的 ct 列表
     for i, item in enumerate(ct):
-#         print(f"ct[{i}]: {item}")
         ct_decoded.append(deserialize_ct(ct[i]))
 
-#     print(ct_decoded)
-# #
     params = SPCEParams(n=2, epsilon=0.1, t=3)
 
     alpha_file_path = './easychat-java/src/main/java/com/easychat/SPCE/alpha.json'
     alpha = load_alpha(alpha_file_path)
-#
+
     data_file_path = './easychat-java/src/main/java/com/easychat/SPCE/out.txt'
     A, T, gm = load_data_from_file(data_file_path)
-#
+
     userDir = 'D:'
     saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"
 
     # 解密
     count = 0
-    for i,item in enumerate(ct_decoded):
+    for i, item in enumerate(ct_decoded):
         u_i, decrypted_content = spce_decrypt(alpha, item)
-        if boolArr[i]=='True':
-#         print(u_i)
-#         print("解密后的内容:", decrypted_content)
-        #现在的任务。前端发送布谷鸟字段，vi，
-        # 检查是否非法
-#             print("ui:",u_i)
-#             v_i1 = user.evaluate(u_i)
-#             v_i2 = user.evaluate(u_i)
-#             print("v_i2",v_i2)
-#             print("v_i1",v_i1)
+        if boolArr[i] == 'True':
             v_i = new_array[count]
-#             print(v_i)
             count = count + 1
             gm.record_illegal(tag, u_i, v_i)
-#             print(gm.records)
             print(f"检测到非法内容！")
 
         # 尝试追踪
         h_recovered = gm.try_trace(tag)
-#         print(h_recovered)
-#         print(user.h)
+
         if h_recovered:
-            assert h_recovered == int(float(user_pk))
-            print(f"\n追踪成功！用户公钥哈希：{h_recovered}\n")
+            if h_recovered == int(float(user_pk)):
+                print(f"\n追踪成功！用户公钥哈希：{h_recovered}\n")
+            else:
+                print(f"追踪到公钥哈希，但与传入的 user_pk 不匹配。恢复的公钥哈希：{h_recovered}，传入的 user_pk：{user_pk}")
             break
 
-
-# #     print(ui)
+    gm.close_connection()
