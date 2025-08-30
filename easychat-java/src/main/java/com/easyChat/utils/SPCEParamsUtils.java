@@ -20,27 +20,10 @@ import static com.easyChat.utils.CuckooHashUtils.H;
 import static com.easyChat.utils.CuckooHashUtils.cuckooHash;
 
 public class SPCEParamsUtils {
-    public int g;
-    public int alpha;
+    public static int g =3;
+    public static int p = 997;
+    public static int alpha = CyclicGroupGeneratorUtils.getRandomElement(g,p)>27?5:CyclicGroupGeneratorUtils.getRandomElement(g,p);
 
-    public SPCEParamsUtils() {
-
-        g = 3;
-        alpha = 5;
-
-    }
-
-
-
-    // 随机自规约
-    public static long[] randomSelfReduction(int g, int A, long H_y, long B) {
-        // 固定beta和gamma进行测试
-        int beta = 100;
-        int gamma = 200;
-        long Q = (long) ((Math.pow(g, beta) % 1000 * Math.pow(H_y, gamma) % 1000) % 1000);
-        long S = (long) ((Math.pow(A, beta) % 1000 * Math.pow(B, gamma) % 1000) % 1000);
-        return new long[]{Q, S};
-    }
     public List<List<BigInteger>> generateB() {
         List<List<BigInteger>> B = new ArrayList<>();
         int tableSize = Constants.D.length * 100;
@@ -51,16 +34,16 @@ public class SPCEParamsUtils {
             Long index0 = cuckooHash(word, tableSize, 0);
             Long index1 = cuckooHash(word, tableSize, 1);
             long H_word = H(word);
-            B.get(Math.toIntExact(index0)).add(BigInteger.valueOf(H_word).pow(alpha).mod(BigInteger.valueOf(1000)));
+            B.get(Math.toIntExact(index0)).add(BigInteger.valueOf(H_word).pow(alpha).mod(BigInteger.valueOf(SPCEParamsUtils.p)));
 
-            B.get(Math.toIntExact(index1)).add(BigInteger.valueOf(H_word).pow(alpha).mod(BigInteger.valueOf(1000)));
+            B.get(Math.toIntExact(index1)).add(BigInteger.valueOf(H_word).pow(alpha).mod(BigInteger.valueOf(SPCEParamsUtils.p)));
         }
         return B;
     }
 
     public static void main(String[] args) {
         SPCEParamsUtils spceParamsUtils = new SPCEParamsUtils();
-        long A = (long) Math.pow(spceParamsUtils.g, spceParamsUtils.alpha) % 1000;
+        long A = (long) Math.pow(spceParamsUtils.g, spceParamsUtils.alpha) % SPCEParamsUtils.p;
         List<List<BigInteger>> B = new ArrayList<>();
         int tableSize = Constants.D.length * 100;
         for (long i = 0; i < tableSize; i++) {
@@ -71,9 +54,9 @@ public class SPCEParamsUtils {
             System.out.println(index0);
             Long index1 = cuckooHash(word, tableSize, 1);
             long H_word = H(word);
-            B.get(Math.toIntExact(index0)).add(BigInteger.valueOf(H_word).pow(spceParamsUtils.alpha).mod(BigInteger.valueOf(1000)));
+            B.get(Math.toIntExact(index0)).add(BigInteger.valueOf(H_word).pow(spceParamsUtils.alpha).mod(BigInteger.valueOf(SPCEParamsUtils.p)));
 
-            B.get(Math.toIntExact(index1)).add(BigInteger.valueOf(H_word).pow(spceParamsUtils.alpha).mod(BigInteger.valueOf(1000)));
+            B.get(Math.toIntExact(index1)).add(BigInteger.valueOf(H_word).pow(spceParamsUtils.alpha).mod(BigInteger.valueOf(SPCEParamsUtils.p)));
         }
         // 打印B数组内容
         for (int i = 0; i < tableSize; i++) {
@@ -82,11 +65,13 @@ public class SPCEParamsUtils {
         System.out.println(A);
         System.out.println(spceParamsUtils.generateB());
     }
-    public static String decrypt(int Q, String encryptedHex, String ivHex, int alpha) throws Exception {
-        // 1. 计算 S = Q^alpha mod 1000
+
+    //恢复密钥可解密
+    public static String decrypt(int Q, String encryptedHex, String ivHex) throws Exception {
+        // 1. 计算 S = Q^alpha mod SPCEParamsUtils.p
         BigInteger s = BigInteger.valueOf(Q)
-                .pow(alpha)
-                .mod(BigInteger.valueOf(1000));
+                .pow(SPCEParamsUtils.alpha)
+                .mod(BigInteger.valueOf(SPCEParamsUtils.p));
         String sStr = s.toString();
 
         // 2. PBKDF2生成AES密钥（参数与前端一致）

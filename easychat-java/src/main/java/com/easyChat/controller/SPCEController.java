@@ -38,7 +38,7 @@ public class SPCEController extends ABaseController {
     private SpceIllegalTraceService spceIllegalTraceService;
     @Resource
     private ChatMessageIllegalService chatMessageIllegalService;
-    private SPCEParamsUtils spceParamsUtils;
+
     private static final String FILE_PATH = Constants.FILEPATH;
     private String pythonPath = "D:\\Anaconda\\python.exe";
     String PYTHON_SCRIPT_PATH = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\";
@@ -47,7 +47,7 @@ public class SPCEController extends ABaseController {
     @RequestMapping("/params")
     public ResponseVo getParams() {
         SPCEParamsUtils spceParamsUtils = new SPCEParamsUtils();
-        long A = (long) Math.pow(spceParamsUtils.g, spceParamsUtils.alpha) % 1000;
+        long A = (long) Math.pow(spceParamsUtils.g, spceParamsUtils.alpha) % spceParamsUtils.p;
         List<List<BigInteger>> B = new SPCEParamsUtils().generateB();
         Map<Object, Object> map = new HashMap<>();
         map.put("g", spceParamsUtils.g);
@@ -80,7 +80,7 @@ public class SPCEController extends ABaseController {
                     int q = Integer.parseInt(QS0[i]);
                     String encryptedMsg = encryptedMessages0[i];
                     String iv = iv0Array[i];
-                    decMsg = spceParamsUtils.decrypt(q, encryptedMsg, iv, 5); // alpha=5
+                    decMsg = SPCEParamsUtils.decrypt(q, encryptedMsg, iv);
                     hasSuccess = true; // 标记存在成功
                     if (hasSuccess) {
                         System.out.println(decMsg);

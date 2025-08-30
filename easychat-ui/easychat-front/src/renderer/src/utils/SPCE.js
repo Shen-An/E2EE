@@ -13,28 +13,69 @@ const cuckooHash = (x, size, num) => {
         return (H(x) % size + 2) % size;
     }
 };
+// 生成Z_p*的所有元素 ，生成元是3，阶是素数997，这样的素数阶循环群
+const p = 997;
+const generator = 3; // 3是Z_997*的原根
+//生成群
+const generateAllElements = (generator, modulus) => {
+    const elements = new Set();
+    let element = 1;
+    let exponent = 0;
+
+    // 通过原根的幂生成所有元素
+    while (exponent < modulus - 1) {
+        elements.add(element);
+        element = (element * generator) % modulus;
+        exponent++;
+    }
+
+    // 转换为数组并排序
+    return Array.from(elements).sort((a, b) => a - b);
+}
+
+// 随机选取一个元素的函数
+const getRandomElement = (generator, modulus) => {
+    const elements = generateAllElements(generator, modulus);
+    const randomIndex = Math.floor(Math.random() * elements.length);
+    return elements[randomIndex];
+}
+// 模幂运算：计算 base^exponent % modulus
+function modPow(base, exponent, modulus) {
+    if (modulus === 1) return 0;
+
+    let result = 1;
+    base = base % modulus;
+
+    while (exponent > 0) {
+        if (exponent % 2 === 1) {
+            result = (result * base) % modulus;
+        }
+        exponent = exponent >> 1; // 右移一位相当于除以2取整
+        base = (base * base) % modulus;
+    }
+
+    return result;
+}
 
 const randomSelfReduction = (g, A, H_y, B) => {
-    const beta = 3;
-    const gamma = 5;
-    const alpha = 5;
-    const Q = ((Math.pow(g, beta) % 1000) * (Math.pow(H_y, gamma) % 1000)) % 1000;
-    const S = (Math.pow(A, beta) % 1000) * (Math.pow(B, gamma) % 1000) % 1000;
-    if (Math.pow(Q, alpha) % 1000 === S) {
-        console.log("Q 和 S 相等");
-    } else {
-        console.log(Math.pow(Q, alpha) % 1000);
-    }
+    const beta = getRandomElement(g, p);
+    const gamma = getRandomElement(g, p);
+
+    // 使用 modPow 替代 Math.pow
+    const Q = (modPow(g, beta, p) * modPow(H_y, gamma, p)) % p;
+    const S = (modPow(A, beta, p) * modPow(B, gamma, p)) % p;
+
+
     return [Q, S];
 };
 
 async function symmetricEncrypt(S, message) {
     // 将S转换为字符串，作为密钥输入
     const SStr = S.toString();
-    
+
     // 使用固定盐（16字节0）以兼容后端
     const salt = new Uint8Array(16).buffer; // 盐值全0
-    
+
     // 生成PBKDF2密钥
     const keyMaterial = await crypto.subtle.importKey(
         'raw',
@@ -55,7 +96,7 @@ async function symmetricEncrypt(S, message) {
         true,
         ['encrypt', 'decrypt']
     );
-    
+
     // 加密逻辑（保持AES-CBC，IV需传至后端）
     const iv = crypto.getRandomValues(new Uint8Array(16));
     const encrypted = await crypto.subtle.encrypt(
@@ -63,17 +104,17 @@ async function symmetricEncrypt(S, message) {
         key,
         new TextEncoder().encode(message)
     );
-    
+
     // 返回十六进制字符串
     return {
-       
+
         encryptedMessage: Array.from(new Uint8Array(encrypted), b => b.toString(16).padStart(2, '0')).join(''),
         iv: Array.from(iv, b => b.toString(16).padStart(2, '0')).join('')
     };
 }
 
 async function symmetricDecrypt(Q, alpha, encryptedMessage, iv) {
-    const S = Math.pow(Q, alpha) % 1000;
+    const S = Math.pow(Q, alpha) % 997;
     // 从 S 生成密钥
     const keyMaterial = await window.crypto.subtle.importKey(
         'raw',
@@ -163,7 +204,7 @@ async function SPCEnc(msg, words, B, g, A) {
             map0Array[i].get("B")
         );
         QS0.push(Q0);
-        const { encryptedMessage: encrypted0,iv: iv0 } = await symmetricEncrypt(S0, msg);
+        const { encryptedMessage: encrypted0, iv: iv0 } = await symmetricEncrypt(S0, msg);
         encryptedMessages0.push(encrypted0);
         iv0Array.push(iv0);
 
@@ -174,8 +215,8 @@ async function SPCEnc(msg, words, B, g, A) {
             map1Array[i].get("B")
         );
         QS1.push(Q1);
-        const { encryptedMessage: encrypted1,  iv: iv1 } = await symmetricEncrypt(S1, msg);
-        encryptedMessages1.push( encrypted1 );
+        const { encryptedMessage: encrypted1, iv: iv1 } = await symmetricEncrypt(S1, msg);
+        encryptedMessages1.push(encrypted1);
         iv1Array.push(iv1);
     }
 

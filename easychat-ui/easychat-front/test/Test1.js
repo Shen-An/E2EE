@@ -6,7 +6,7 @@ function H(x) {
     let hash = CryptoJS.SHA256(x).toString();
     // 将哈希值转换为数字并取绝对值后对1000取模
     let num = parseInt(hash, 16);
-    return Math.abs(num) % 1000;
+    return Math.abs(num) % 997;
 }
 
 
@@ -52,7 +52,7 @@ const SPCEnc = (msg, B, g, A, alpha) => {
         const index0 = cuckooHash(words[i], B.length, 0);
         const index1 = cuckooHash(words[i], B.length, 1);
 
-        const B_new0 = B[index0][0] 
+        const B_new0 = B[index0][0]
         const B_new1 = B[index1][0] || Math.pow(g, Math.ceil(Math.random() * 10));
 
         console.log("B_new0", B_new0);
