@@ -114,7 +114,7 @@ async function symmetricEncrypt(S, message) {
 }
 
 async function symmetricDecrypt(Q, alpha, encryptedMessage, iv) {
-    const S = Math.pow(Q, alpha) % 997;
+    const S = Math.pow(Q, alpha) % p;
     // 从 S 生成密钥
     const keyMaterial = await window.crypto.subtle.importKey(
         'raw',

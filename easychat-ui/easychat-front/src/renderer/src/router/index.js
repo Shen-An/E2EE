@@ -10,6 +10,11 @@ const router = createRouter({
       redirect: '/login'
     },
     {
+      path: '/test',
+      name: '测试',
+      component: () => import('@/views/Test.vue')
+    },
+    {
       path: '/login',
       name: '登录',
       component: () => import('@/views/Login.vue')
