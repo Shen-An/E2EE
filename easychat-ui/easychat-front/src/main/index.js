@@ -116,13 +116,13 @@ function createWindow() {
 
   onLoginSuccess((config) => {
     mainWindow.setResizable(true)
-    mainWindow.setSize(800, 600)
+    mainWindow.setSize(600, 450)
     //居中
     mainWindow.center()
     //可以最大化
     mainWindow.setMaximizable(true)
     //最小大小
-    mainWindow.setMinimumSize(800, 600)
+    mainWindow.setMinimumSize(600, 450)
 
     //TODO 管理后台，托盘操作
     if (config.admin) {
