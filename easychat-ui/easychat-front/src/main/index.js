@@ -25,6 +25,7 @@ import {
   computeCommit,
   getUserPk,
   segmentation,
+  openWindow,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
@@ -124,8 +125,22 @@ function createWindow() {
     //最小大小
     mainWindow.setMinimumSize(600, 450)
 
-    //TODO 管理后台，托盘操作
+    // 管理后台，托盘操作
     if (config.admin) {
+      contextMenu.unshift({
+        label: '管理后台',click: function () {
+          openWindow({
+            windowId: 'admin',
+            title:"管理后台",
+            path:"/admin",
+            width:config.screenWidth,
+            height: config.screenHeight,
+            data: {
+              token: config.token,
+            }
+          })
+        }
+      })
     }
     contextMenu.unshift({
       label: '用户:' + config.nickName, click: function () {
@@ -160,8 +175,7 @@ function createWindow() {
         break;
       }
       case "unmaximize": {
-
-        win.unmaximize()
+        win.setSize(800, 600)
         break;
       }
       case "top": {

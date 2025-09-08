@@ -25,6 +25,39 @@ const router = createRouter({
       component: () => import('@/views/show/showMedia.vue')
     },
     {
+      path: '/admin',
+      name: '管理后台',
+      redirect: '/admin/userList',
+      component: () => import('@/views/admin/Admin.vue'),
+      children: [
+        {
+          path: '/admin/userList',
+          name: '用户管理',
+          component: () => import('@/views/admin/UserList.vue')
+        }, 
+        {
+          path:'/admin/beautyAccount',
+          name: '靓号管理',
+          component: () => import('@/views/admin/BeautyAccount.vue')
+        },
+        {
+          path: '/admin/groupList',
+          name: '群组管理',
+          component: () => import('@/views/admin/GroupList.vue')
+        },
+        {
+          path: '/admin/sysSetting',
+          name: '系统设置',
+          component: () => import('@/views/admin/SysSetting.vue')
+        },
+        {
+          path:'/admin/update',
+          name: '版本管理',
+          component: () => import('@/views/admin/Update.vue')
+        }
+      ]
+    },
+    {
       path: '/main',
       name: '主界面',
       redirect: '/chat',
@@ -88,7 +121,7 @@ const router = createRouter({
           name: '关于',
           component: () => import('@/views/setting/About.vue')
         },
-      ]
+        ]
       }]
     }
   ]

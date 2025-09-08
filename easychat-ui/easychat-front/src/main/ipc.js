@@ -371,5 +371,6 @@ export {
     dataForPython,
     computeCommit,
     getUserPk,
-    segmentation
+    segmentation,
+    openWindow
 }
