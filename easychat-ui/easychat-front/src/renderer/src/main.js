@@ -25,6 +25,7 @@ import Dialog from '@/components/Dialog.vue';
 import Avatar from '@/components/Avatar.vue';
 import AvatarUpload from '@/components/AvatarUpload.vue';
 import Badge from '@/components/Badge.vue';
+import Table from '@/components/Table.vue';
 
 const app = createApp(App)
 app.use(router)
@@ -41,7 +42,7 @@ app.component('Dialog', Dialog)
 app.component('Avatar', Avatar)
 app.component('AvatarUpload', AvatarUpload)
 app.component('Badge', Badge)
-
+app.component('Table', Table)
 
 app.mount('#app')
 app.config.globalProperties.Utils = Utils

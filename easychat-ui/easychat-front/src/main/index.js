@@ -133,8 +133,10 @@ function createWindow() {
             windowId: 'admin',
             title:"管理后台",
             path:"/admin",
-            width:config.screenWidth,
-            height: config.screenHeight,
+            // width:config.screenWidth,
+            // height: config.screenHeight,
+            width: 1300,
+            height: 600,
             data: {
               token: config.token,
             }
