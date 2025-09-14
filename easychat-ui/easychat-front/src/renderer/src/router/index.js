@@ -36,9 +36,9 @@ const router = createRouter({
           component: () => import('@/views/admin/UserList.vue')
         }, 
         {
-          path:'/admin/beautyAccount',
-          name: '靓号管理',
-          component: () => import('@/views/admin/BeautyAccount.vue')
+          path:'/admin/blockChain',
+          name: '区块链',
+          component: () => import('@/views/admin/blockChain.vue')
         },
         {
           path: '/admin/groupList',

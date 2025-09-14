@@ -373,7 +373,7 @@ const onLoadSessionData = () => {
 }
 const onReceiveMessage = () => {
   window.ipcRenderer.on('receiveMessage', async (e, message) => {
-    // console.log('receiveMessage:', message)
+    console.log('receiveMessage:', message)
 
     if (isCiphertext(message.messageContent)) {
       //找对方用户信息

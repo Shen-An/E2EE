@@ -27,6 +27,8 @@ import AvatarUpload from '@/components/AvatarUpload.vue';
 import Badge from '@/components/Badge.vue';
 import Table from '@/components/Table.vue';
 
+import 'font-awesome/css/font-awesome.min.css';
+
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)

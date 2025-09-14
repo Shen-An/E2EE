@@ -187,6 +187,7 @@ function createWindow() {
     }
   })
 
+  
   onSetLocalStore()
   onGetLocalStore()
   onLoadSessionData()

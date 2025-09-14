@@ -2,11 +2,11 @@ import { ethers } from "ethers";
 
 // Whitechain Testnet 网络配置
 const whitechainConfig = {
-  rpcUrl: "https://rpc-testnet.whitechain.io", // 正确的绝对 URL
+  rpcUrl: "https://rpc-testnet.whitechain.io", //  URL
   chainId: 2625, // 链 ID
 };
 
-// 合约相关配置（根据实际情况替换）
+// 合约相关配置
 const contractConfig = {
   address: "0xd00b8577cd693f45310d5d5c33a818dc45142c03", // 合约地址
   abi: [

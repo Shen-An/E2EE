@@ -45,9 +45,9 @@ const menuList = ref([
     iconBgColor: '#fa9d3b'
   },
   {
-    name: '靓号管理',
+    name: '区块链',
     icon: 'icon-beauty-beauty',
-    path: '/admin/beautyAccount',
+    path: '/admin/blockChain',
     iconBgColor: '#fe90b3'
   },
   {

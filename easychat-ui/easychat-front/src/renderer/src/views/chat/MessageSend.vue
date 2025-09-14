@@ -149,7 +149,7 @@ const sendMessage = async (e) => {
   }
   e.preventDefault()
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
-  console.log('发送消息:', messageContent)
+  // console.log('发送消息:', messageContent)
   SPCEncMsg(messageContent)
   //消息加密
   // console.log(!props.currentChatSession.contactId.includes('G'))
@@ -235,9 +235,13 @@ const sendMessageDo = async (
   messageObj.sendUserId = userInfoStore.getInfo().sendUserId
   // console.log("currentChatSession33:", props.currentChatSession);
   // console.log("99"+props.currentChatSession.contactId)
+ 
+  
+  
   let resp = await proxy.Request({
     url: proxy.Api.sendMessage,
     showLoading: props.currentChatSession.contactId != 'Urobot' ? false : true,
+    
     params: {
       messageContent: messageObj.messageContent,
       contactId: props.currentChatSession.contactId,
