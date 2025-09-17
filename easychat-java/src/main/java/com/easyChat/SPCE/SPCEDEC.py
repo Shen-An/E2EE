@@ -7,6 +7,8 @@ from hashlib import sha256
 import random
 import sys
 import io
+# 动态添加D盘的site-packages路径
+sys.path.append('D:\\Anaconda\\Lib\\site-packages')
 # 设置标准输出的编码为 UTF - 8
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 

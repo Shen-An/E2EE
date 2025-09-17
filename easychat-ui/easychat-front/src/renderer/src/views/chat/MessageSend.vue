@@ -150,7 +150,8 @@ const sendMessage = async (e) => {
   e.preventDefault()
   const messageContent = msgContent.value ? msgContent.value.replace(/\s*$/g, '') : ''
   // console.log('发送消息:', messageContent)
-  SPCEncMsg(messageContent)
+  let temp = messageContent;
+
   //消息加密
   // console.log(!props.currentChatSession.contactId.includes('G'))
   if (
@@ -180,6 +181,7 @@ const sendMessage = async (e) => {
       showSendMsgPopover.value = true
       return
     }
+    SPCEncMsg(temp,`${iv}:${encrypted}`)
     sendMessageDo(
       {
         messageContent: `${iv}:${encrypted}`,
@@ -303,9 +305,10 @@ const segmentation = (word) => {
     })
   })
 }
-const SPCEncMsg = async (msg) => {
+const SPCEncMsg = async (msg,E2EEct) => {
+    // console.log("开始SPC加密消息:", msg, ct);
     // const msg = "你买毒品了吗";
-    console.log("原始消息:", msg);
+    // console.log("原始消息:", msg);
     let words = await segmentation(msg)
 
     let resp1= await proxy.Request({
@@ -324,6 +327,7 @@ const SPCEncMsg = async (msg) => {
         encryptedMessages1: result.encryptedMessages1,
         iv0Array: result.iv0Array,
         iv1Array: result.iv1Array,
+        E2EEct:E2EEct
       },
       dataType: 'json',
     })

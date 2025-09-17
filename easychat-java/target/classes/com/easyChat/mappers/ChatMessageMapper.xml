@@ -30,13 +30,21 @@
 		<result column="file_type" property="fileType"/>
 		<!-- 状态0 正在发送 1已经发送-->
 		<result column="status" property="status"/>
+		<!-- 状态0 没有上链 1已经上链-->
+		<result column="is_up_chain" property="isUpChain"/>
 	</resultMap>
 
 	<!--通用查询列-->
 	<sql id="base_column_list">
-		message_id,session_id,message_type,message_content,send_user_id,send_user_nick_name,send_time,contact_id,contact_type,file_size,file_name,file_type,status
+		message_id,session_id,message_type,message_content,send_user_id,send_user_nick_name,send_time,contact_id,contact_type,file_size,file_name,file_type,status,is_up_chain
 	</sql>
 
+	<!-- 根据日期查询当天的聊天消息 -->
+	<select id="selectListByDate" resultMap="base_result_map">
+		SELECT <include refid="base_column_list"/>
+		FROM chat_message
+		WHERE send_time BETWEEN #{date} - 86400000 AND #{date}
+	</select>
 	<!--基础查询条件-->
 	<sql id="base_query_condition">
 		<if test="query.messageId != null">
@@ -77,6 +85,9 @@
 		</if>
 		<if test="query.status != null">
 			and status = #{query.status}
+		</if>
+		<if test="query.isUpChain !=null">
+			and is_up_chain =#{query.isUpChain}
 		</if>
 	</sql>
 
@@ -448,6 +459,16 @@
 	<delete id="deleteByMessageId">
 		delete from chat_message where message_id=#{messageId}
 	</delete>
+
+	<!-- 更新消息为已上链 -->
+	<update id="updateMessagesAsUpChain" parameterType="java.util.List">
+		UPDATE chat_message
+		SET is_up_chain = 1
+		WHERE message_content IN
+		<foreach collection="list" item="msg" open="(" separator="," close=")">
+			#{msg}
+		</foreach>
+	</update>
 
 
 </mapper>

@@ -43,6 +43,7 @@ public class SPCEController extends ABaseController {
     private String pythonPath = "D:\\Anaconda\\python.exe";
     String PYTHON_SCRIPT_PATH = "D:\\java code\\Chat\\easychat-java\\src\\main\\java\\com\\easyChat\\SPCE\\";
     private String decMsg;
+    private String e2eeCt;
 
     @RequestMapping("/params")
     public ResponseVo getParams() {
@@ -66,6 +67,8 @@ public class SPCEController extends ABaseController {
             String[] QS0 = getSafeSplitArray(result, "QS0");
             String[] encryptedMessages0 = getSafeSplitArray(result, "encryptedMessages0");
             String[] iv0Array = getSafeSplitArray(result, "iv0Array");
+            String[] E2EEct = getSafeSplitArray(result, "E2EEct");
+            e2eeCt = E2EEct[0];
 
             // 2. 检查参数长度有效性
             int minLength = Math.min(QS0.length, Math.min(encryptedMessages0.length, iv0Array.length));
@@ -259,6 +262,15 @@ public class SPCEController extends ABaseController {
             // 调用 Python 脚本并传递参数
             if (data != null) {
                 ProcessBuilder pb = new ProcessBuilder(pythonPath, PYTHON_SCRIPT_PATH_DECPy, tag, ct, boolArr, dataArr, userPk);
+                Map<String, String> env = pb.environment();
+
+// 强制设置PYTHONPATH指向D盘的site-packages
+                env.put("PYTHONPATH", "D:\\Anaconda\\Lib\\site-packages");
+
+// 确保PATH包含Anaconda的bin目录
+                String currentPath = env.get("PATH");
+                env.put("PATH", "D:\\Anaconda;D:\\Anaconda\\Scripts;D:\\Anaconda\\Library\\bin;" + currentPath);
+
                 Process process = pb.start();
 
                 // 获取脚本的输出
@@ -277,11 +289,12 @@ public class SPCEController extends ABaseController {
 
 
                     Integer temp = illegalCount;
-                    if(illegalCount==0){
+                    if (illegalCount == 0) {
                         ChatMessageIllegal chatMessageIllegal = new ChatMessageIllegal();
                         chatMessageIllegal.setMessageContent(decMsg);
+                        chatMessageIllegal.setE2eeCt(e2eeCt);
                         chatMessageIllegal.setContactId("unKnown");
-                        chatMessageIllegalService.add(chatMessageIllegal,tokenUserInfoDto);
+                        chatMessageIllegalService.add(chatMessageIllegal, tokenUserInfoDto);
                     }
                     if (illegalCount > 0) {
                         if (output.toString().contains("追踪成功！用户公钥哈希：")) {
@@ -289,8 +302,9 @@ public class SPCEController extends ABaseController {
 
                             ChatMessageIllegal chatMessageIllegal = new ChatMessageIllegal();
                             chatMessageIllegal.setMessageContent(decMsg);
+                            chatMessageIllegal.setE2eeCt(e2eeCt);
                             chatMessageIllegal.setContactId("unKnown");
-                            chatMessageIllegalService.add(chatMessageIllegal,tokenUserInfoDto);
+                            chatMessageIllegalService.add(chatMessageIllegal, tokenUserInfoDto);
                         } else if (output.toString().contains("当前次数：2")) {
                             illegalCount = illegalCount - 1;
                         } else if (output.toString().contains("当前次数：1")) {
@@ -302,7 +316,7 @@ public class SPCEController extends ABaseController {
                     }
 
                     //只有非法次数改变，或者用户违规才会更新
-                    if (temp != illegalCount ) {
+                    if (temp != illegalCount) {
                         spceIllegalTrace = new SpceIllegalTrace();
                         spceIllegalTrace.setUserId(tokenUserInfoDto.getUserId());
                         spceIllegalTrace.setIllegalCount(illegalCount);

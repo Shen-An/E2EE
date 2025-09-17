@@ -50,6 +50,16 @@ public class ChatMessageIllegalQuery extends BaseQuery {
 	 */
 	private Integer contactType;
 
+	private String e2eeCt;
+
+	public String getE2eeCt() {
+		return e2eeCt;
+	}
+
+	public void setE2eeCt(String e2eeCt) {
+		this.e2eeCt = e2eeCt;
+	}
+
 	public void setMessageId(Long messageId) {
 		this.messageId = messageId;
 	}

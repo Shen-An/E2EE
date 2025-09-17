@@ -18,11 +18,13 @@
 		<result column="contact_id" property="contactId"/>
 		<!-- 联系人类型 0私聊 1群聊-->
 		<result column="contact_type" property="contactType"/>
+		<!-- 端到端加密密文-->
+		<result column="e2ee_ct" property="e2eeCt"/>
 	</resultMap>
 
 	<!--通用查询列-->
 	<sql id="base_column_list">
-		message_id,message_type,message_content,send_user_id,send_time,contact_id,contact_type
+		message_id,message_type,message_content,send_user_id,send_time,contact_id,contact_type,e2ee_ct
 	</sql>
 
 	<!--基础查询条件-->
@@ -47,6 +49,9 @@
 		</if>
 		<if test="query.contactType != null">
 			and contact_type = #{query.contactType}
+		</if>
+		<if test="query.e2eeCt != null">
+			and e2ee_ct = #{query.e2eeCt}
 		</if>
 	</sql>
 
@@ -110,6 +115,9 @@
 			<if test="bean.contactType != null">
 				contact_type,
 			</if>
+		    <if test="bean.e2eeCt != null">
+				e2ee_ct
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="bean.messageId != null">
@@ -132,6 +140,9 @@
 			</if>
 			<if test="bean.contactType != null">
 				#{bean.contactType},
+			</if>
+			<if test="bean.e2eeCt !=null">
+				#{bean.e2eeCt}
 			</if>
 		</trim>
 	</insert>
@@ -161,6 +172,9 @@
 			<if test="bean.contactType != null">
 				contact_type,
 			</if>
+			<if test="bean.e2eeCt != null">
+				e2ee_ct
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="bean.messageId != null">
@@ -184,6 +198,9 @@
 			<if test="bean.contactType != null">
 				#{bean.contactType},
 			</if>
+			<if test="bean.e2eeCt !=null">
+				#{bean.e2eeCt}
+			</if>
 		</trim>
 		on DUPLICATE key update
 		<trim prefix="" suffix="" suffixOverrides=",">
@@ -204,6 +221,9 @@
 			</if>
 			<if test="bean.contactType != null">
 				contact_type =VALUES(contact_type),
+			</if>
+			<if test="bean.e2eeCt !=null">
+				e2ee_ct = VALUES(e2ee_ct)
 			</if>
 		</trim>
 	</insert>
