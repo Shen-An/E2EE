@@ -36,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -371,5 +372,19 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         }
 
         return file;
+    }
+
+    @Override
+    public List<ChatMessage> findListByDate(Long date) {
+        return this.chatMessageMapper.selectListByDate(date);
+    }
+
+    @Override
+    public Integer markMessagesAsUpChain(List<String> msgArr) {
+        if (msgArr == null || msgArr.isEmpty()) {
+            return 0;
+        }
+        // 调用Mapper更新消息状态
+        return chatMessageMapper.updateMessagesAsUpChain(msgArr);
     }
 }

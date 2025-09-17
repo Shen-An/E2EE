@@ -57,5 +57,7 @@ const api = {
     // addIllegalMessage:'/chatMessageIllegal/addIllegalMessage',//废弃
     receiveSpceCt:'/SPCE/receiveSpceCt',//接收SPCE密文,最后使用版本
     params:'/SPCE/params',//获取SPCE参数
+    getChatMessagesByDate:"blockChain/getChatMessagesByDate",//获取区块链聊天消息
+    upchain:'/blockChain/upchain',//上链
 }
 export default api

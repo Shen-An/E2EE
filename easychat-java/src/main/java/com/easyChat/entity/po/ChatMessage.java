@@ -76,6 +76,16 @@ public class ChatMessage implements Serializable {
 	@JsonIgnore
 	private Integer status;
 
+	private Integer isUpChain;
+
+	public Integer getIsUpChain() {
+		return isUpChain;
+	}
+
+	public void setIsUpChain(Integer isUpChain) {
+		this.isUpChain = isUpChain;
+	}
+
 	public void setMessageId(Long messageId) {
 		this.messageId = messageId;
 	}

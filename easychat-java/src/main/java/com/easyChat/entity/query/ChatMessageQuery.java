@@ -86,9 +86,19 @@ public class ChatMessageQuery extends BaseQuery {
 	 */
 	private Integer status;
 
+	private Integer isUpChain;
+
 	private List<String> contactIdList;
 
 	private Long lastReceiveTime;
+
+	public Integer getIsUpChain() {
+		return isUpChain;
+	}
+
+	public void setIsUpChain(Integer isUpChain) {
+		this.isUpChain = isUpChain;
+	}
 
 	public Long getLastReceiveTime() {
 		return lastReceiveTime;

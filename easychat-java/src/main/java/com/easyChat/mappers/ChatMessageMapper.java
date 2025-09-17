@@ -2,6 +2,8 @@ package com.easyChat.mappers;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * @Description:聊天信息表Mapper
  * @author:Shen-An
@@ -24,4 +26,8 @@ public interface ChatMessageMapper<T, P> extends BaseMapper {
 	Integer deleteByMessageId(@Param("messageId") Long messageId);
 
 	Integer updateByParam(@Param("bean") T t,@Param("query")P p);
+	List<T> selectListByDate(@Param("date") Long date);
+
+	Integer updateMessagesAsUpChain(List<String> msgArr);
+
 }

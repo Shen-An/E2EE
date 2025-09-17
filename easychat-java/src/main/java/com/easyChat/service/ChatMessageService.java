@@ -66,4 +66,8 @@ public interface ChatMessageService {
 	void saveMessageFile(String userId, Long messageId, MultipartFile file,MultipartFile cover);
 
 	File downLoadFile(TokenUserInfoDto tokenUserInfoDto, Long fileId,Boolean showCover);
+
+	List<ChatMessage> findListByDate(Long date);
+
+	Integer markMessagesAsUpChain(List<String> msgArr);
 }
