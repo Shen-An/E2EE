@@ -59,5 +59,6 @@ const api = {
     params:'/SPCE/params',//获取SPCE参数
     getChatMessagesByDate:"blockChain/getChatMessagesByDate",//获取区块链聊天消息
     upchain:'/blockChain/upchain',//上链
+    selectIllegalInformation:'/admin/selectIllegalInformation',//查询非法信息
 }
 export default api

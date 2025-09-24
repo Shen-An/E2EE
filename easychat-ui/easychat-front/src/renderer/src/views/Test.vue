@@ -1,20 +1,47 @@
 <template>
   <div>
     <div class="blockchain-demo">
-      <button @click="connectWallet" :disabled="isConnecting">
+      <button @click="connectWallet" :disabled="isConnecting" class="btn primary-btn">
         {{ isConnected ? '已连接钱包' : '连接MetaMask' }}
       </button>
 
-      <div v-if="isConnected">
-        <div>钱包地址: {{ walletAddress }}</div>
-        <div>余额: {{ walletBalance }} WBT</div>
+      <div v-if="isConnected" class="wallet-info-card">
+        <p><strong>钱包地址:</strong> {{ walletAddress }}</p>
+        <p><strong>余额:</strong> {{ walletBalance }} WBT</p>
 
-        <button @click="createClosure" :disabled="isLoading">创建闭环</button>
-        <button @click="findNoClosureMsg" :disabled="isLoading">查找未闭环消息</button>
+        <div class="action-buttons">
+          <button @click="createClosure" :disabled="isLoading" class="btn success-btn">
+            创建闭环
+          </button>
+          <button @click="findNoClosureMsg" :disabled="isLoading" class="btn info-btn">
+            查找未闭环消息
+          </button>
+          <button @click="isCheat" :disabled="isLoading" class="btn info-btn">
+            {{ buttonText }}
+          </button>
+        </div>
 
-        <div v-if="statusMessage">{{ statusMessage }}</div>
-        <!-- 修改表格展示部分 -->
-        <div v-if="localChain && localChain.length > 0" class="chain-table-container">
+        <div v-if="messages.length > 0" class="messages-list">
+          <div v-for="(msg, index) in messages" :key="index" class="message-item">
+            <p><strong>ID:</strong> {{ msg.id }}</p>
+            <p><strong>时间:</strong> {{ formatDate(msg.timestamp) }}</p>
+            <p><strong>消息:</strong></p>
+            <ul>
+              <li v-for="(line, i) in msg.messages" :key="i">{{ line }}</li>
+            </ul>
+            <div class="divider"></div>
+          </div>
+        </div>
+
+
+        <p
+          v-if="statusMessage"
+          :class="['status-message', { error: statusMessage.includes('失败') }]"
+        >
+          {{ statusMessage }}
+        </p>
+
+        <div v-if="localChain && localChain.length > 0" class="chain-table-container card">
           <h3>区块链数据</h3>
           <div class="table-responsive">
             <table class="chain-table">
@@ -25,7 +52,6 @@
                   <th>工作量证明</th>
                   <th>用户地址</th>
                   <th>区块数据</th>
-                  <!-- <th>签名</th> -->
                   <th>前块哈希</th>
                 </tr>
               </thead>
@@ -36,7 +62,6 @@
                   <td class="block-proof">{{ block.proof }}</td>
                   <td class="block-user">{{ truncateAddress(block.user) }}</td>
                   <td class="block-data">{{ truncateData(block.data) }}</td>
-                  <!-- <td class="block-sign">{{ truncateHash(block.sign) }}</td> -->
                   <td class="block-prev-hash">{{ truncateHash(block.previousHash) }}</td>
                 </tr>
               </tbody>
@@ -44,30 +69,27 @@
           </div>
         </div>
       </div>
-      <div v-if="isConnected">
-        <!-- 新增：消息查看部分 -->
-        <div class="message-viewer">
-          <h3>我的闭环消息</h3>
 
-          <button @click="fetchMyMessages" :disabled="isLoadingMessages">
-            {{ isLoadingMessages ? '加载中...' : '查看我的消息' }}
-          </button>
+      <div v-if="isConnected" class="message-viewer card">
+        <h3>我的闭环消息</h3>
 
+        <button @click="fetchMyMessages" :disabled="isLoadingMessages" class="btn secondary-btn">
+          {{ isLoadingMessages ? '加载中...' : '查看我的消息' }}
+        </button>
+
+        <div v-if="messages.length > 0" class="messages-list">
           <div v-for="(msg, index) in messages" :key="index" class="message-item">
-            <div><strong>ID:</strong> {{ msg.id }}</div>
-            <div><strong>时间:</strong> {{ formatDate(msg.timestamp) }}</div>
-            <div>
-              <strong>消息:</strong>
-              <ul>
-                <li v-for="(line, i) in msg.messages" :key="i">{{ line }}</li>
-              </ul>
-            </div>
+            <p><strong>ID:</strong> {{ msg.id }}</p>
+            <p><strong>时间:</strong> {{ formatDate(msg.timestamp) }}</p>
+            <p><strong>消息:</strong></p>
+            <ul>
+              <li v-for="(line, i) in msg.messages" :key="i">{{ line }}</li>
+            </ul>
             <div class="divider"></div>
           </div>
-
-          <div v-if="messages.length === 0">
-            <p>没有找到消息</p>
-          </div>
+        </div>
+        <div v-else>
+          <p class="no-messages">没有找到消息</p>
         </div>
       </div>
     </div>
@@ -77,7 +99,7 @@
 <script setup>
 import BrowserBlockchainClosure from '@/utils/Blockchain/BlockchainClosureTool.js'
 import { ethers } from 'ethers'
-import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, nextTick, computed } from 'vue'
 const { proxy } = getCurrentInstance()
 import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
@@ -94,6 +116,42 @@ const localChain = ref(null)
 const statusMessage = ref('请连接钱包')
 
 const msgArr = []
+const status = ref(null) // null: 初始, true: 是, false: 否
+const buttonText = computed(() => {
+  if (status.value === null) return '管理员是否恶意伪造'
+  return status.value ? '是' : '否'
+})
+
+const isCheat = async () => {
+  let resp = await proxy.Request({
+    url: proxy.Api.selectIllegalInformation,
+  })
+  messages.value = await blockchainClosure.getUserMessages(walletAddress.value)
+  const result = checkAnyE2eeCtNotExist(resp, messages.value);
+  status.value = result; // 设置状态为检查结果
+// result为true表示存在至少一个e2eeCt不在消息中
+// result为false表示所有e2eeCt都在消息中
+  console.log('检查结果:', result);
+}
+// 检查是否存在任何一个e2eeCt不在消息中
+// 参数：resp - API响应对象, messages - 用户消息数组
+// 返回：如果存在至少一个e2eeCt不在消息中，返回true；否则返回false
+const checkAnyE2eeCtNotExist = (resp, messages) => {
+  for (const item of resp.data) {
+    let exists = false;
+    for (const message of messages) {
+      for (const subMessage of message.messages) {
+        if (subMessage.includes(item.e2eeCt)) {
+          exists = true;
+          break; // 找到匹配后跳出内层循环
+        }
+      }
+      if (exists) break; // 找到匹配后跳出中层循环
+    }
+    if (!exists) return true; // 如果某个e2eeCt不存在，立即返回true
+  }
+  return false; // 所有e2eeCt都存在，返回false
+};
 // 连接钱包
 const connectWallet = async () => {
   if (isConnecting.value) return
@@ -165,12 +223,28 @@ const createClosure = async () => {
 }
 
 // 刷新本地链
-const refreshLocalChain = (data) => {
+// 刷新本地链
+const refreshLocalChain = (data = []) => {
   console.log('刷新本地链数据:', data)
   localChain.value = blockchainClosure.getLocalChain()
-  for (let i = 1; i <= data.length; i++) {
-    if (i - 1 > 0) localChain.value[i].timestamp = formatTimestamp(data[i - 1].sendTime)
+
+  // 确保data是数组类型，避免undefined或非数组类型报错
+  if (!Array.isArray(data)) {
+    console.warn('数据格式错误，需要数组类型:', data)
+    return
   }
+
+  // 遍历数据并更新时间戳
+  data.forEach((item, index) => {
+    // 区块索引从1开始（假设创世区块是0）
+    const blockIndex = index + 1
+
+    // 确保区块存在且有sendTime属性
+    if (blockIndex < localChain.value.length && item.sendTime) {
+      localChain.value[blockIndex].timestamp = formatTimestamp(item.sendTime)
+      console.log(`更新区块 ${blockIndex} 时间戳为:`, localChain.value[blockIndex].timestamp)
+    }
+  })
 }
 const messages = ref([])
 const isLoadingMessages = ref(false)
@@ -291,83 +365,332 @@ const truncateHash = (hash) => {
 </script>
 
 <style scoped>
-/* 样式与之前保持一致 */
-.blockchain-demo {
-  padding: 20px;
-  font-family: Arial, sans-serif;
+/* General Body and Container Styles */
+body {
+  margin: 0;
+  background-color: #f4f7f6; /* Light gray background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
 }
 
-button {
-  padding: 8px 16px;
-  margin: 5px 10px 5px 0;
+.blockchain-demo {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Card Styling for Sections */
+.card {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Button Styles */
+.btn {
+  padding: 12px 25px;
+  margin-right: 15px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.primary-btn {
   background-color: #4a90e2;
   color: white;
-  cursor: pointer;
 }
-.chain-table-container {
-  margin-top: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 15px;
+
+.primary-btn:hover:not(:disabled) {
+  background-color: #357bd8;
+  transform: translateY(-2px);
+}
+
+.success-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.success-btn:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+}
+
+.info-btn {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.info-btn:hover:not(:disabled) {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Wallet Info Card */
+.wallet-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wallet-info-card p {
+  margin: 0;
+  font-size: 1.1em;
+  color: #555;
+}
+
+.wallet-info-card p strong {
+  color: #333;
+}
+
+.action-buttons {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Status Message */
+.status-message {
+  margin-top: 15px;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  background-color: #e6f7ff; /* Light blue for general status */
+  border: 1px solid #91d5ff;
+  color: #1890ff;
+  font-size: 0.95em;
+}
+
+.status-message.error {
+  background-color: #fff0f6; /* Light red for error status */
+  border-color: #ffadd2;
+  color: #eb2f96;
+}
+
+/* Table Styles */
+.chain-table-container h3 {
+  color: #333;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
 }
 
 .table-responsive {
   overflow-x: auto;
+  margin-top: 15px;
 }
 
 .chain-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+  border-collapse: separate; /* Use separate to allow border-radius on cells */
+  border-spacing: 0;
+  margin-top: 0; /* Remove top margin as container has padding */
+  min-width: 700px; /* Ensure table doesn't get too narrow */
 }
 
 .chain-table th,
 .chain-table td {
-  padding: 12px 15px;
+  padding: 14px 18px;
   text-align: left;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .chain-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
+  background-color: #eaf1f9; /* Lighter blue for headers */
+  font-weight: 700;
   color: #333;
   position: sticky;
   top: 0;
+  z-index: 1; /* Ensure header stays above scrolling content */
+}
+
+.chain-table thead tr:first-child th:first-child {
+  border-top-left-radius: 8px;
+}
+.chain-table thead tr:first-child th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.chain-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .chain-table tr:hover {
-  background-color: #f9fafc;
+  background-color: #f7f9fd; /* Even lighter hover effect */
 }
 
 .chain-table .block-index {
-  font-weight: 500;
-  color: #4a90e2;
+  font-weight: 600;
+  color: #2c7be5; /* Stronger blue */
 }
 
-.chain-table .block-timestamp,
+.chain-table .block-timestamp {
+  color: #666;
+  font-size: 0.95em;
+}
+
 .chain-table .block-proof {
-  color: #555;
+  color: #5cb85c; /* Greenish for proof */
+  font-family: 'Consolas', monospace;
+  font-size: 0.9em;
 }
 
 .chain-table .block-user,
 .chain-table .block-prev-hash,
 .chain-table .block-sign {
-  color: #6c757d;
-  font-family: monospace;
-  font-size: 0.9em;
+  color: #777;
+  font-family: 'Consolas', monospace;
+  font-size: 0.85em;
+  word-break: break-all; /* Ensure long hashes/addresses wrap */
 }
 
 .chain-table .block-data {
+  color: #444;
+  word-break: break-word; /* Allow long data strings to wrap */
+  max-width: 250px; /* Limit width to prevent overly wide columns */
+}
+
+/* Message Viewer Styles */
+.message-viewer {
+  margin-top: 25px;
+}
+
+.message-viewer h3 {
   color: #333;
-  word-break: break-all;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.messages-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 20px;
+}
+
+.message-item {
+  background: #fdfdfd;
+  border: 1px solid #e9e9e9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.message-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.message-item p {
+  margin: 0 0 8px 0;
+  font-size: 0.98em;
+  color: #555;
+}
+
+.message-item p strong {
+  color: #333;
+}
+
+.message-item ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin-top: 5px;
+  border-left: 3px solid #4a90e2; /* Accent border for messages list */
+  padding-left: 10px;
+}
+
+.message-item li {
+  margin-bottom: 5px;
+  color: #666;
+  font-size: 0.9em;
 }
 
 .divider {
-  border-bottom: 1px solid #eee;
-  margin: 10px 0;
+  border-bottom: 1px dashed #e0e0e0; /* Dashed divider for messages */
+  margin: 15px 0 5px 0;
+}
+
+.no-messages {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .blockchain-demo {
+    margin: 20px auto;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .btn {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .chain-table th,
+  .chain-table td {
+    padding: 10px 12px;
+  }
+
+  .chain-table {
+    min-width: unset; /* Allow table to shrink on smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .blockchain-demo {
+    padding: 15px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 10px 15px;
+  }
+
+  .chain-table th,
+  .chain-table td {
+    font-size: 0.85em;
+  }
 }
 </style>

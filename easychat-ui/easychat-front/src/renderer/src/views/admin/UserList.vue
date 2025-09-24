@@ -34,25 +34,18 @@
     </el-card>
   </div>
   <el-card class="table-data-card">
-    <Table
-      :columns="columns"
-      :fetch="loadDataList"
-      :dataSource="tableData"
-      :options="tableOptions"
-    >
-    <template #slotOperation="{index,row}">
-      <el-dropdown placement="bottom-end" trigger="click">
-        <span class="iconfont icon-more"></span>
-        <template #dropdown>
-          <el-dropdown-item @click="changeAccountStatus(row)">
-          {{
-            row.isLegal =='否'?'-' :'禁用'
-             }}</el-dropdown-item>
-        </template>
-      </el-dropdown>
-
-    </template>
-  </Table>
+    <Table :columns="columns" :fetch="loadDataList" :dataSource="tableData" :options="tableOptions">
+      <template #slotOperation="{ index, row }">
+        <el-dropdown placement="bottom-end" trigger="click">
+          <span class="iconfont icon-more"></span>
+          <template #dropdown>
+            <el-dropdown-item @click="changeAccountStatus(row)">
+              {{ row.isLegal == '否' ? '-' : '禁用' }}</el-dropdown-item
+            >
+          </template>
+        </el-dropdown>
+      </template>
+    </Table>
   </el-card>
 </template>
   
@@ -83,79 +76,49 @@ const changeAccountStatus = (data) => {
   })
 }
 
-const loadDataList = () => {
-  tableData.value = {
-    list: [
-      {
-        pkHash: '10a3128b75caf0e566fc455017fa21ca87f23417578d59200c600d66ecb6e90c',
-        isLegal: '否',
-        illegalMsg: '-',
-        illegalCount: '0',
-        email: '-'
-      },
-      {
-        pkHash: 'fsas128b75saf3342530e5645333531ca57f3175e8d590cwqe003d66ec6e80df',
-        isLegal: '否',
-        illegalMsg: '-',
-        illegalCount: '0',
-        email: '-'
-      },
-      {
-        pkHash: 't0a31285b76caf0766fc45z081791ca87k3417k347348d59f00c600dk6ef9x0c',
-        isLegal: '否',
-        illegalMsg: '-',
-        illegalCount: '1',
-        email: '-'
-      },
-      {
-        pkHash: 'g0a31285b76sff076vfct5z081g1carg7bk34v7k347u4w59f0wc60f6wwwj9x0c',
-        isLegal: '否',
-        illegalMsg: '-',
-        illegalCount: '0',
-        email: '-'
-      },
-      {
-        pkHash: '10a3128b75caf0e566fc455017fa21ca87f23417578d59200c600d66ecb6e90c',
-        isLegal: '是',
-        illegalMsg: '买粉吗',
-        illegalCount: '3',
-        email: '1@qq.com'
-      }
-    ],
-    // 添加分页相关字段，匹配表格组件的预期
-    totalCount: 5, // 总记录数
-    pageSize: 10, // 每页大小
-    pageNo: 1 // 当前页码
+const loadDataList = async () => {
+  let resp = await proxy.Request({
+    url: proxy.Api.selectIllegalInformation
+  })
+  if (!resp) {
+    return
   }
+  for(let data of resp.data) {
+    // 格式化时间戳
+    data.sendTime = formatTimestamp(data.sendTime)
+    console.log(data.e2eeCt)
+    data.e2eeCt = data.e2eeCt.replace(':', '');
+  }
+  console.log(resp)
+  tableData.value.list = resp.data
+
+  tableData.value.totalCount = resp.data.length
+  tableData.value.pageSize = 10
+  tableData.value.pageNo = 1
 }
 
 const columns = [
   {
-    label: '邮箱',
-    prop: 'email',
-    width: 200
+    label: '发送者Id',
+    prop: 'sendUserId',
+    width: 150
   },
   {
-    label: '身份标识',
-    prop: 'pkHash',
-    width: 200
-  },
-  {
-    label: '是否违规',
-    prop: 'isLegal',
-    width: 200
-  },
-  {
-    label: '违规次数',
-    prop: 'illegalCount',
-    width: 200
-  },
-  {
-    label: '违规信息',
-    prop: 'illegalMsg',
-    width: 200
+    label: '发送时间',
+    prop: 'sendTime',
+    width: 170
   },
 
+  {
+    label: '违规内容',
+    prop: 'messageContent',
+    width: 180
+  },
+  {
+    label: '违规E2EE密文',
+    prop: 'e2eeCt',
+    width: 535
+  },
   {
     label: '操作',
     prop: 'operation',
@@ -163,6 +126,54 @@ const columns = [
     scopedSlots: 'slotOperation'
   }
 ]
+// 格式化时间戳函数（支持毫秒级时间戳和ISO格式字符串）
+const formatTimestamp = (timestamp) => {
+  try {
+    let date
+
+    // 处理毫秒级时间戳（数字类型或字符串类型的数字）
+    if (
+      typeof timestamp === 'number' ||
+      (typeof timestamp === 'string' && /^\d+$/.test(timestamp))
+    ) {
+      date = new Date(Number(timestamp))
+    }
+    // 处理ISO格式日期字符串（如 "2025-06-25T05:54:19.309Z"）
+    else if (typeof timestamp === 'string') {
+      // 尝试解析ISO格式
+      date = new Date(timestamp)
+      // 检查解析是否有效
+      if (isNaN(date.getTime())) {
+        // 尝试作为普通字符串解析
+        date = new Date(Date.parse(timestamp))
+      }
+    } else {
+      throw new Error('不支持的时间戳类型')
+    }
+
+    // 优化日期显示格式（年-月-日 时:分:秒 时区）
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+
+    // 获取时区偏移并格式化为 ±HH:MM
+    const offset = date.getTimezoneOffset()
+    const offsetHours = Math.abs(Math.floor(offset / 60))
+    const offsetMinutes = Math.abs(offset % 60)
+    const timezone =
+      offset <= 0
+        ? `+${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`
+        : `-${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} `
+  } catch (e) {
+    console.error('时间戳解析失败:', timestamp, e)
+    return timestamp || '未知时间'
+  }
+}
 
 const searchForm = ref({})
 </script>
