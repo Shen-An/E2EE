@@ -21,7 +21,7 @@ import { deriveAESKey } from './AES'
 import { execute, readDataFromFile } from './SPCGSwTT/UserKey'
 import { computeHash } from './SPCGSwTT/computeHash'
 import { exeComputeCommitScript, exeEncScript } from './SPCGSwTT/execPythonScript'
-
+import { KZG, generatePolynomial } from './SPCGSwTT/lagrange'
 const { load, cut } = require('@node-rs/jieba');
 
 load();
@@ -330,7 +330,7 @@ const getUserPk = () => {
     })
 }
 
-const segmentation = ()=>{
+const segmentation = () => {
     ipcMain.on("segmentation", async (e, data) => {
         let res = cut(data, false);
 
@@ -340,6 +340,30 @@ const segmentation = ()=>{
         e.sender.send("segmentationCallback", filteredRes);
     })
 
+}
+const userDir = 'D:'
+const saveDir = userDir + "\\.easyChat\\fileStorage\\keys\\"//保存密钥的目录
+const generateRandomLagrange = () => {
+    ipcMain.on("generateRandomLagrangeWithKZGZK", async (e, data) => {
+        //1.生成多项式   
+        const originalCoefficients = generatePolynomial(2);
+        const kzg = new KZG();
+        // 2. 生成多项式承诺
+        const commitment = kzg.commit(originalCoefficients);
+        // 6. 使用KZG进行零知识证明
+        console.log('\n=== KZG零知识证明验证 ===');
+        const z = new Decimal(Math.random()).mul(1000).toFixed(0); // 随机生成一个z值
+        const y = f0_original;
+
+        // 生成证明
+        const proof = kzg.prove(originalCoefficients, z);
+        console.log('已生成证明');
+
+        // 验证证明
+        const isValid = kzg.verify(commitment, z, y, proof);
+        console.log(`证明验证结果: ${isValid ? '有效' : '无效'}`);
+        e.sender.send("generateRandomLagrangeWithKZGZKCallback", { commitment, proof, y, z, isValid });
+    })
 }
 
 export {
@@ -372,5 +396,7 @@ export {
     computeCommit,
     getUserPk,
     segmentation,
-    openWindow
+    openWindow,
+    generateRandomLagrange,
+
 }

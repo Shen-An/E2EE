@@ -26,6 +26,7 @@ import {
   getUserPk,
   segmentation,
   openWindow,
+  generateRandomLagrange,
 
 } from './ipc'
 import { saveWidnow } from './windowProxy'
@@ -214,6 +215,7 @@ function createWindow() {
   computeCommit()
   getUserPk()
   segmentation()
+  generateRandomLagrange()
 }
 
 // This method will be called when Electron has finished

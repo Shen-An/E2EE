@@ -359,13 +359,13 @@ class KZG {
        
        // 6. 使用KZG进行零知识证明
        console.log('\n=== KZG零知识证明验证 ===');
-       const z = new Decimal(1);
-       const y = calculateY(originalCoefficients, z);
+       const z = new Decimal(0);
+       const y = f0_original;
        
        // 生成证明
        const proof = kzg.prove(originalCoefficients, z);
        console.log('已生成证明');
-       console.log(commitment);
+       
        // 验证证明
        const isValid = kzg.verify(commitment, z, y, proof);
        console.log(`证明验证结果: ${isValid ? '有效' : '无效'}`);
@@ -384,12 +384,12 @@ class KZG {
    }
    }
 
-// 运行主程序
-if (require.main === module) {5
-    main();
-}
+// // 运行主程序
+// if (require.main === module) {5
+//     main();
+// }
 
-module.exports = {
+export {
     generatePolynomial,
     calculateY,
     calculateF0,

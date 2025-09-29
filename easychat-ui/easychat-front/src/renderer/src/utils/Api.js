@@ -60,5 +60,7 @@ const api = {
     getChatMessagesByDate:"blockChain/getChatMessagesByDate",//获取区块链聊天消息
     upchain:'/blockChain/upchain',//上链
     selectIllegalInformation:'/admin/selectIllegalInformation',//查询非法信息
+  
+    checkKZG:'/SPCESwTT/checkKZG',//验证KZG证明
 }
 export default api

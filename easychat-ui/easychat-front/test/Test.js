@@ -12,7 +12,6 @@ function generateAllElements(generator, modulus) {
         element = (element * generator) % modulus;
         exponent++;
     }
-    
     // 转换为数组并排序
     return Array.from(elements).sort((a, b) => a - b);
 }
