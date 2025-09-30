@@ -212,7 +212,22 @@ const submit = async () => {
 
     //创建SPCE_UserKey,如果是空的，就创建
     window.ipcRenderer.send('genUserKey')
-  
+    //拿lagrange
+    window.ipcRenderer.send('generateRandomLagrangeWithKZGZK')
+    window.ipcRenderer.on('generateRandomLagrangeWithKZGZKCallback', (e, data) => {
+      console.log('lagrange:', data)
+        let resp = proxy.Request({
+          url: proxy.Api.checkKZG,
+          params: {
+            isValid: data.isValid
+          }
+        })
+        if(!resp) {
+          return
+        }
+    })
+
+    
   } else {
     //注册成功后，创建edch keys，用于E2EE加密
     let pk = await generateKeys()

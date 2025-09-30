@@ -1,0 +1,28 @@
+# ---- 构建产物 ----
+target/
+dist/
+out/
+build/
+*.class
+
+# ---- 依赖 ----
+node_modules/
+
+# ---- 日志 ----
+logs/
+*.log
+log.path_IS_UNDEFINED/
+
+# ---- 本地环境 ----
+.env
+.env.local
+*.local
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---- 运行时数据 ----
+*.db-journal

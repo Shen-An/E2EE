@@ -117,7 +117,7 @@ const columns = [
   {
     label: '违规E2EE密文',
     prop: 'e2eeCt',
-    width: 535
+    width: 540
   },
   {
     label: '操作',
